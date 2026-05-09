@@ -411,6 +411,31 @@ func TestCommentCreateDryRunJSON(t *testing.T) {
 	}
 }
 
+func TestCommentCreateWithFileDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"comment", "create", "--project", "p1", "--task", "t1", "--text", "Looks good", "--file", "probe.png", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "comment create" {
+		t.Fatalf("command = %v, want comment create", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	requestPayload := data["payload"].(map[string]any)
+	files := requestPayload["files"].([]any)
+	if len(files) != 1 || files[0].(map[string]any)["name"] != "probe.png" {
+		t.Fatalf("files = %#v", files)
+	}
+	upload := requestPayload["upload"].(map[string]any)
+	if upload["field"] != "file" {
+		t.Fatalf("upload = %#v", upload)
+	}
+}
+
 func TestCommentDeleteRequiresYesJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"comment", "delete", "--project", "p1", "--task", "t1", "--comment", "c1", "--json"}, "test-version", &stdout, &stderr)

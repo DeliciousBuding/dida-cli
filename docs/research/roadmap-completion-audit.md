@@ -112,7 +112,7 @@ Remaining:
 1. OpenAPI developer app redirect URL configured to match local callback.
 2. Successful OpenAPI OAuth approval to save an access token.
 3. Pro account or trace for task activity detail.
-4. Disposable files/tasks/projects for attachment and write-flow smoke tests.
+4. Disposable files/tasks/projects for task-level attachment and write-flow smoke tests.
 5. Disposable targets for Official MCP write smoke.
 
 ## Next Best Actions
@@ -122,6 +122,6 @@ Remaining:
 2. Live-smoke `dida openapi project list --json` after OAuth token persistence.
 3. Live-smoke remaining Official MCP read filters with narrow queries, then
    writes only with disposable targets.
-4. Capture or test the Web API attachment upload flow with disposable data.
+4. Capture task-level Web API attachment download/preview and association flows.
 5. Keep `docs/api-coverage.md`, `docs/research/*`, schema, skill, and README
    synchronized with every new command.

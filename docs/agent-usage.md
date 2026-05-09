@@ -90,11 +90,14 @@ Use comment commands for task discussion. Preview comment writes, and require `-
 
 ```bash
 dida comment create --project <project-id> --task <task-id> --text "Example" --dry-run --json
+dida comment create --project <project-id> --task <task-id> --text "Example" --file ./image.png --dry-run --json
 dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text "Updated" --dry-run --json
 dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
 ```
 
-Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
+For comment attachments, use the real project id from `dida agent context
+--json`, not the logical `inbox` alias. Preview with `--dry-run` first. Task-level
+attachment download/preview and task attachment mutation are not exposed yet.
 
 Use `dida sync checkpoint <checkpoint> --json` when an agent needs deletions, order deltas, or reminder deltas; those live under `data.deltas`.
 

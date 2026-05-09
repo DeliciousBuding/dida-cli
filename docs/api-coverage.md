@@ -30,6 +30,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Filters | sync payload `filters` | `filter list` | Stable read | Unit sync-view test and live read |
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
 | Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke; live empty-list read on 2026-05-10 |
+| Comment attachment upload | `POST /api/v1/attachment/upload/comment/{projectId}/{taskId}` plus comment `attachments` body | `comment create --file <path>` | Stable comment attachment create | Reversible live probe on 2026-05-10 confirmed multipart field `file`, PNG upload response keys, comment create attach payload, read-back, and cleanup; unit tests cover multipart request shape and dry-run discovery |
 | Attachment quota | `GET /api/v1/attachment/isUnderQuota`, `GET /api/v1/attachment/dailyLimit` | `attachment quota` | Stable read | Unit endpoint test and live read on 2026-05-10 |
 | Daily reminder preferences | `GET /user/preferences/dailyReminder` | `reminder daily` | Stable read | Unit endpoint test and live read |
 | Sharing contacts | `GET /share/shareContacts`, `GET /project/share/recentProjectUsers` | `share contacts`, `share recent-users` | Stable read | Unit endpoint test and live read |
@@ -56,9 +57,9 @@ These surfaces are visible in payloads or product behavior but do not yet have v
 
 - Column update/delete/order: exact `/batch/columnProject` endpoint is visible in the webapp bundle, but add/update/delete/order body shapes and rollback behavior are not verified.
 - Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API. Use `GET /column/project/{projectId}` instead.
-- Attachments/media upload: comment attachment paths and create payload shape are partially mapped in `docs/research/webapi-attachment-flow-notes.md`, but upload multipart fields, task-level attachment association, and cleanup behavior are not verified.
+- Attachments/media upload: comment attachment upload and association are exposed through `comment create --file <path>`; task-level attachment association, download/preview semantics, accepted file matrix, and uploaded-but-not-attached cleanup behavior are not verified.
 - Task activity: the webapp bundle maps detail reads to legacy v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId`; 2026-05-10 raw CLI probes returned HTTP 500 with `errorCode=need_pro` for no query, `skip=0`, and `skip=0&lastId=`, so response shape and pagination still need a Pro account or browser trace.
-- Comment attachments: comment CRUD is mapped, but multipart upload and attachment body flow are not exposed yet.
+- Comment attachments: multipart upload and attachment body flow are exposed through `comment create --file <path>`.
 - Collaboration/team permission writes: read-only share metadata is mapped, but invite creation/deletion and user permission changes are not exposed until multi-user behavior and rollback paths are mapped.
 - Filter writes: `/batch/filter` is visible in the webapp bundle, but create/update/delete payloads are not mapped.
 - Arbitrary raw writes: intentionally unavailable for safety. Add a first-class command and tests instead.

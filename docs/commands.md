@@ -218,12 +218,18 @@ Column list is backed by `GET /column/project/{projectId}`. Column create is bac
 dida comment list --project <project-id> --task <task-id> --json
 dida comment create --project <project-id> --task <task-id> --text "Looks good" --dry-run --json
 dida comment create --project <project-id> --task <task-id> --text "Looks good" --json
+dida comment create --project <project-id> --task <task-id> --text "See attachment" --file ./probe.png --dry-run --json
+dida comment create --project <project-id> --task <task-id> --text "See attachment" --file ./probe.png --json
 dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text "Updated" --dry-run --json
 dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --dry-run --json
 dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
 ```
 
-Comment attachments are intentionally not exposed until the multipart upload and attach flow is verified.
+Comment attachment create is verified for the Web API v1 multipart field `file`.
+Use the real project id from `dida agent context --json`, not the logical
+`inbox` alias. Task-level attachment download/preview and task attachment
+mutation remain intentionally unexposed until separately verified. The CLI
+checks `dida attachment quota --json` before uploading files.
 
 ## Filters
 

@@ -17,12 +17,13 @@ payload dumps, or local browser exports here.
 | Project writes | `POST /batch/project` | working | Used by project CRUD with confirmation for delete. |
 | Folder writes | `POST /batch/projectGroup` | working | Used by folder CRUD. |
 | Tag writes | `POST /batch/tag`, `PUT /tag/rename`, `PUT /tag/merge`, `DELETE /tag` | working with quirks | Merge may leave the source tag object present. |
-| Comments | comment list/create/update/delete paths | working | Attachment fields are not exposed yet. A 2026-05-10 live read against an existing task returned an empty comment list with the expected envelope. |
+| Comments | comment list/create/update/delete paths | working | A 2026-05-10 live read against an existing task returned an empty comment list with the expected envelope. |
 | Completed history | `GET /project/all/completed` | working | Date-only inputs caused server errors; full datetime strings work. |
 | Closed history | `GET /project/{projectIds|all}/closed` | working | Uses full datetime strings and status filters. |
 | Trash pagination | `GET /project/all/trash/page?from={cursor}` | working | Live-smoked on 2026-05-10. First page returns `next=20`; `from=20` returns the next page and `next=40`. `type=task` returned HTTP 500 and should not be sent. |
 | Search | Web indexed search endpoint | working | Compact mode avoids large content blobs by default. |
-| Attachment quota | legacy v1 attachment quota endpoints | working | 2026-05-10 live read returned `underQuota=true` and a numeric daily limit. Upload flow still unmapped. |
+| Attachment quota | legacy v1 attachment quota endpoints | working | 2026-05-10 live read returned `underQuota=true` and a numeric daily limit. |
+| Comment attachment upload | `POST /api/v1/attachment/upload/comment/{projectId}/{taskId}` | working | 2026-05-10 reversible live probe confirmed multipart field `file`, successful PNG response keys, comment `attachments: [{id}]`, read-back through `comment list`, and cleanup. |
 
 ## Failed Or Incomplete Probes
 
@@ -34,7 +35,7 @@ payload dumps, or local browser exports here.
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |
 | Column project batch | `POST /batch/columnProject` | visible but not mapped | Update/delete/reorder bodies unknown. | Capture real kanban column edit/delete/reorder traffic. |
 | Filter batch | `POST /batch/filter` | visible but not mapped | Create/update/delete bodies unknown. | Capture real filter edit traffic. |
-| Attachment upload | multipart/upload chain | not mapped | Requires multi-step upload and association flow. | Capture upload, attach, and download/reference requests. |
+| Task attachment upload/download | task-level multipart/download chain | not mapped | Comment attachment create is mapped, but task-level attachment association and download/preview are separate flows. | Capture task attach, download, preview, and orphan cleanup behavior. |
 | Collaboration writes | invite and permission mutation paths | not mapped | Multi-user side effects and rollback unclear. | Trace with disposable project/user setup. |
 
 ## Implementation Rule

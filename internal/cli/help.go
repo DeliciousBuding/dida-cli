@@ -419,11 +419,13 @@ func printCommentHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida comment list --project <project-id> --task <task-id> [--json]
-  dida comment create --project <project-id> --task <task-id> --text <text> [--dry-run] [--json]
+  dida comment create --project <project-id> --task <task-id> --text <text> [--file <path>] [--dry-run] [--json]
   dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text <text> [--dry-run] [--json]
   dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes [--dry-run] [--json]
 
-Comment attachments are not exposed until the multipart upload flow is verified.
+--file uploads a verified comment attachment through the Web API v1 multipart
+field named "file", then creates the comment with the returned attachment id.
+Use the real project id, not the logical inbox alias.
 `))
 }
 

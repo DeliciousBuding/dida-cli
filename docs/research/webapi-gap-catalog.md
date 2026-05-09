@@ -96,10 +96,16 @@ Known status:
 
 - quota reads are implemented
 - 2026-05-10 live `attachment quota` returned a valid quota envelope
-- comment attachment paths and create payload shape are partially mapped in
+- comment attachment paths and create payload shape are mapped in
   [webapi-attachment-flow-notes.md](webapi-attachment-flow-notes.md)
-- upload multipart field names, response shape, task-level association, and
-  cleanup behavior still need evidence
+- 2026-05-10 reversible live probe confirmed comment attachment upload with
+  multipart field `file`, successful PNG upload response keys, attachment id
+  read-back through `comment list`, and cleanup by deleting the disposable
+  comment/task
+- logical `projectId=inbox` is not valid for upload; use the real inbox/list id
+  from `dida agent context --json`
+- task-level association, download/preview semantics, accepted file matrix, and
+  uploaded-but-not-attached cleanup behavior still need evidence
 
 ### Collaboration Writes
 
@@ -145,7 +151,7 @@ If the goal is to keep deepening the Web API channel, the most valuable next
 targets are:
 
 1. task activity detail
-2. attachments and comment attachments
+2. task-level attachments and attachment download/preview
 3. columnProject update/delete/order
 4. filter writes
 5. collaboration writes

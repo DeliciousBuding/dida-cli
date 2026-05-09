@@ -144,6 +144,7 @@ Use comment commands for task discussion. Preview writes before execution:
 ```bash
 dida comment list --project <project-id> --task <task-id> --json
 dida comment create --project <project-id> --task <task-id> --text "Example" --dry-run --json
+dida comment create --project <project-id> --task <task-id> --text "Example" --file ./image.png --dry-run --json
 dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text "Updated" --dry-run --json
 dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --dry-run --json
 ```
@@ -154,7 +155,11 @@ Deletes require explicit confirmation:
 dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
 ```
 
-Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
+For comment attachments, use the real project id from `dida agent context
+--json`, not the logical `inbox` alias. Always preview generated writes with
+`--dry-run` before uploading local files. Task-level attachment download/preview
+and task attachment mutation are not exposed yet. If upload fails, check
+`dida attachment quota --json`.
 
 ## Official MCP And OpenAPI
 

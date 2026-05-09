@@ -109,6 +109,7 @@ to the required millisecond range.
 | `POST` | `/project/{projectId}/task/{taskId}/comment` | Create task comment |
 | `PUT` | `/project/{projectId}/task/{taskId}/comment/{commentId}` | Update task comment |
 | `DELETE` | `/project/{projectId}/task/{taskId}/comment/{commentId}` | Delete task comment |
+| `POST` | `/api/v1/attachment/upload/comment/{projectId}/{taskId}` | Upload a comment attachment with multipart field `file` |
 
 Task operation shapes:
 
@@ -143,7 +144,18 @@ Comment operation shape:
 {"id":"...","createdTime":"YYYY-MM-DDTHH:mm:ss.000+0000","taskId":"...","projectId":"...","title":"comment text","userProfile":{"isMyself":true},"mentions":[],"isNew":true}
 ```
 
-The webapp client generates `id`, `createdTime`, `taskId`, `projectId`, `userProfile`, empty `mentions`, and `isNew` before sending a create request. The bundle also shows optional reply and attachment fields, but DidaCLI only exposes plain text comments until the attachment upload flow is verified.
+The webapp client generates `id`, `createdTime`, `taskId`, `projectId`, `userProfile`, empty `mentions`, and `isNew` before sending a create request.
+DidaCLI also supports verified comment attachment creation:
+
+```bash
+dida comment create --project <real-project-id> --task <task-id> --text "See attachment" --file ./probe.png --dry-run --json
+```
+
+The CLI uploads each file to the v1 comment attachment endpoint with multipart
+field `file`, then sends `attachments: [{"id":"<uploaded attachment id>"}]` in
+the comment create body. Use the real project id from `dida agent context
+--json`; the logical `inbox` alias is not accepted by the upload endpoint. The
+CLI checks the Web API attachment quota endpoints before uploading.
 
 Task relationship shapes:
 
