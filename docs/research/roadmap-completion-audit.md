@@ -35,8 +35,9 @@ Not complete:
 - Task activity detail is blocked by `need_pro` on the current account.
 - Comment attachment upload/create is implemented through
   `comment create --file <path>` after reversible live evidence. Task-level
-  attachment association, download/preview, and orphan cleanup are still only
-  partially mapped.
+  upload plus render/download path shapes are bundle-mapped, but task-level
+  association/persistence, file limits, and orphan cleanup still need a
+  reversible trace.
 - Filter writes, column update/delete/order, and collaboration writes still
   need real request-body evidence and rollback plans.
 
@@ -73,6 +74,9 @@ Implemented and documented:
 - OpenAPI guide and notes under `docs/research/`.
 - Saved client config plus `openapi auth-url` were verified on 2026-05-10
   without recording secrets or local paths.
+- `openapi login --browser` now validates loopback callback URLs, honors local
+  `--redirect-uri`, and fails fast with one JSON error when callback setup is
+  invalid.
 
 Not complete:
 
@@ -123,8 +127,8 @@ Remaining:
 
 ## Next Best Actions
 
-1. Run `dida openapi client set --id <client-id> --secret-stdin --json`
-   locally, then complete `dida openapi login --json`.
+1. Configure the developer app redirect URL, then complete
+   `dida openapi login --browser --json`.
 2. Live-smoke `dida openapi project list --json` after OAuth token persistence.
 3. Live-smoke remaining Official MCP read filters with narrow queries, then
    writes only with disposable targets.
