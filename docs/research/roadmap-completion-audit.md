@@ -4,6 +4,9 @@ This audit maps the active DidaCLI objective to concrete repository evidence.
 It is intentionally conservative: if a surface lacks live verification, it is
 not considered complete.
 
+For the detailed prompt-to-artifact checklist, see
+`docs/research/prompt-to-artifact-checklist.md`.
+
 ## Objective Criteria
 
 | Criterion | Evidence | Status |
