@@ -2,6 +2,8 @@
 
 DidaCLI uses the Dida365 Web API because it exposes a broader account surface than the public Open API. The integration is intended for the operator's own account and should be treated as private API compatibility work.
 
+For command-by-command implementation status, see [api-coverage.md](api-coverage.md).
+
 ## Base
 
 ```text

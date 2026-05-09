@@ -235,7 +235,7 @@ DidaCLI currently uses:
 - `DELETE /tag?name=...`
 - `POST /column`
 
-Private Web API behavior can change. See [docs/web-api.md](docs/web-api.md) and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for implementation notes.
+Private Web API behavior can change. See [docs/web-api.md](docs/web-api.md), [docs/api-coverage.md](docs/api-coverage.md), and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for implementation notes.
 
 `sync checkpoint` exposes both normalized view data and raw-compatible delta sections so agents can see task deletes, order changes, and reminder changes.
 
