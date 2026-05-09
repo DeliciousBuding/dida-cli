@@ -305,8 +305,8 @@ func parseTaskListFlags(args []string) (string, int, bool, error) {
 				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
 			var parsed int
-			if _, err := fmt.Sscanf(args[i+1], "%d", &parsed); err != nil {
-				return "", 0, false, fmt.Errorf("--limit must be an integer")
+			if _, err := fmt.Sscanf(args[i+1], "%d", &parsed); err != nil || parsed < 0 {
+				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
 			limit = parsed
 			i++

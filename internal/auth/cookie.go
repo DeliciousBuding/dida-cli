@@ -88,6 +88,9 @@ func ClearCookieToken() error {
 	if err := os.Remove(CookiePath()); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("remove cookie token: %w", err)
 	}
+	if err := ClearBrowserLoginProfile(); err != nil {
+		return err
+	}
 	return nil
 }
 

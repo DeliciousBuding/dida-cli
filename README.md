@@ -89,6 +89,10 @@ dida auth cookie set --token-stdin
 dida auth status --verify --json
 ```
 
+Passing cookie values as command arguments is disabled by default because it can
+leak secrets into shell history and process listings. Use `--token-stdin` for
+normal operation.
+
 ## Commands
 
 ### Read Commands
@@ -103,7 +107,7 @@ dida sync all --json
 dida sync checkpoint <checkpoint> --json
 dida settings get --json
 dida project list --json
-dida project tasks <project-id> --compact --json
+dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json
 dida tag list --json

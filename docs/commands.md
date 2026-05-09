@@ -15,6 +15,8 @@ dida auth logout --json
 ```
 
 Credentials are stored in `~/.dida-cli/`. Full cookie values are never printed.
+Cookie import through `--token` is disabled by default; use `--token-stdin` so
+the cookie does not enter shell history.
 
 ## Schema
 
@@ -47,7 +49,7 @@ task text, checklist, reminder, and raw fields are needed.
 
 ```bash
 dida project list --json
-dida project tasks <project-id> --compact --json
+dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json
 dida tag list --json

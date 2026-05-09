@@ -10,6 +10,8 @@ import (
 	"runtime"
 	"strconv"
 	"time"
+
+	"github.com/DeliciousBuding/dida-cli/internal/config"
 )
 
 type BrowserLoginResult struct {
@@ -23,7 +25,7 @@ func CaptureCookieWithBrowser(ctx context.Context, timeout time.Duration) (*Brow
 	if err != nil {
 		return nil, err
 	}
-	profileDir := filepath.Join(DefaultBrowserProfileDir(), "dida-web-login")
+	profileDir := BrowserLoginProfileDir()
 	if err := os.MkdirAll(profileDir, 0o700); err != nil {
 		return nil, fmt.Errorf("create browser profile dir: %w", err)
 	}
@@ -46,11 +48,35 @@ func CaptureCookieWithBrowser(ctx context.Context, timeout time.Duration) (*Brow
 }
 
 func DefaultBrowserProfileDir() string {
+	if value := os.Getenv("DIDA_BROWSER_PROFILE_DIR"); value != "" {
+		return value
+	}
+	return filepath.Join(config.DefaultDir(), "browser")
+}
+
+func legacyBrowserProfileDir() string {
 	base, err := os.UserConfigDir()
 	if err != nil || base == "" {
 		base = os.TempDir()
 	}
 	return filepath.Join(base, "dida-cli", "browser")
+}
+
+func BrowserLoginProfileDir() string {
+	return filepath.Join(DefaultBrowserProfileDir(), "dida-web-login")
+}
+
+func ClearBrowserLoginProfile() error {
+	if err := os.RemoveAll(BrowserLoginProfileDir()); err != nil {
+		return fmt.Errorf("remove browser login profile: %w", err)
+	}
+	legacy := filepath.Join(legacyBrowserProfileDir(), "dida-web-login")
+	if legacy != BrowserLoginProfileDir() {
+		if err := os.RemoveAll(legacy); err != nil {
+			return fmt.Errorf("remove legacy browser login profile: %w", err)
+		}
+	}
+	return nil
 }
 
 func findPython() (string, error) {

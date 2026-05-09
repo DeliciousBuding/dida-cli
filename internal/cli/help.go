@@ -49,7 +49,7 @@ Usage:
   dida auth status --verify [--json]
   dida auth logout [--json]
   dida auth cookie set --token-stdin
-  dida auth cookie set --token <token>
+  DIDA_ALLOW_TOKEN_ARG=1 dida auth cookie set --token <token>
 `))
 }
 
@@ -81,7 +81,7 @@ func printAuthCookieHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida auth cookie set --token-stdin
-  dida auth cookie set --token <token>
+  DIDA_ALLOW_TOKEN_ARG=1 dida auth cookie set --token <token>
 
 Prefer --token-stdin to avoid shell history.
 `))
@@ -119,7 +119,7 @@ Usage:
   dida project create --name <name> [--group <folder-id>] [--dry-run] [--json]
   dida project update <project-id> [--name <name>] [--group <folder-id>] [--dry-run] [--json]
   dida project delete <project-id> --yes [--dry-run] [--json]
-  dida project tasks <project-id> [--compact] [--json]
+  dida project tasks <project-id> [--limit N] [--compact] [--json]
   dida project columns <project-id> [--json]
 `))
 }

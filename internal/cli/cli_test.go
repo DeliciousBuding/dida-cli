@@ -63,6 +63,38 @@ func TestAuthLoginJSON(t *testing.T) {
 	}
 }
 
+func TestAuthCookieTokenArgRejectedByDefault(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"auth", "cookie", "set", "--token", "secret-token", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	text := stdout.String()
+	if strings.Contains(text, "secret-token") {
+		t.Fatalf("json error leaked token: %s", text)
+	}
+	if !strings.Contains(text, "--token-stdin") {
+		t.Fatalf("stdout missing stdin hint: %s", text)
+	}
+}
+
+func TestAuthCookieTokenArgAllowedWithOptIn(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA_ALLOW_TOKEN_ARG", "1")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"auth", "cookie", "set", "--token", "abc123", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if strings.Contains(stdout.String(), "abc123") {
+		t.Fatalf("json output leaked token: %s", stdout.String())
+	}
+}
+
 func TestShortcutTodayPreservesFlags(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
@@ -72,6 +104,36 @@ func TestShortcutTodayPreservesFlags(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), `"command": "task list"`) {
 		t.Fatalf("stdout missing task list envelope: %s", stdout.String())
+	}
+}
+
+func TestTaskListRejectsNegativeLimit(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "list", "--limit", "-1", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+}
+
+func TestProjectTasksArgsLimit(t *testing.T) {
+	projectID, limit, compact, err := parseProjectTasksArgs([]string{"p1", "--limit", "2", "--compact"})
+	if err != nil {
+		t.Fatalf("parseProjectTasksArgs() error = %v", err)
+	}
+	if projectID != "p1" || limit != 2 || !compact {
+		t.Fatalf("projectID=%q limit=%d compact=%v", projectID, limit, compact)
+	}
+	_, _, _, err = parseProjectTasksArgs([]string{"p1", "--limit", "-1"})
+	if err == nil {
+		t.Fatalf("parseProjectTasksArgs() error = nil, want error")
 	}
 }
 

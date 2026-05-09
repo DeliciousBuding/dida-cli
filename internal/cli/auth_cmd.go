@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/auth"
@@ -175,7 +176,13 @@ func parseTokenInput(args []string) (string, error) {
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--token":
+			if os.Getenv("DIDA_ALLOW_TOKEN_ARG") != "1" {
+				return "", fmt.Errorf("--token is disabled by default because it can leak cookies into shell history; use --token-stdin or set DIDA_ALLOW_TOKEN_ARG=1 for a one-off local test")
+			}
 			if i+1 >= len(args) {
+				return "", fmt.Errorf("--token requires a value")
+			}
+			if strings.TrimSpace(args[i+1]) == "" {
 				return "", fmt.Errorf("--token requires a value")
 			}
 			return args[i+1], nil

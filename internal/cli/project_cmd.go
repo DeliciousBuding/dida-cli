@@ -25,11 +25,11 @@ func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	case "delete":
 		return runProjectDelete(args[1:], jsonOut, stdout, stderr)
 	case "tasks":
-		projectID, compact, err := parseProjectTasksArgs(args[1:])
+		projectID, limit, compact, err := parseProjectTasksArgs(args[1:])
 		if err != nil {
 			return failTyped("project tasks", "validation", err.Error(), "run: dida project --help", jsonOut, stdout, stderr)
 		}
-		return runProjectTasks(projectID, compact, jsonOut, stdout, stderr)
+		return runProjectTasks(projectID, limit, compact, jsonOut, stdout, stderr)
 	case "columns":
 		if len(args) != 2 {
 			return failTyped("project columns", "validation", "usage: dida project columns <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
@@ -55,7 +55,7 @@ func runProjectList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	return 0
 }
 
-func runProjectTasks(projectID string, compact bool, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+func runProjectTasks(projectID string, limit int, compact bool, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
 		return client.ProjectTasks(ctx, projectID)
 	})
@@ -71,34 +71,45 @@ func runProjectTasks(projectID string, compact bool, jsonOut bool, stdout io.Wri
 	}
 	tasks := model.NormalizeTasks(rawTasks, projectNames, time.Now())
 	tasks = model.ActiveTasks(tasks)
+	total := len(tasks)
+	tasks = limitTasks(tasks, limit)
 	data := map[string]any{"projectId": projectID, "compact": compact, "tasks": taskOutput(tasks, compact)}
-	meta := map[string]any{"count": len(tasks), "source": "project_tasks_endpoint"}
+	meta := map[string]any{"count": len(tasks), "total": total, "limit": limit, "source": "project_tasks_endpoint"}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "project tasks", Meta: meta, Data: data})
 	}
-	printTasks(stdout, tasks, len(tasks))
+	printTasks(stdout, tasks, total)
 	return 0
 }
 
-func parseProjectTasksArgs(args []string) (string, bool, error) {
+func parseProjectTasksArgs(args []string) (string, int, bool, error) {
 	projectID := ""
+	limit := 50
 	compact := false
-	for _, arg := range args {
-		switch arg {
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
 		case "--compact", "--brief":
 			compact = true
+		case "--limit":
+			if i+1 >= len(args) {
+				return "", 0, false, fmt.Errorf("--limit requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
+			}
+			i++
 		default:
 			if projectID == "" {
-				projectID = arg
+				projectID = args[i]
 				continue
 			}
-			return "", false, fmt.Errorf("unknown flag %q", arg)
+			return "", 0, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
 	if projectID == "" {
-		return "", false, fmt.Errorf("usage: dida project tasks <project-id> [--compact]")
+		return "", 0, false, fmt.Errorf("usage: dida project tasks <project-id> [--limit N] [--compact]")
 	}
-	return projectID, compact, nil
+	return projectID, limit, compact, nil
 }
 
 func runProjectColumns(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {

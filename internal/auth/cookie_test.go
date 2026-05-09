@@ -1,6 +1,10 @@
 package auth
 
-import "testing"
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
 
 func TestRedactToken(t *testing.T) {
 	tests := []struct {
@@ -52,5 +56,32 @@ func TestNormalizeCookieToken(t *testing.T) {
 				t.Fatalf("NormalizeCookieToken() = %q, want %q", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestClearCookieTokenRemovesBrowserProfile(t *testing.T) {
+	configDir := t.TempDir()
+	browserDir := filepath.Join(t.TempDir(), "browser")
+	t.Setenv("DIDA_CONFIG_DIR", configDir)
+	t.Setenv("DIDA_BROWSER_PROFILE_DIR", browserDir)
+
+	if _, err := SaveCookieToken("abc123"); err != nil {
+		t.Fatalf("SaveCookieToken() error = %v", err)
+	}
+	profileFile := filepath.Join(BrowserLoginProfileDir(), "session.txt")
+	if err := os.MkdirAll(filepath.Dir(profileFile), 0o700); err != nil {
+		t.Fatalf("MkdirAll() error = %v", err)
+	}
+	if err := os.WriteFile(profileFile, []byte("cookie cache"), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+	if err := ClearCookieToken(); err != nil {
+		t.Fatalf("ClearCookieToken() error = %v", err)
+	}
+	if _, err := os.Stat(CookiePath()); !os.IsNotExist(err) {
+		t.Fatalf("cookie path still exists or unexpected error: %v", err)
+	}
+	if _, err := os.Stat(BrowserLoginProfileDir()); !os.IsNotExist(err) {
+		t.Fatalf("browser profile still exists or unexpected error: %v", err)
 	}
 }
