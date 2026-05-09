@@ -13,7 +13,7 @@ For the detailed prompt-to-artifact checklist, see
 | --- | --- | --- |
 | Three explicit channels: Web API, official MCP, official OpenAPI | `README.md`, `docs/commands.md`, `docs/research/api-channel-inventory.md` | Implemented |
 | Agent-first JSON command surface | `schema list/show`, `agent context`, stable JSON envelope tests in `internal/cli/cli_test.go` | Implemented |
-| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.1.9` | Implemented and smoke-tested |
+| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.1.10` | Implemented and smoke-tested |
 | Root cleanliness | Current root contains only project-level directories/files; generated data stays ignored under `bin/`, `tmp/`, `data/` | Ongoing rule |
 | Secrets kept out of repo | Sensitive scans during changes; auth docs use env/stdin/placeholders | Ongoing rule |
 
@@ -84,11 +84,11 @@ Not complete:
 
 Implemented:
 
-- `v0.1.9` release exists.
+- `v0.1.10` release exists.
 - Release workflow builds Windows, Linux, and macOS assets on amd64/arm64.
 - `checksums.txt` is attached.
-- Windows installer latest smoke passed against `v0.1.9`.
-- WSL Linux installer latest smoke passed against `v0.1.9`.
+- Windows installer latest smoke passed against `v0.1.10`.
+- WSL Linux installer latest smoke passed against `v0.1.10`.
 - Linux/amd64 `install.sh` smoke passed against `v0.1.4` under WSL.
 - Installed `v0.1.4` binary smoke passed for `version`,
   `schema show openapi.clientSet`, and `openapi client set/status/clear`.
@@ -98,14 +98,14 @@ Implemented:
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as `bin/dida-bin`.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
-  pinned to `v0.1.9` release assets and checksums.
+  pinned to `v0.1.10` release assets and checksums.
 - winget submission notes exist under `packaging/winget/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
 
 Remaining:
 
-- macOS installer smoke should be repeated for `v0.1.9` on a native macOS host.
+- macOS installer smoke should be repeated for `v0.1.10` on a native macOS host.
 - Homebrew and Scoop templates are not yet published to external package
   repositories.
 - winget manifest generation and submission remain deferred until release
