@@ -1,0 +1,40 @@
+# OpenAPI Live Validation Log
+
+This log tracks the official OAuth OpenAPI channel. It must not contain OAuth
+client secrets, access tokens, refresh tokens, local secret paths, or full
+private response payloads.
+
+## Auth Model
+
+- Authorization endpoint: `https://dida365.com/oauth/authorize`
+- Token endpoint: `https://dida365.com/oauth/token`
+- API base: `https://api.dida365.com/open/v1`
+- Required API request header: `Authorization: Bearer <oauth_access_token>`
+
+The OpenAPI channel does not accept the official MCP `dp_...` token and does
+not accept the OAuth client secret as a bearer token.
+
+## Validation Events
+
+| Check | Result | Evidence | Next action |
+| --- | --- | --- | --- |
+| Generate authorization URL | passed | `openapi auth-url` builds the expected OAuth URL. | Complete browser approval. |
+| Developer client authentication | passed | Token endpoint returned an OAuth `invalid_grant` response for an intentionally invalid code, which confirms the client-auth path reaches the OAuth server. | Exchange a real callback code. |
+| Direct bearer with non-OAuth credential | failed as expected | `/open/v1/...` returned `401 invalid_token` and OAuth bearer challenge. | Do not use non-OAuth credentials as access tokens. |
+| Interactive login command | implemented, not fully live-verified | CLI has `openapi login` with callback listener and token exchange. | Run full browser authorization. |
+| Project list | implemented, not fully live-verified | `openapi project list` exists. | Run after token persistence succeeds. |
+| Task endpoint family | documented only | Official docs define task CRUD, complete, move, completed, and filter endpoints. | Implement after OAuth project list succeeds. |
+| Focus endpoint family | documented only | Official docs define focus get/list/delete. | Implement after OAuth project list succeeds. |
+| Habit endpoint family | documented only | Official docs define habit CRUD and check-ins. | Implement after OAuth project list succeeds. |
+
+## Safe Live Test Plan
+
+1. Run `dida openapi doctor --json`.
+2. Run `dida openapi login --json` and complete browser approval.
+3. Confirm `dida openapi status --json` reports a saved access token without
+   printing token material.
+4. Run `dida openapi project list --json`.
+5. Only after project list succeeds, implement and test read-only OpenAPI
+   `project get/data`, `focus list`, and `habit list`.
+6. Test write commands only on disposable tasks, projects, habits, or focus
+   records with a clear cleanup action.

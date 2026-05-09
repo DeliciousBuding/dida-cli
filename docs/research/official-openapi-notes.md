@@ -13,13 +13,8 @@ This note records the current findings for the official dida365 OpenAPI channel.
 
 ## Result
 
-The provided token:
-
-```text
-85r59DpD7RmUiStIJ7z7610cDbFlHXv5
-```
-
-was rejected by the official OpenAPI with:
+A non-OAuth credential from the developer app settings was intentionally tested
+as a bearer token and rejected by the official OpenAPI with:
 
 ```text
 401 invalid_token

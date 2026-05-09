@@ -32,6 +32,8 @@ As of the current main branch:
   - `official tools`
   - `official show`
   - `official call`
+  - first-class habit wrappers
+  - first-class focus wrappers
 - `official openapi` has:
   - OAuth foundation
   - auth URL generation
@@ -278,6 +280,9 @@ Maintain and evolve:
 
 ### E3. Missing Docs To Add
 
+Added and now maintained:
+
+- `docs/research/README.md`
 - `docs/research/official-channel-validation-matrix.md`
 - `docs/research/official-mcp-wrapping-policy.md`
 - `docs/research/webapi-probe-log.md`
@@ -333,10 +338,10 @@ If another agent takes over, the best sequence is:
 Top five next tasks:
 
 1. Finish and live-verify `openapi login`
-2. Add official MCP first-class wrappers for habit and focus
+2. Live-smoke official MCP habit and focus wrappers where a safe target exists
 3. Capture a successful Web API task activity request
 4. Decode trash pagination semantics
-5. Add official validation matrix docs
+5. Add official MCP project wrappers
 
 ## Done Means Done
 
