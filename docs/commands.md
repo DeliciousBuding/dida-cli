@@ -66,6 +66,8 @@ dida openapi doctor --json
 dida openapi auth-url --json
 dida openapi exchange-code --code <code> --json
 dida openapi project list --json
+dida openapi project get <project-id> --json
+dida openapi project data <project-id> --json
 dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json

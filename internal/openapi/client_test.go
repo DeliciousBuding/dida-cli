@@ -30,3 +30,43 @@ func TestProjectsUsesExpectedEndpoint(t *testing.T) {
 		t.Fatalf("projects len = %d, want 1", len(projects))
 	}
 }
+
+func TestProjectUsesExpectedEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "GET /project/p1" {
+			t.Fatalf("request = %s, want GET /project/p1", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"id": "p1"})
+	}))
+	defer server.Close()
+
+	client := NewClient("access-token")
+	client.BaseURL = server.URL
+	project, err := client.Project(context.Background(), "p1")
+	if err != nil {
+		t.Fatalf("Project() error = %v", err)
+	}
+	if project["id"] != "p1" {
+		t.Fatalf("project = %#v", project)
+	}
+}
+
+func TestProjectDataUsesExpectedEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "GET /project/inbox/data" {
+			t.Fatalf("request = %s, want GET /project/inbox/data", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"tasks": []any{}})
+	}))
+	defer server.Close()
+
+	client := NewClient("access-token")
+	client.BaseURL = server.URL
+	data, err := client.ProjectData(context.Background(), "inbox")
+	if err != nil {
+		t.Fatalf("ProjectData() error = %v", err)
+	}
+	if _, ok := data["tasks"]; !ok {
+		t.Fatalf("data = %#v", data)
+	}
+}

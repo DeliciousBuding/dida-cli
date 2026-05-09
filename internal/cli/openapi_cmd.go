@@ -235,27 +235,57 @@ func runOpenAPIListenCallback(args []string, jsonOut bool, stdout io.Writer, std
 }
 
 func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] != "list" {
-		return failTyped("openapi project", "validation", "usage: dida openapi project list", "run: dida openapi --help", jsonOut, stdout, stderr)
+	if len(args) == 0 {
+		return failTyped("openapi project", "validation", "usage: dida openapi project list|get|data", "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
 	token, err := openapi.LoadToken()
 	if err != nil {
-		return failTyped("openapi project list", "auth", err.Error(), "run: dida openapi auth-url and dida openapi exchange-code first", jsonOut, stdout, stderr)
+		return failTyped("openapi project "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
 	}
 	client := openapi.NewClient(token.AccessToken)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	projects, err := client.Projects(ctx)
-	if err != nil {
-		return failTyped("openapi project list", "api", err.Error(), "", jsonOut, stdout, stderr)
+
+	switch args[0] {
+	case "list":
+		projects, err := client.Projects(ctx)
+		if err != nil {
+			return failTyped("openapi project list", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		meta := map[string]any{"count": len(projects)}
+		data := map[string]any{"projects": projects}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project list", Meta: meta, Data: data})
+		}
+		printMapList(stdout, projects, "openapi projects")
+		return 0
+	case "get":
+		if len(args) != 2 {
+			return failTyped("openapi project get", "validation", "usage: dida openapi project get <project-id>", "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		project, err := client.Project(ctx, args[1])
+		if err != nil {
+			return failTyped("openapi project get", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project get", Data: map[string]any{"project": project}})
+		}
+		return writeJSON(stdout, project)
+	case "data":
+		if len(args) != 2 {
+			return failTyped("openapi project data", "validation", "usage: dida openapi project data <project-id>", "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		data, err := client.ProjectData(ctx, args[1])
+		if err != nil {
+			return failTyped("openapi project data", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project data", Data: data})
+		}
+		return writeJSON(stdout, data)
+	default:
+		return failTyped("openapi project", "validation", fmt.Sprintf("unknown openapi project command %q", args[0]), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
-	meta := map[string]any{"count": len(projects)}
-	data := map[string]any{"projects": projects}
-	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "openapi project list", Meta: meta, Data: data})
-	}
-	printMapList(stdout, projects, "openapi projects")
-	return 0
 }
 
 func parseOpenAPIAuthURLFlags(args []string) (string, string, string, error) {

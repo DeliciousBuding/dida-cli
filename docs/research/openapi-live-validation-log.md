@@ -23,6 +23,7 @@ not accept the OAuth client secret as a bearer token.
 | Direct bearer with non-OAuth credential | failed as expected | `/open/v1/...` returned `401 invalid_token` and OAuth bearer challenge. | Do not use non-OAuth credentials as access tokens. |
 | Interactive login command | implemented, not fully live-verified | CLI has `openapi login` with callback listener and token exchange. | Run full browser authorization. |
 | Project list | implemented, not fully live-verified | `openapi project list` exists. | Run after token persistence succeeds. |
+| Project get/data | implemented, not fully live-verified | `openapi project get` and `openapi project data` exist. | Run after project list succeeds. |
 | Task endpoint family | documented only | Official docs define task CRUD, complete, move, completed, and filter endpoints. | Implement after OAuth project list succeeds. |
 | Focus endpoint family | documented only | Official docs define focus get/list/delete. | Implement after OAuth project list succeeds. |
 | Habit endpoint family | documented only | Official docs define habit CRUD and check-ins. | Implement after OAuth project list succeeds. |

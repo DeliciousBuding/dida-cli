@@ -49,7 +49,7 @@ They are intentionally not interchangeable.
 | Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | implemented | Invalid-code test confirmed client authentication path; real code still needed. |
 | Interactive login | OAuth URL + listener + token exchange | `openapi login` | implemented | Needs full live OAuth approval and persisted token verification. |
 | Project list | `GET /open/v1/project` | `openapi project list` | implemented | Requires saved OAuth access token for final live smoke. |
-| Project get/data | `GET /open/v1/project/{id}`, `/data` | none | documented | Should follow after OAuth is live. |
+| Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | implemented | Requires saved OAuth access token for final live smoke. |
 | Task CRUD | `/open/v1/task...` | none | documented | Implement after OAuth read path is verified. |
 | Focus | `/open/v1/focus...` | none | documented | Implement after OAuth read path is verified. |
 | Habit | `/open/v1/habit...` | none | documented | Implement after OAuth read path is verified. |

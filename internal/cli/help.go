@@ -93,6 +93,8 @@ Usage:
   dida openapi listen-callback [--host HOST] [--port PORT] [--json]
   dida openapi exchange-code --code CODE [--redirect-uri URL] [--scope SCOPES] [--json]
   dida openapi project list [--json]
+  dida openapi project get <project-id> [--json]
+  dida openapi project data <project-id> [--json]
 
 These commands use the official OAuth-based OpenAPI channel.
 They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.

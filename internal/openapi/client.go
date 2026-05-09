@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -67,6 +68,22 @@ func (c *Client) Do(ctx context.Context, method string, path string, body io.Rea
 func (c *Client) Projects(ctx context.Context) ([]map[string]any, error) {
 	var out []map[string]any
 	if err := c.Do(ctx, http.MethodGet, "/project", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) Project(ctx context.Context, projectID string) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/project/"+url.PathEscape(projectID), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) ProjectData(ctx context.Context, projectID string) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/project/"+url.PathEscape(projectID)+"/data", nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
