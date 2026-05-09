@@ -2,25 +2,36 @@ package webapi
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
+	"net/url"
+	"strconv"
 )
 
 type SyncPayload struct {
 	InboxID       string           `json:"inboxId,omitempty"`
+	CheckPoint    int64            `json:"checkPoint,omitempty"`
 	Tasks         []map[string]any `json:"tasks,omitempty"`
 	Projects      []map[string]any `json:"projects,omitempty"`
 	ProjectGroups []map[string]any `json:"projectGroups,omitempty"`
 	Tags          []map[string]any `json:"tags,omitempty"`
+	Checks        []map[string]any `json:"checks,omitempty"`
+	Filters       []map[string]any `json:"filters,omitempty"`
 	Raw           map[string]any   `json:"-"`
 }
 
 func (c *Client) FullSync(ctx context.Context) (*SyncPayload, error) {
+	return c.SyncSince(ctx, 0)
+}
+
+func (c *Client) SyncSince(ctx context.Context, checkpoint int64) (*SyncPayload, error) {
 	var raw map[string]any
-	if err := c.Do(ctx, http.MethodGet, "/batch/check/0", nil, &raw); err != nil {
+	if err := c.Do(ctx, http.MethodGet, "/batch/check/"+strconv.FormatInt(checkpoint, 10), nil, &raw); err != nil {
 		return nil, err
 	}
 	payload := &SyncPayload{Raw: raw}
 	payload.InboxID, _ = raw["inboxId"].(string)
+	payload.CheckPoint = int64ish(raw["checkPoint"])
 	payload.Tasks = firstObjectSlice(raw, "tasks")
 	if len(payload.Tasks) == 0 {
 		payload.Tasks = append(payload.Tasks, nestedObjectSlice(raw, "syncTaskBean", "add")...)
@@ -29,7 +40,39 @@ func (c *Client) FullSync(ctx context.Context) (*SyncPayload, error) {
 	payload.Projects = firstObjectSlice(raw, "projects", "projectProfiles")
 	payload.ProjectGroups = objectSlice(raw["projectGroups"])
 	payload.Tags = objectSlice(raw["tags"])
+	payload.Checks = objectSlice(raw["checks"])
+	payload.Filters = objectSlice(raw["filters"])
 	return payload, nil
+}
+
+func (c *Client) Settings(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/user/preferences/settings", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CompletedTasks(ctx context.Context, from string, to string, limit int) ([]map[string]any, error) {
+	values := url.Values{}
+	if from != "" {
+		values.Set("from", from)
+	}
+	if to != "" {
+		values.Set("to", to)
+	}
+	if limit > 0 {
+		values.Set("limit", strconv.Itoa(limit))
+	}
+	path := "/project/all/completed"
+	if encoded := values.Encode(); encoded != "" {
+		path += "?" + encoded
+	}
+	var out []map[string]any
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func firstObjectSlice(item map[string]any, keys ...string) []map[string]any {
@@ -61,4 +104,20 @@ func objectSlice(value any) []map[string]any {
 		}
 	}
 	return out
+}
+
+func int64ish(value any) int64 {
+	switch typed := value.(type) {
+	case int:
+		return int64(typed)
+	case int64:
+		return typed
+	case float64:
+		return int64(typed)
+	case json.Number:
+		n, _ := typed.Int64()
+		return n
+	default:
+		return 0
+	}
 }

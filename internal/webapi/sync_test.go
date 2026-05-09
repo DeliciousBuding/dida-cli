@@ -46,3 +46,34 @@ func TestFullSyncSupportsBatchCheckShape(t *testing.T) {
 		t.Fatalf("tasks len = %d, want 2", len(payload.Tasks))
 	}
 }
+
+func TestCompletedTasksBuildsWebQuery(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/project/all/completed" {
+			t.Fatalf("path = %s, want /project/all/completed", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("from"); got != "2026-05-09 00:00:00" {
+			t.Fatalf("from = %q", got)
+		}
+		if got := r.URL.Query().Get("to"); got != "2026-05-09 23:59:59" {
+			t.Fatalf("to = %q", got)
+		}
+		if got := r.URL.Query().Get("limit"); got != "100" {
+			t.Fatalf("limit = %q", got)
+		}
+		_ = json.NewEncoder(w).Encode([]map[string]any{
+			{"id": "t1", "projectId": "p1", "title": "Done", "status": 2},
+		})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	tasks, err := client.CompletedTasks(context.Background(), "2026-05-09 00:00:00", "2026-05-09 23:59:59", 100)
+	if err != nil {
+		t.Fatalf("CompletedTasks() error = %v", err)
+	}
+	if len(tasks) != 1 {
+		t.Fatalf("tasks len = %d, want 1", len(tasks))
+	}
+}

@@ -104,13 +104,20 @@ dida auth cookie set
 dida auth logout
 dida auth oauth start
 dida sync all [--json]
+dida sync checkpoint <checkpoint> [--json]
+dida settings get [--json]
 dida project list [--json]
 dida project columns <project-id> [--json]
 dida project tasks <project-id> [--json]
 dida tag list [--json]
-dida completed list [--from YYYY-MM-DD --to YYYY-MM-DD] [--json]
+dida completed today [--json]
+dida completed yesterday [--json]
+dida completed week [--json]
+dida completed list [--from YYYY-MM-DD --to YYYY-MM-DD] [--limit N] [--json]
 dida task today [--json]
 dida task get <task-id> [--json]
+dida task search --query <text> [--limit N] [--json]
+dida task upcoming --days N [--limit N] [--json]
 dida task create --project <id> --title <title> [--dry-run]
 dida task update <task-id> --project <id> [--title ...] [--due ...] [--dry-run]
 dida task complete <task-id> --project <id> [--dry-run]
@@ -156,11 +163,17 @@ Implemented:
 - `dida auth cookie set --token-stdin`
 - `dida auth logout`
 - `dida sync all [--json]`
+- `dida sync checkpoint <checkpoint> [--json]`
+- `dida settings get [--json]`
 - `dida project list [--json]`
 - `dida project tasks <project-id> [--json]`
 - `dida project columns <project-id> [--json]`
+- `dida completed today|yesterday|week [--json]`
+- `dida completed list [--from YYYY-MM-DD --to YYYY-MM-DD --limit N] [--json]`
 - `dida task list --filter today|all [--limit N] [--json]`
 - `dida task get <task-id> [--json]`
+- `dida task search --query <text> [--limit N] [--json]`
+- `dida task upcoming --days N [--limit N] [--json]`
 - `dida task today [--limit N] [--json]`
 - `dida +today [--limit N] [--json]`
 - `dida raw get <path> [--json]`
@@ -174,9 +187,12 @@ Recommended read-only flow:
 ```bash
 dida doctor --json
 dida auth status --verify --json
+dida settings get --json
 dida project list --json
 dida project tasks <project-id> --json
 dida +today --json
+dida task upcoming --days 14 --json
+dida completed today --json
 dida task list --filter all --limit 50 --json
 ```
 

@@ -18,19 +18,23 @@ type Project struct {
 }
 
 type Task struct {
-	ID          string `json:"id"`
-	ProjectID   string `json:"projectId"`
-	ProjectName string `json:"projectName,omitempty"`
-	Title       string `json:"title"`
-	Content     string `json:"content,omitempty"`
-	DueDate     string `json:"dueDate,omitempty"`
-	DueUnix     int64  `json:"dueUnix,omitempty"`
-	Priority    int    `json:"priority"`
-	Status      int    `json:"status"`
-	Deleted     int    `json:"deleted"`
-	ColumnID    string `json:"columnId,omitempty"`
-	Overdue     bool   `json:"overdue,omitempty"`
-	Raw         any    `json:"raw,omitempty"`
+	ID            string `json:"id"`
+	ProjectID     string `json:"projectId"`
+	ProjectName   string `json:"projectName,omitempty"`
+	Title         string `json:"title"`
+	Content       string `json:"content,omitempty"`
+	DueDate       string `json:"dueDate,omitempty"`
+	DueUnix       int64  `json:"dueUnix,omitempty"`
+	StartDate     string `json:"startDate,omitempty"`
+	StartUnix     int64  `json:"startUnix,omitempty"`
+	CompletedAt   string `json:"completedTime,omitempty"`
+	CompletedUnix int64  `json:"completedUnix,omitempty"`
+	Priority      int    `json:"priority"`
+	Status        int    `json:"status"`
+	Deleted       int    `json:"deleted"`
+	ColumnID      string `json:"columnId,omitempty"`
+	Overdue       bool   `json:"overdue,omitempty"`
+	Raw           any    `json:"raw,omitempty"`
 }
 
 type Column struct {
@@ -107,6 +111,10 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 		projectID := str(item["projectId"])
 		due := str(item["dueDate"])
 		dueTime, dueOK := ParseDidaTime(due)
+		start := str(item["startDate"])
+		startTime, startOK := ParseDidaTime(start)
+		completed := str(item["completedTime"])
+		completedTime, completedOK := ParseDidaTime(completed)
 		task := Task{
 			ID:          id,
 			ProjectID:   projectID,
@@ -114,6 +122,8 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 			Title:       title,
 			Content:     str(item["content"]),
 			DueDate:     due,
+			StartDate:   start,
+			CompletedAt: completed,
 			Priority:    intish(item["priority"]),
 			Status:      intish(item["status"]),
 			Deleted:     intish(item["deleted"]),
@@ -123,6 +133,12 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 		if dueOK {
 			task.DueUnix = dueTime.Unix()
 			task.Overdue = dueTime.Before(now)
+		}
+		if startOK {
+			task.StartUnix = startTime.Unix()
+		}
+		if completedOK {
+			task.CompletedUnix = completedTime.Unix()
 		}
 		out = append(out, task)
 	}
@@ -142,6 +158,40 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 		}
 		return strings.ToLower(a.Title) < strings.ToLower(b.Title)
 	})
+	return out
+}
+
+func SearchTasks(tasks []Task, query string) []Task {
+	query = strings.ToLower(strings.TrimSpace(query))
+	if query == "" {
+		return nil
+	}
+	out := make([]Task, 0)
+	for _, task := range tasks {
+		if strings.Contains(strings.ToLower(task.Title), query) ||
+			strings.Contains(strings.ToLower(task.Content), query) ||
+			strings.Contains(strings.ToLower(task.ProjectName), query) {
+			out = append(out, task)
+		}
+	}
+	return out
+}
+
+func UpcomingTasks(tasks []Task, now time.Time, days int) []Task {
+	if days <= 0 {
+		days = 7
+	}
+	end := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, int(time.Second-time.Nanosecond), now.Location()).AddDate(0, 0, days)
+	out := make([]Task, 0)
+	for _, task := range ActiveTasks(tasks) {
+		if task.DueUnix == 0 {
+			continue
+		}
+		due := time.Unix(task.DueUnix, 0).In(now.Location())
+		if !due.Before(now) && !due.After(end) {
+			out = append(out, task)
+		}
+	}
 	return out
 }
 

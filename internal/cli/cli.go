@@ -53,6 +53,10 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 		return runAuth(args[1:], jsonOut, stdout, stderr)
 	case "sync":
 		return runSync(args[1:], jsonOut, stdout, stderr)
+	case "settings":
+		return runSettings(args[1:], jsonOut, stdout, stderr)
+	case "completed":
+		return runCompleted(args[1:], jsonOut, stdout, stderr)
 	case "raw":
 		return runRaw(args[1:], jsonOut, stdout, stderr)
 	case "project":
@@ -297,6 +301,16 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		printSyncHelp(stdout)
 		return 0
 	}
+	if args[0] == "checkpoint" {
+		if len(args) != 2 {
+			return failTyped("sync checkpoint", "validation", "usage: dida sync checkpoint <checkpoint>", "run: dida sync --help", jsonOut, stdout, stderr)
+		}
+		var checkpoint int64
+		if _, err := fmt.Sscanf(args[1], "%d", &checkpoint); err != nil || checkpoint < 0 {
+			return failTyped("sync checkpoint", "validation", "checkpoint must be a non-negative integer", "run: dida sync all --json to get latest checkpoint", jsonOut, stdout, stderr)
+		}
+		return runSyncCheckpoint(checkpoint, jsonOut, stdout, stderr)
+	}
 	if args[0] != "all" {
 		return fail("sync", fmt.Sprintf("unknown sync command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -311,14 +325,127 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return fail("sync all", err.Error(), jsonOut, stdout, stderr)
 	}
 	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now())
+	meta := map[string]any{"checkpoint": payload.CheckPoint}
 	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "sync all", Data: data})
+		return writeJSON(stdout, envelope{OK: true, Command: "sync all", Meta: meta, Data: data})
 	}
 	fmt.Fprintln(stdout, "Sync complete")
 	fmt.Fprintf(stdout, "Tasks: %d\n", data.Counts["tasks"])
 	fmt.Fprintf(stdout, "Projects: %d\n", data.Counts["projects"])
 	fmt.Fprintf(stdout, "Project groups: %d\n", data.Counts["projectGroups"])
 	fmt.Fprintf(stdout, "Tags: %d\n", data.Counts["tags"])
+	return 0
+}
+
+func runSyncCheckpoint(checkpoint int64, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	token, err := auth.LoadCookieToken()
+	if err != nil {
+		return missingAuth("sync checkpoint", jsonOut, stdout, stderr)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	payload, err := webapi.NewClient(token.Token).SyncSince(ctx, checkpoint)
+	if err != nil {
+		return fail("sync checkpoint", err.Error(), jsonOut, stdout, stderr)
+	}
+	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now())
+	meta := map[string]any{
+		"requestedCheckpoint": checkpoint,
+		"checkpoint":          payload.CheckPoint,
+		"checks":              len(payload.Checks),
+		"filters":             len(payload.Filters),
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "sync checkpoint", Meta: meta, Data: data})
+	}
+	fmt.Fprintf(stdout, "Checkpoint: %d\n", payload.CheckPoint)
+	fmt.Fprintf(stdout, "Tasks: %d\n", data.Counts["tasks"])
+	fmt.Fprintf(stdout, "Projects: %d\n", data.Counts["projects"])
+	return 0
+}
+
+func runSettings(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printSettingsHelp(stdout)
+		return 0
+	}
+	if args[0] != "get" {
+		return fail("settings", fmt.Sprintf("unknown settings command %q", args[0]), jsonOut, stdout, stderr)
+	}
+	token, err := auth.LoadCookieToken()
+	if err != nil {
+		return missingAuth("settings get", jsonOut, stdout, stderr)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	settings, err := webapi.NewClient(token.Token).Settings(ctx)
+	if err != nil {
+		return fail("settings get", err.Error(), jsonOut, stdout, stderr)
+	}
+	data := map[string]any{
+		"settings": settings,
+	}
+	meta := map[string]any{
+		"count":    len(settings),
+		"timeZone": settings["timeZone"],
+		"locale":   settings["locale"],
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "settings get", Meta: meta, Data: data})
+	}
+	fmt.Fprintf(stdout, "Settings: %d keys\n", len(settings))
+	fmt.Fprintf(stdout, "Timezone: %v\n", settings["timeZone"])
+	fmt.Fprintf(stdout, "Locale: %v\n", settings["locale"])
+	return 0
+}
+
+func runCompleted(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printCompletedHelp(stdout)
+		return 0
+	}
+	now := time.Now()
+	limit := 100
+	var from, to time.Time
+	command := "completed " + args[0]
+	switch args[0] {
+	case "today":
+		from, to = dayRange(now)
+	case "yesterday":
+		from, to = dayRange(now.AddDate(0, 0, -1))
+	case "week":
+		start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location()).AddDate(0, 0, -int(now.Weekday()))
+		from = start
+		to = start.AddDate(0, 0, 7).Add(-time.Second)
+	case "list":
+		parsedFrom, parsedTo, parsedLimit, err := parseCompletedListFlags(args[1:], now)
+		if err != nil {
+			return failTyped("completed list", "validation", err.Error(), "run: dida completed --help", jsonOut, stdout, stderr)
+		}
+		from, to, limit = parsedFrom, parsedTo, parsedLimit
+	default:
+		return fail("completed", fmt.Sprintf("unknown completed command %q", args[0]), jsonOut, stdout, stderr)
+	}
+	tasks, err := loadCompletedTasks(from, to, limit)
+	if err != nil {
+		return failTyped(command, "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	view, _ := loadSyncView()
+	projectNames := map[string]string{}
+	for _, project := range view.Projects {
+		projectNames[project.ID] = project.Name
+	}
+	normalized := model.NormalizeTasks(tasks, projectNames, now)
+	data := map[string]any{
+		"from":  formatDidaQueryTime(from),
+		"to":    formatDidaQueryTime(to),
+		"tasks": stripTaskRaw(normalized),
+	}
+	meta := map[string]any{"count": len(normalized), "limit": limit}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: command, Meta: meta, Data: data})
+	}
+	printTasks(stdout, normalized, len(normalized))
 	return 0
 }
 
@@ -408,6 +535,10 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runTaskList(append([]string{"list", "--filter", "today"}, args[1:]...), jsonOut, stdout, stderr)
 	case "list":
 		return runTaskList(args, jsonOut, stdout, stderr)
+	case "search":
+		return runTaskSearch(args[1:], jsonOut, stdout, stderr)
+	case "upcoming":
+		return runTaskUpcoming(args[1:], jsonOut, stdout, stderr)
 	case "get":
 		if len(args) != 2 {
 			return failTyped("task get", "validation", "usage: dida task get <task-id>", "run: dida task --help", jsonOut, stdout, stderr)
@@ -452,6 +583,52 @@ func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: command, Meta: meta, Data: data})
+	}
+	printTasks(stdout, tasks, total)
+	return 0
+}
+
+func runTaskSearch(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	query, limit, err := parseSearchFlags(args)
+	if err != nil {
+		return failTyped("task search", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
+	}
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("task search", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	tasks := model.SearchTasks(model.ActiveTasks(view.Tasks), query)
+	total := len(tasks)
+	if limit > 0 && len(tasks) > limit {
+		tasks = tasks[:limit]
+	}
+	data := map[string]any{"query": query, "tasks": stripTaskRaw(tasks)}
+	meta := map[string]any{"count": len(tasks), "total": total}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "task search", Meta: meta, Data: data})
+	}
+	printTasks(stdout, tasks, total)
+	return 0
+}
+
+func runTaskUpcoming(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	days, limit, err := parseUpcomingFlags(args)
+	if err != nil {
+		return failTyped("task upcoming", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
+	}
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("task upcoming", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	tasks := model.UpcomingTasks(view.Tasks, time.Now(), days)
+	total := len(tasks)
+	if limit > 0 && len(tasks) > limit {
+		tasks = tasks[:limit]
+	}
+	data := map[string]any{"days": days, "tasks": stripTaskRaw(tasks)}
+	meta := map[string]any{"count": len(tasks), "total": total}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "task upcoming", Meta: meta, Data: data})
 	}
 	printTasks(stdout, tasks, total)
 	return 0
@@ -513,6 +690,129 @@ func parseTaskListFlags(args []string) (string, int, error) {
 		}
 	}
 	return filter, limit, nil
+}
+
+func parseSearchFlags(args []string) (string, int, error) {
+	query := ""
+	limit := 50
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--query", "-q":
+			if i+1 >= len(args) {
+				return "", 0, fmt.Errorf("%s requires a value", args[i])
+			}
+			query = args[i+1]
+			i++
+		case "--limit":
+			if i+1 >= len(args) {
+				return "", 0, fmt.Errorf("--limit requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+				return "", 0, fmt.Errorf("--limit must be a non-negative integer")
+			}
+			i++
+		default:
+			if query == "" {
+				query = args[i]
+				continue
+			}
+			return "", 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if strings.TrimSpace(query) == "" {
+		return "", 0, fmt.Errorf("missing query; use: dida task search --query <text>")
+	}
+	return query, limit, nil
+}
+
+func parseUpcomingFlags(args []string) (int, int, error) {
+	days := 7
+	limit := 50
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--days":
+			if i+1 >= len(args) {
+				return 0, 0, fmt.Errorf("--days requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &days); err != nil || days <= 0 {
+				return 0, 0, fmt.Errorf("--days must be a positive integer")
+			}
+			i++
+		case "--limit":
+			if i+1 >= len(args) {
+				return 0, 0, fmt.Errorf("--limit requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+				return 0, 0, fmt.Errorf("--limit must be a non-negative integer")
+			}
+			i++
+		default:
+			return 0, 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return days, limit, nil
+}
+
+func parseCompletedListFlags(args []string, now time.Time) (time.Time, time.Time, int, error) {
+	from, to := dayRange(now)
+	limit := 100
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--from":
+			if i+1 >= len(args) {
+				return time.Time{}, time.Time{}, 0, fmt.Errorf("--from requires YYYY-MM-DD")
+			}
+			parsed, err := time.ParseInLocation("2006-01-02", args[i+1], now.Location())
+			if err != nil {
+				return time.Time{}, time.Time{}, 0, fmt.Errorf("--from must be YYYY-MM-DD")
+			}
+			from = parsed
+			i++
+		case "--to":
+			if i+1 >= len(args) {
+				return time.Time{}, time.Time{}, 0, fmt.Errorf("--to requires YYYY-MM-DD")
+			}
+			parsed, err := time.ParseInLocation("2006-01-02", args[i+1], now.Location())
+			if err != nil {
+				return time.Time{}, time.Time{}, 0, fmt.Errorf("--to must be YYYY-MM-DD")
+			}
+			to = parsed.AddDate(0, 0, 1).Add(-time.Second)
+			i++
+		case "--limit":
+			if i+1 >= len(args) {
+				return time.Time{}, time.Time{}, 0, fmt.Errorf("--limit requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit <= 0 {
+				return time.Time{}, time.Time{}, 0, fmt.Errorf("--limit must be a positive integer")
+			}
+			i++
+		default:
+			return time.Time{}, time.Time{}, 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if from.After(to) {
+		return time.Time{}, time.Time{}, 0, fmt.Errorf("--from must be before or equal to --to")
+	}
+	return from, to, limit, nil
+}
+
+func loadCompletedTasks(from time.Time, to time.Time, limit int) ([]map[string]any, error) {
+	token, err := auth.LoadCookieToken()
+	if err != nil {
+		return nil, fmt.Errorf("missing cookie auth; run: dida auth cookie set --token-stdin")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	return webapi.NewClient(token.Token).CompletedTasks(ctx, formatDidaQueryTime(from), formatDidaQueryTime(to), limit)
+}
+
+func dayRange(t time.Time) (time.Time, time.Time) {
+	start := time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+	return start, start.AddDate(0, 0, 1).Add(-time.Second)
+}
+
+func formatDidaQueryTime(t time.Time) string {
+	return t.Format("2006-01-02 15:04:05")
 }
 
 func runRaw(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -622,6 +922,8 @@ Commands:
   doctor       Check local config and auth status
   auth         Manage OAuth and cookie auth
   sync         Sync tasks/projects/tags
+  settings     Read user preferences
+  completed    Read completed task history
   project      Project discovery
   task         Task reads and writes
   report       Generate reports
@@ -675,6 +977,24 @@ func printSyncHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida sync all [--json]
+  dida sync checkpoint <checkpoint> [--json]
+`))
+}
+
+func printSettingsHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida settings get [--json]
+`))
+}
+
+func printCompletedHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida completed today [--json]
+  dida completed yesterday [--json]
+  dida completed week [--json]
+  dida completed list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
 `))
 }
 
@@ -692,6 +1012,8 @@ func printTaskHelp(w io.Writer) {
 Usage:
   dida task today [--json] [--limit N]
   dida task list [--json] [--filter today|all] [--limit N]
+  dida task search --query <text> [--limit N] [--json]
+  dida task upcoming [--days N] [--limit N] [--json]
   dida task get <task-id> [--json]
   dida +today [--json] [--limit N]
 `))

@@ -21,10 +21,11 @@ Observed from the previous Doris setup:
 
 Important existing endpoints:
 
-- `GET /batch/check/0` for full sync payload. Current Dida365 CN response uses `projectProfiles` and `syncTaskBean.add/update`; older tools may expect top-level `projects/tasks`.
-- `GET /user/preferences/settings` for settings.
+- `GET /batch/check/0` for full sync payload. Current Dida365 CN response uses `projectProfiles` and `syncTaskBean.add/update`; older tools may expect top-level `projects/tasks`. It also returns `checkPoint`, `checks`, `filters`, `syncOrderBean`, `syncTaskOrderBean`, and reminder changes.
+- `GET /batch/check/{checkpoint}` for incremental sync. When no changes exist, most top-level resource arrays are `null` and counts should normalize to zero.
+- `GET /user/preferences/settings` for settings. The CN response currently includes both `nlpEnabled` and `nlpenabled`; parse with a normal JSON object in Go and avoid case-insensitive key assumptions in shell tooling.
 - `GET /project/{projectId}/tasks` for project task lists.
-- `GET /project/all/completed?...` for completed task queries.
+- `GET /project/all/completed?from=YYYY-MM-DD%20HH%3Amm%3Ass&to=YYYY-MM-DD%20HH%3Amm%3Ass&limit=N` for completed task queries. Date-only `from/to` produced server 500 in the observed CN Web API; full timestamp format worked.
 - `POST /batch/task` for task operations.
 - `POST /batch/taskParent` for subtask operations.
 - `POST /batch/taskProject` for task moves.
@@ -37,10 +38,10 @@ Important existing endpoints:
 
 - `webapi.Client`: HTTP transport, auth headers, endpoint path construction, error decoding.
 - `webapi.SyncService`: full sync and settings.
+- `webapi.CompletedService`: completed task queries.
 - `webapi.TaskService`: create/update/complete/delete/move/subtask.
 - `webapi.ProjectService`: project/folder/column operations.
 - `webapi.TagService`: tag list/create/rename/merge/delete.
-- `webapi.CompletedService`: completed task queries.
 - `webapi.RawService`: GET-only endpoint probe.
 
 ### Header Compatibility
