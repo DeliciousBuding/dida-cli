@@ -64,6 +64,7 @@ func rootCommands(version string) []rootCommand {
 		{Name: "stats", Run: runStats},
 		{Name: "template", Run: runTemplate},
 		{Name: "search", Run: runSearch},
+		{Name: "user", Run: runUser},
 		{Name: "pomo", Run: runPomo},
 		{Name: "habit", Run: runHabit},
 		{Name: "quadrant", Run: runQuadrant},

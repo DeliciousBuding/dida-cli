@@ -36,6 +36,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Statistics | `GET /statistics/general` | `stats general` | Stable read | Unit endpoint test and live read |
 | Project templates | `GET /projectTemplates/all?timestamp=...` | `template project list` | Stable read | Unit endpoint test and live read |
 | Search | `GET /search/all?keywords=...` | `search all` | Stable read | Unit endpoint test and live read |
+| User metadata | `GET /user/status`, `GET /user/profile`, `GET /user/sessions?lang=...` | `user status`, `user profile`, `user sessions` | Stable read | Unit endpoint test and live read |
 | Pomodoro preferences | `GET /user/preferences/pomodoro` | `pomo preferences` | Stable read | Live read |
 | Pomodoro records | `GET /pomodoros`, `GET /pomodoros/timing` | `pomo list`, `pomo timing` | Stable read | Live read |
 | Pomodoro statistics and timeline | `GET /pomodoros/statistics/generalForDesktop`, `GET /pomodoros/timeline` | `pomo stats`, `pomo timeline` | Stable read | Unit endpoint test and live read |

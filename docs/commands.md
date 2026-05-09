@@ -71,6 +71,9 @@ dida stats general --json
 dida template project list --limit 50 --json
 dida search all --query "计算机" --limit 20 --json
 dida search all --query "计算机" --limit 20 --full --json
+dida user status --json
+dida user profile --json
+dida user sessions --limit 10 --json
 ```
 
 ## Tasks

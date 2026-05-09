@@ -18,7 +18,7 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 			_ = json.NewEncoder(w).Encode(true)
 		case "/attachment/dailyLimit", "/project/p1/share/check-quota":
 			_ = json.NewEncoder(w).Encode(1)
-		case "/project/p1/shares", "/calendar/subscription", "/calendar/archivedEvent", "/project/share/recentProjectUsers":
+		case "/project/p1/shares", "/calendar/subscription", "/calendar/archivedEvent", "/project/share/recentProjectUsers", "/user/sessions":
 			_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "x1", "name": "item"}})
 		default:
 			_ = json.NewEncoder(w).Encode(map[string]any{"enabled": true})
@@ -45,6 +45,9 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		func() error { _, err := client.StatisticsGeneral(ctx); return err },
 		func() error { _, err := client.ProjectTemplates(ctx, 1234); return err },
 		func() error { _, err := client.SearchAll(ctx, "hello world"); return err },
+		func() error { _, err := client.UserStatus(ctx); return err },
+		func() error { _, err := client.UserProfile(ctx); return err },
+		func() error { _, err := client.UserSessions(ctx, "zh_CN"); return err },
 	}
 	for _, call := range calls {
 		if err := call(); err != nil {
@@ -67,6 +70,9 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		"GET /statistics/general",
 		"GET /projectTemplates/all?timestamp=1234",
 		"GET /search/all?keywords=hello+world",
+		"GET /user/status",
+		"GET /user/profile",
+		"GET /user/sessions?lang=zh_CN",
 	}
 	if strings.Join(seen, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("seen endpoints:\n%s\nwant:\n%s", strings.Join(seen, "\n"), strings.Join(want, "\n"))

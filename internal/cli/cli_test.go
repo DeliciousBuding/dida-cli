@@ -598,3 +598,46 @@ func TestCompactSearchPayloadDropsLargeFields(t *testing.T) {
 		t.Fatalf("compact search missing title: %s", text)
 	}
 }
+
+func TestCompactUserOutputsStaySmall(t *testing.T) {
+	status := compactUserStatus(map[string]any{
+		"userId":   "u1",
+		"phone":    "13500000000",
+		"username": "user@example.com",
+	})
+	profile := compactUserProfile(map[string]any{
+		"name":    "Tester",
+		"phone":   "13500000000",
+		"email":   "user@example.com",
+		"picture": "https://example.com/a.png",
+	})
+	session := compactUserSession(map[string]any{
+		"id":   "s1",
+		"ip":   "1.2.3.4",
+		"city": "Changsha",
+		"deviceInfo": map[string]any{
+			"platform": "windows",
+			"os":       "Windows 11",
+			"device":   "Chrome",
+		},
+	})
+	encoded, err := json.Marshal(map[string]any{
+		"status":  status,
+		"profile": profile,
+		"session": session,
+	})
+	if err != nil {
+		t.Fatalf("marshal user compact output: %v", err)
+	}
+	text := string(encoded)
+	for _, forbidden := range []string{"13500000000", "user@example.com", "1.2.3.4", "Changsha"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("compact user output leaked %q: %s", forbidden, text)
+		}
+	}
+	for _, expected := range []string{"userId", "name", "deviceInfo"} {
+		if !strings.Contains(text, expected) {
+			t.Fatalf("compact user output missing %q: %s", expected, text)
+		}
+	}
+}

@@ -29,6 +29,7 @@ Commands:
   stats        Read account statistics
   template     Read project templates
   search       Search across Web API indexed content
+  user         Read account and session metadata
   pomo         Read Pomodoro preferences and records
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
@@ -176,6 +177,18 @@ func printSearchHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida search all --query <text> [--limit N] [--full] [--json]
+`))
+}
+
+func printUserHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida user status [--full] [--json]
+  dida user profile [--full] [--json]
+  dida user sessions [--lang <locale>] [--limit N] [--full] [--json]
+
+Default output is compact and only keeps the fields that are usually useful in CLI/agent flows.
+Use --full when you actually need the raw Web API response.
 `))
 }
 

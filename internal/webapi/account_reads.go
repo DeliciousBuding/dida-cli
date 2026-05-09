@@ -124,3 +124,29 @@ func (c *Client) SearchAll(ctx context.Context, keywords string) (map[string]any
 	}
 	return out, nil
 }
+
+func (c *Client) UserStatus(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/user/status", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) UserProfile(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/user/profile", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) UserSessions(ctx context.Context, lang string) ([]map[string]any, error) {
+	values := url.Values{}
+	values.Set("lang", lang)
+	var out []map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/user/sessions?"+values.Encode(), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}

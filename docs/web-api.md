@@ -58,6 +58,9 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/statistics/general` | General account statistics |
 | `GET` | `/projectTemplates/all?timestamp={millis}` | Project templates |
 | `GET` | `/search/all?keywords={query}` | Indexed search across tasks/comments |
+| `GET` | `/user/status` | Account status |
+| `GET` | `/user/profile` | Account profile |
+| `GET` | `/user/sessions?lang={locale}` | Login sessions |
 
 Observed CN full sync shape:
 
