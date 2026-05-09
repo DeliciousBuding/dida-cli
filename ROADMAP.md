@@ -27,6 +27,8 @@ The end state is not "one giant code dump". The end state is:
 As of the current main branch:
 
 - `webapi` is the primary implemented channel
+- `webapi` has live-smoked trash pagination reads through
+  `trash list --cursor/--limit --compact --json`
 - `official mcp` has:
   - `official doctor`
   - `official tools`
@@ -109,9 +111,6 @@ This remains the highest-value channel because it covers the most.
 - Task activity detail stream
   - target: `GET /api/v1/task/activity/{taskId}`
   - need: real successful request shape, cursor semantics
-- Trash pagination
-  - target: `GET /project/all/trash/page?...`
-  - need: `type` semantics, paging cursor, stable output contract
 
 Acceptance:
 
@@ -403,7 +402,7 @@ Top five next tasks:
 2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
 3. Create the first tagged GitHub Release and test install scripts from release assets
 4. Capture a successful Web API task activity request
-5. Decode trash pagination semantics
+5. Map attachment metadata and download/upload flows from real Web API evidence
 
 ## Done Means Done
 
