@@ -14,10 +14,10 @@
 <p align="center">
   <a href="README.zh-CN.md">中文 README</a> ·
   <a href="https://deliciousbuding.github.io/dida-cli/">Website</a> ·
-  <a href="#quick-start">Quick Start</a> ·
+  <a href="#quickstart">Quickstart</a> ·
   <a href="#commands">Commands</a> ·
   <a href="#agent-workflows">Agent Workflows</a> ·
-  <a href="docs/commands.md">Docs</a>
+  <a href="docs/quickstart.md">Docs</a>
 </p>
 
 ---
@@ -42,9 +42,66 @@ The primary integration surface is the Dida365 Web API used by the official web 
 - Three-channel direction: Web API for breadth, official MCP for token-based tool access, and official OpenAPI for OAuth-based REST integration.
 - Safety guardrails: cookie arguments disabled by default, `--dry-run` previews, bounded list output, and no raw write tunnel.
 
-## Quick Start
+## Quickstart
+
+### One-Line Install
+
+macOS / Linux:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+```
+
+Both installers download the latest GitHub Release, verify `checksums.txt`,
+install to the user-local bin directory, then run:
+
+```bash
+dida version
+dida doctor --json
+```
+
+Optional installer environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `DIDA_VERSION` | Install a specific release tag, for example `v0.1.0`. |
+| `DIDA_INSTALL_DIR` | Override the install directory. |
+| `DIDA_REPO` | Override the GitHub repository, for example for forks. |
+
+### Login And First Read
+
+```bash
+dida auth login --browser --json
+dida doctor --json
+dida agent context --json
+dida schema list --json
+```
+
+### Official Channels
+
+```bash
+DIDA365_TOKEN=... dida official doctor --json
+dida openapi doctor --json
+```
+
+Web API, official MCP, and official OpenAPI are separate auth channels. Do not
+reuse cookies or tokens across channels.
+
+### Agent Note
+
+This section is optimized for LLM/Agent operators. Prefer JSON commands,
+inspect `dida schema list --json` before writes, preview generated writes with
+`--dry-run`, and never ask the user to paste cookies or tokens into chat.
 
 ### Install From Source
+
+Use this path for development:
 
 ```bash
 git clone https://github.com/DeliciousBuding/dida-cli.git
@@ -53,39 +110,11 @@ go test ./...
 go build -o bin/dida ./cmd/dida
 ```
 
-Install locally on Unix-like systems:
+Full guides:
 
-```bash
-make install-local
-dida doctor --json
-```
-
-On Windows PowerShell:
-
-```powershell
-go build -o bin\dida.exe .\cmd\dida
-Copy-Item .\bin\dida.exe $env:USERPROFILE\.local\bin\dida.exe -Force
-dida doctor --json
-```
-
-### Login
-
-Recommended:
-
-```bash
-dida auth login --browser --json
-dida auth status --verify --json
-```
-
-Fallback:
-
-```bash
-dida auth login --json
-dida auth cookie set --token-stdin
-dida auth status --verify --json
-```
-
-Cookie values are intentionally not accepted through normal command arguments unless `DIDA_ALLOW_TOKEN_ARG=1` is set for an explicit one-off local test.
+- [Quickstart](docs/quickstart.md)
+- [LLM / Agent Quickstart](docs/llm-quickstart.md)
+- [Distribution](docs/distribution.md)
 
 ## Commands
 

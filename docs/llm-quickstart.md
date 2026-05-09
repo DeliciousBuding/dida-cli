@@ -1,0 +1,89 @@
+# LLM / Agent Quickstart
+
+This page is for LLMs and automation agents. It is not a human tutorial.
+Prefer copy-pasteable JSON commands and do not ask users to paste secrets into
+chat.
+
+## First Commands
+
+```bash
+dida doctor --json
+dida schema list --json
+dida agent context --json
+```
+
+If auth is missing or expired, tell the user to run this locally:
+
+```bash
+dida auth login --browser --json
+```
+
+Then verify:
+
+```bash
+dida auth status --verify --json
+```
+
+## Channel Boundaries
+
+Do not mix these channels:
+
+```bash
+# Web API: browser cookie stored locally
+dida agent context --json
+
+# Official MCP: token from Dida365 account settings
+DIDA365_TOKEN=... dida official doctor --json
+
+# Official OpenAPI: OAuth REST
+dida openapi doctor --json
+```
+
+## Discover Before Writing
+
+```bash
+dida schema list --json
+dida schema show task.create --json
+dida schema show task.delete --json
+```
+
+## Safe Reads
+
+```bash
+dida project list --json
+dida task today --compact --json
+dida task upcoming --days 14 --limit 50 --compact --json
+dida task search --query "keyword" --limit 20 --compact --json
+dida completed today --compact --json
+```
+
+## Safe Writes
+
+Preview generated writes first:
+
+```bash
+dida task create --project <project-id> --title "Agent task" --dry-run --json
+dida task update <task-id> --project <project-id> --title "New title" --dry-run --json
+```
+
+Execute only after the preview matches the user's request:
+
+```bash
+dida task create --project <project-id> --title "Agent task" --json
+```
+
+Deletes require explicit confirmation:
+
+```bash
+dida task delete <task-id> --project <project-id> --dry-run --json
+dida task delete <task-id> --project <project-id> --yes --json
+```
+
+## Never Do This
+
+- Do not ask the user to paste cookies or tokens into chat.
+- Do not use official MCP tokens as OpenAPI bearer tokens.
+- Do not use Web API cookies as official OpenAPI tokens.
+- Do not run destructive commands without `--yes`.
+- Do not use raw probes for writes; DidaCLI intentionally supports only raw
+  read probes.

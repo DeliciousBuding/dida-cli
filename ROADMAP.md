@@ -290,6 +290,66 @@ Added and now maintained:
 - `docs/research/webapi-probe-log.md`
 - `docs/research/openapi-live-validation-log.md`
 
+## Workstream F: Distribution
+
+Priority order:
+
+1. GitHub Releases
+2. `install.sh` / `install.ps1`
+3. npm installer
+4. Homebrew / Scoop
+5. winget
+
+### F1. GitHub Releases
+
+- tag-triggered release workflow
+- multi-platform binaries:
+  - Windows amd64/arm64
+  - Linux amd64/arm64
+  - macOS amd64/arm64
+- archive assets:
+  - Windows `.zip`
+  - Linux/macOS `.tar.gz`
+- `checksums.txt`
+- release notes with install commands
+
+Status: implemented; needs first tag release smoke.
+
+### F2. Install Scripts
+
+- `install.sh`
+- `install.ps1`
+- OS/arch detection
+- latest release download by default
+- `DIDA_VERSION`, `DIDA_INSTALL_DIR`, `DIDA_REPO`
+- checksum verification
+- install-time `dida version` and `dida doctor --json`
+
+Status: implemented; syntax and parser checks required before each release.
+
+### F3. npm Installer
+
+- placeholder package under `npm/`
+- package name placeholder: `@vectorcontrol/dida-cli`
+- postinstall downloads matching GitHub Release binary
+- `bin/dida` forwards to the downloaded binary
+
+Status: skeleton only; do not publish until release assets are proven.
+
+### F4. Homebrew / Scoop
+
+- Homebrew tap formula
+- Scoop bucket manifest
+- both should reference GitHub Release assets and checksums
+
+Status: planned.
+
+### F5. winget
+
+- winget manifest after release cadence stabilizes
+
+Status: planned.
+
 ## Commit Strategy
 
 Do not batch unrelated work.
@@ -341,9 +401,9 @@ Top five next tasks:
 
 1. Finish and live-verify `openapi login`
 2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
-3. Capture a successful Web API task activity request
-4. Decode trash pagination semantics
-5. Add official MCP batch write wrappers with preview-oriented ergonomics
+3. Create the first tagged GitHub Release and test install scripts from release assets
+4. Capture a successful Web API task activity request
+5. Decode trash pagination semantics
 
 ## Done Means Done
 

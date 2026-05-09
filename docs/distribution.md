@@ -1,0 +1,94 @@
+# Distribution
+
+DidaCLI should be installable by humans, CI jobs, and LLM/Agent runtimes without
+cloning the repository. GitHub Releases are the canonical binary source.
+
+## Current Channels
+
+| Channel | Status | Notes |
+| --- | --- | --- |
+| GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS. |
+| `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`. |
+| `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables. |
+| npm installer package | Skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries. Not published yet. |
+| `go install` | Developer fallback | Works when Go is installed, but does not use release archives. |
+
+## Planned Channels
+
+| Channel | Priority | Plan |
+| --- | ---: | --- |
+| Homebrew tap | 4 | Add a formula after release assets stabilize. |
+| Scoop bucket | 4 | Add manifest using GitHub Release asset URLs and checksums. |
+| winget | 5 | Add manifest after stable versioning and release cadence are proven. |
+
+## GitHub Releases
+
+Release workflow:
+
+- Trigger: tag push matching `v*`.
+- Platforms:
+  - `windows/amd64`, `windows/arm64`
+  - `linux/amd64`, `linux/arm64`
+  - `darwin/amd64`, `darwin/arm64`
+- Archives:
+  - Windows: `.zip`
+  - Linux/macOS: `.tar.gz`
+- Verification: `checksums.txt` with SHA-256 hashes.
+
+Create a release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+## Install Scripts
+
+Unix-like systems:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+```
+
+Windows PowerShell:
+
+```powershell
+iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+```
+
+Pin a version:
+
+```bash
+DIDA_VERSION=v0.1.0 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+```
+
+Custom repo or install directory:
+
+```bash
+DIDA_REPO=DeliciousBuding/dida-cli DIDA_INSTALL_DIR="$HOME/bin" sh install.sh
+```
+
+## npm Installer Skeleton
+
+The `npm/` directory is a package skeleton for a future npm distribution:
+
+- package name placeholder: `@vectorcontrol/dida-cli`
+- postinstall downloads the matching GitHub Release archive
+- `bin/dida` forwards commands to the downloaded binary
+
+Do not publish it until:
+
+1. Release naming has shipped at least once.
+2. The install script has been tested on Windows, Linux, and macOS.
+3. Package ownership and final npm scope are confirmed.
+
+## `go install`
+
+For developers with Go installed:
+
+```bash
+go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
+```
+
+Use Release assets for normal users and agents. `go install` depends on a Go
+toolchain and may not match packaged release behavior.
