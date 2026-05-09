@@ -1,26 +1,26 @@
 class Dida < Formula
   desc "Agent-first CLI for Dida365 and TickTick"
   homepage "https://github.com/DeliciousBuding/dida-cli"
-  version "0.1.4"
+  version "0.1.5"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.4/dida_v0.1.4_darwin_arm64.tar.gz"
-      sha256 "232a681e0dd8877341b775eaa7d8eaac3b4917f1af7af50e3998a1e00b019732"
+      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.5/dida_v0.1.5_darwin_arm64.tar.gz"
+      sha256 "96d0f94a5dece568237802db94a71c48e69854947f4ecdf531fa48773640a721"
     else
-      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.4/dida_v0.1.4_darwin_amd64.tar.gz"
-      sha256 "94cf9990ddc04166edce2e8f43d5e8f7a517c6b486bd79355b85dfda600a678c"
+      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.5/dida_v0.1.5_darwin_amd64.tar.gz"
+      sha256 "e1cd7c3af0d3e243cacc0f66b8d2a0c9181ff1e10785a489fc6af36b36ced383"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.4/dida_v0.1.4_linux_arm64.tar.gz"
-      sha256 "ae96330134e3f64346b5465cd433d137ea7265d5a7f8a07dc84f8aa4580e9307"
+      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.5/dida_v0.1.5_linux_arm64.tar.gz"
+      sha256 "1ac00a3c165872fdad9d11bd0a78ea45ea3ea760e89b110b10e5067c68c0b003"
     else
-      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.4/dida_v0.1.4_linux_amd64.tar.gz"
-      sha256 "833f82fea02a4d2096789eee86707943c4330b3eab3b5ddcbf84e1834aa57e33"
+      url "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.5/dida_v0.1.5_linux_amd64.tar.gz"
+      sha256 "9b0d6a81ea0adeeb6822e94b0daf6cb17abfc8a8d345dc820571814a59c7370a"
     end
   end
 
