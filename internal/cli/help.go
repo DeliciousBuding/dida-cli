@@ -28,6 +28,7 @@ Commands:
   calendar     Read calendar subscription metadata
   stats        Read account statistics
   template     Read project templates
+  search       Search across Web API indexed content
   pomo         Read Pomodoro preferences and records
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
@@ -168,6 +169,13 @@ func printTemplateHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida template project list [--timestamp N] [--limit N] [--json]
+`))
+}
+
+func printSearchHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida search all --query <text> [--limit N] [--full] [--json]
 `))
 }
 

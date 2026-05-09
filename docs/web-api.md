@@ -57,6 +57,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/calendar/third/accounts` | Third-party calendar accounts |
 | `GET` | `/statistics/general` | General account statistics |
 | `GET` | `/projectTemplates/all?timestamp={millis}` | Project templates |
+| `GET` | `/search/all?keywords={query}` | Indexed search across tasks/comments |
 
 Observed CN full sync shape:
 

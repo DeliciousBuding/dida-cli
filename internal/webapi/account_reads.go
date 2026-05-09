@@ -114,3 +114,13 @@ func (c *Client) ProjectTemplates(ctx context.Context, timestamp int64) (map[str
 	}
 	return out, nil
 }
+
+func (c *Client) SearchAll(ctx context.Context, keywords string) (map[string]any, error) {
+	values := url.Values{}
+	values.Set("keywords", keywords)
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/search/all?"+values.Encode(), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}

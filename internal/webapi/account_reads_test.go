@@ -44,6 +44,7 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		func() error { _, err := client.CalendarThirdAccounts(ctx); return err },
 		func() error { _, err := client.StatisticsGeneral(ctx); return err },
 		func() error { _, err := client.ProjectTemplates(ctx, 1234); return err },
+		func() error { _, err := client.SearchAll(ctx, "hello world"); return err },
 	}
 	for _, call := range calls {
 		if err := call(); err != nil {
@@ -65,6 +66,7 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		"GET /calendar/third/accounts",
 		"GET /statistics/general",
 		"GET /projectTemplates/all?timestamp=1234",
+		"GET /search/all?keywords=hello+world",
 	}
 	if strings.Join(seen, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("seen endpoints:\n%s\nwant:\n%s", strings.Join(seen, "\n"), strings.Join(want, "\n"))

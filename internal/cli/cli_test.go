@@ -561,3 +561,40 @@ func TestFolderRejectsUnsupportedGroupFlag(t *testing.T) {
 		t.Fatalf("error.type = %v, want validation", errPayload["type"])
 	}
 }
+
+func TestCompactSearchPayloadDropsLargeFields(t *testing.T) {
+	payload := map[string]any{
+		"hits": []any{map[string]any{
+			"id":    "h1",
+			"index": "task",
+			"source": map[string]any{
+				"title":        "Needle",
+				"projectId":    "p1",
+				"modifiedTime": "now",
+				"content":      strings.Repeat("large", 20),
+				"desc":         strings.Repeat("markdown", 20),
+			},
+		}},
+		"tasks": []any{map[string]any{
+			"id":      "t1",
+			"title":   "Needle",
+			"content": strings.Repeat("large", 20),
+			"desc":    strings.Repeat("markdown", 20),
+			"items":   []any{map[string]any{"title": "step"}},
+		}},
+	}
+	compactSearchPayload(payload)
+	encoded, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("marshal compact search: %v", err)
+	}
+	text := string(encoded)
+	for _, forbidden := range []string{"content", "desc", "items", "large", "markdown"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("compact search leaked %q: %s", forbidden, text)
+		}
+	}
+	if !strings.Contains(text, "Needle") {
+		t.Fatalf("compact search missing title: %s", text)
+	}
+}

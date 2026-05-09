@@ -69,6 +69,8 @@ dida calendar archived --json
 dida calendar third-accounts --json
 dida stats general --json
 dida template project list --limit 50 --json
+dida search all --query "计算机" --limit 20 --json
+dida search all --query "计算机" --limit 20 --full --json
 ```
 
 ## Tasks
