@@ -32,7 +32,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Official MCP channel is explicit | `docs/research/official-mcp-tool-crosswalk.md`, `docs/research/official-mcp-vs-webapi.md` | done | Token-based health, tools, project get/data, task query/search/undone/filter, and focus list were live-smoked on 2026-05-10. |
 | Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/focus reads are live-smoked; known-id habit/focus reads and write wrappers still need safe targets. |
 | Official OpenAPI channel is explicit | `docs/research/official-openapi-guide.md`, `docs/research/official-openapi-notes.md` | done | OAuth live approval is not complete on this machine. |
-| Official OpenAPI OAuth helpers exist | `internal/cli/openapi_cmd.go`, `internal/openapi/oauth.go`, `internal/openapi/oauth_test.go` | partial | `openapi client status`, `openapi status`, and `openapi doctor` currently show no saved local client or token. |
+| Official OpenAPI OAuth helpers exist | `internal/cli/openapi_cmd.go`, `internal/openapi/oauth.go`, `internal/openapi/oauth_test.go` | partial | Saved client config and auth-url generation are verified; OAuth browser approval and saved access token are still missing. |
 | Official OpenAPI resource wrappers exist | `internal/cli/openapi_cmd.go`, `docs/commands.md` | partial | Project/task/focus/habit live calls need a saved OAuth token. |
 
 ## Distribution Request Checklist
@@ -86,8 +86,8 @@ Skipped or blocked verification:
 - Scoop install smoke: `scoop` is unavailable here
 - Official MCP write smoke: read-only token smoke succeeded, but writes need
   disposable targets
-- Official OpenAPI live smoke: no saved local OpenAPI client config or OAuth
-  token is present
+- Official OpenAPI live smoke: saved client config is present, but no OAuth
+  access token is present
 - Web API task activity detail: current account receives `need_pro`
 
 ## Completion Rule

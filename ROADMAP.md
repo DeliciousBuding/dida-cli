@@ -244,6 +244,9 @@ This channel is not complete until a real OAuth flow is verified live.
 - finish `openapi login`
 - make it pleasant for human and agent use
 - keep auth flow separated from browser cookie auth
+- 2026-05-10: saved client config, `openapi doctor`, and `openapi auth-url`
+  verified locally without committing secrets or local paths; browser approval
+  and token persistence still need completion.
 
 Acceptance:
 
