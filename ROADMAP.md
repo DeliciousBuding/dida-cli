@@ -233,7 +233,9 @@ Live evidence:
   `official task query --query today`, `official task search`, `official task
   undone`, `official task filter`, and bounded `official focus list` for both
   focus types.
-- Remaining read smokes: known-id habit/focus reads.
+- Known-id habit/focus read smokes are currently blocked by account state:
+  2026-05-10 token smokes found zero habits and zero focus records, including a
+  365-day focus range.
 - Write smokes remain blocked until disposable project/task/habit/focus targets
   exist.
 
@@ -464,7 +466,7 @@ If another agent takes over, the best sequence is:
 Top five next tasks:
 
 1. Finish and live-verify `openapi login`
-2. Live-smoke remaining known-id official MCP habit/focus reads where safe targets exist
+2. Create or identify disposable official MCP habit/focus targets for known-id reads
 3. Capture a successful Web API task activity request with a Pro account or trace
 4. Map task-level attachment metadata, association, download, and preview flows from real Web API evidence
 5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available

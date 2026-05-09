@@ -29,13 +29,13 @@ They are intentionally not interchangeable.
 | Project list | `list_projects` | `official project list` | live-verified | Live smoke succeeded on 2026-05-10; promoted after evidence because it is the official-channel project discovery read. |
 | Habit list | `list_habits` | `official habit list` | live-verified | Live smoke succeeded on 2026-05-10; current account returned an empty list. |
 | Habit sections | `list_habit_sections` | `official habit sections` | live-verified | Live smoke succeeded on 2026-05-10; output was summarized by count only. |
-| Habit read | `get_habit` | `official habit get` | implemented | Needs a known habit id for live read smoke. |
+| Habit read | `get_habit` | `official habit get` | blocked | Command exists, but the 2026-05-10 token smoke found zero habits on the current account, so no safe known habit id is available for live read smoke. |
 | Habit create | `create_habit` | `official habit create` | implemented | Needs a reversible live habit create/update/delete plan; no delete wrapper exists yet. |
-| Habit update | `update_habit` | `official habit update` | implemented | Requires a known test habit. |
-| Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented | Requires a known test habit and reversible check-in date. |
-| Habit check-ins | `get_habit_checkins` | `official habit checkins` | implemented | Requires known habit ids and a bounded date stamp range. |
-| Focus read | `get_focus` | `official focus get --type 0|1` | implemented | Needs a known focus id and focus type. |
-| Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10; output was treated as summary-only. |
+| Habit update | `update_habit` | `official habit update` | implemented | Requires a known test habit. Current account has no habits. |
+| Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented | Requires a known test habit and reversible check-in date. Current account has no habits. |
+| Habit check-ins | `get_habit_checkins` | `official habit checkins` | implemented | Requires known habit ids and a bounded date stamp range. Current account has no habits. |
+| Focus read | `get_focus` | `official focus get --type 0|1` | blocked | Command exists, but 2026-05-10 token smokes found no type 0 or type 1 focus records in the current account, including a 365-day range. |
+| Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10; repeat 365-day smokes also succeeded and returned empty lists. |
 | Focus delete | `delete_focus` | `official focus delete --type 0|1 --yes` | implemented | Destructive; only test on a disposable focus record. |
 | Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
@@ -67,7 +67,8 @@ They are intentionally not interchangeable.
 ## Current Priority
 
 1. Live-verify `openapi login` with a real authorization code.
-2. Live-smoke known-id MCP habit/focus reads when safe IDs exist.
+2. Create or identify disposable MCP habit/focus records before known-id read
+   or destructive smoke tests.
 3. Live-smoke MCP writes only after disposable project/task/habit targets exist.
 4. Live-smoke OpenAPI project/task/focus/habit wrappers once OAuth token
    persistence is proven on the current account.

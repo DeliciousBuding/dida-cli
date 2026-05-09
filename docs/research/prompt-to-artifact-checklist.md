@@ -30,7 +30,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Web API read coverage is documented | `docs/api-coverage.md`, `docs/research/webapi-gap-catalog.md` | partial | Task activity detail still blocked by `need_pro`; task-level attachment and private write flows need more evidence. |
 | Web API commands prefer JSON and compact output | `internal/cli/*`, `docs/commands.md`, `README.md` | done | Continue adding compact output when new noisy reads are promoted. |
 | Official MCP channel is explicit | `docs/research/official-mcp-tool-crosswalk.md`, `docs/research/official-mcp-vs-webapi.md` | done | Token-based health, tools, project get/data, task get/query/search/undone/filter, habit list/sections, and focus list were live-smoked on 2026-05-10. |
-| Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/habit/focus reads are live-smoked where safe IDs exist; known-id detail reads and write wrappers still need safe targets. |
+| Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/habit/focus reads are live-smoked where safe IDs exist; current account has no habit or focus ids for known-id reads; write wrappers still need disposable targets. |
 | Official OpenAPI channel is explicit | `docs/research/official-openapi-guide.md`, `docs/research/official-openapi-notes.md` | done | OAuth live approval is not complete on this machine. |
 | Official OpenAPI OAuth helpers exist | `internal/cli/openapi_cmd.go`, `internal/openapi/oauth.go`, `internal/openapi/oauth_test.go` | partial | Saved client config and auth-url generation are verified; OAuth browser approval and saved access token are still missing. |
 | Official OpenAPI resource wrappers exist | `internal/cli/openapi_cmd.go`, `docs/commands.md` | partial | Project/task/focus/habit live calls need a saved OAuth token. |
@@ -92,6 +92,8 @@ Skipped or blocked verification:
 - Scoop install smoke: `scoop` is unavailable here
 - Official MCP write smoke: read-only token smoke succeeded, but writes need
   disposable targets
+- Official MCP known-id habit/focus reads: current account returned no habits
+  and no focus records, including a 365-day focus range
 - Official OpenAPI live smoke: saved client config is present, but no OAuth
   access token is present
 - Web API task activity detail: current account receives `need_pro`
