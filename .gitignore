@@ -1,0 +1,11 @@
+bin/
+dist/
+coverage.out
+*.exe
+
+.env
+.env.*
+
+data/private/
+tmp/
+
