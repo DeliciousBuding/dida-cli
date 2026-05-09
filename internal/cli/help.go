@@ -116,6 +116,8 @@ Usage:
 
 These commands use the official OAuth-based OpenAPI channel.
 They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.
+In --json mode, interactive login opens the browser and emits one final JSON envelope.
+Use auth-url and listen-callback for manual no-browser OAuth flows.
 `))
 }
 

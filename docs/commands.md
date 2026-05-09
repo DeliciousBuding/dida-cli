@@ -301,6 +301,9 @@ These commands use the official OAuth OpenAPI channel and require a saved
 OpenAPI access token from `dida openapi login`. Focus `--type` follows the
 official API values: `0` for Pomodoro and `1` for Timing. Habit and focus write
 commands support `--dry-run`; focus delete requires `--yes` when executed.
+`dida openapi login --json` emits one final JSON envelope after browser
+authorization completes. For manual no-browser OAuth, use `dida openapi
+auth-url --json` and `dida openapi listen-callback --json`.
 
 ## Account Metadata
 

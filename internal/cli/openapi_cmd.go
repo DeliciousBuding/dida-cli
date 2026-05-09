@@ -92,6 +92,9 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if err != nil {
 		return failTyped("openapi login", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
+	if jsonOut && noOpen {
+		return failTyped("openapi login", "validation", "--no-open cannot be combined with --json login", "use `dida openapi auth-url --json` and `dida openapi listen-callback --json` for manual OAuth flows", jsonOut, stdout, stderr)
+	}
 	clientID, err := openapi.ResolveClientID("")
 	if err != nil {
 		return failTyped("openapi login", "auth", err.Error(), "set DIDA365_OPENAPI_CLIENT_ID", jsonOut, stdout, stderr)
@@ -120,15 +123,7 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if !noOpen {
 		_ = openBrowserURL(authURL)
 	}
-	if jsonOut {
-		_ = writeJSON(stdout, envelope{OK: true, Command: "openapi login", Data: map[string]any{
-			"authorization_url": authURL,
-			"redirect_uri":      redirectURI,
-			"state":             state,
-			"scope":             scope,
-			"waiting":           true,
-		}})
-	} else {
+	if !jsonOut {
 		fmt.Fprintln(stdout, "Open this URL in a browser and finish authorization:")
 		fmt.Fprintln(stdout, authURL)
 	}
@@ -147,7 +142,7 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		if err := openapi.SaveToken(token); err != nil {
 			return failTyped("openapi login", "auth", err.Error(), "", jsonOut, stdout, stderr)
 		}
-		data := map[string]any{"saved": true, "state": result.state, "token": openapi.TokenStatus()}
+		data := map[string]any{"saved": true, "authorization_url": authURL, "redirect_uri": redirectURI, "state": result.state, "scope": scope, "token": openapi.TokenStatus()}
 		if jsonOut {
 			return writeJSON(stdout, envelope{OK: true, Command: "openapi login", Data: data})
 		}
@@ -155,7 +150,7 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		return 0
 	case <-time.After(timeout):
 		_ = server.Close()
-		return failTyped("openapi login", "timeout", "timed out waiting for OAuth callback", "", jsonOut, stdout, stderr)
+		return failTyped("openapi login", "timeout", "timed out waiting for OAuth callback", "if the browser did not open, run `dida openapi auth-url --json` and `dida openapi listen-callback --json`", jsonOut, stdout, stderr)
 	}
 }
 

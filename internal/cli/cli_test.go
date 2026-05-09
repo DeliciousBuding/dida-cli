@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -889,6 +890,33 @@ func TestOpenAPIExchangeFlagParsing(t *testing.T) {
 	}
 	if code != "xyz" || redirectURI == "" || scope != "tasks:read" {
 		t.Fatalf("values = %q %q %q", code, redirectURI, scope)
+	}
+}
+
+func TestOpenAPILoginJSONNoOpenFailsSingleEnvelope(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "login", "--no-open", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	decoder := json.NewDecoder(&stdout)
+	var payload map[string]any
+	if err := decoder.Decode(&payload); err != nil {
+		t.Fatalf("decode first JSON envelope: %v\n%s", err, stdout.String())
+	}
+	var extra any
+	if err := decoder.Decode(&extra); err != io.EOF {
+		t.Fatalf("stdout contains multiple JSON values or trailing data: extra=%#v err=%v stdout=%s", extra, err, stdout.String())
+	}
+	if payload["command"] != "openapi login" || payload["ok"] != false {
+		t.Fatalf("payload = %#v", payload)
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
 	}
 }
 

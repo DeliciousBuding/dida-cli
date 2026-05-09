@@ -95,6 +95,10 @@ dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
 
+`dida openapi login --json` opens the browser and emits one final JSON envelope
+after the OAuth callback. For manual no-browser flows, use `dida openapi
+auth-url --json` and `dida openapi listen-callback --json`.
+
 ## Common Reads
 
 ```bash
