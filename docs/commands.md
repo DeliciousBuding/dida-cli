@@ -175,6 +175,22 @@ dida completed week --json
 dida completed list --from 2026-05-01 --to 2026-05-09 --limit 100 --compact --json
 ```
 
+## Pomodoro And Habits
+
+```bash
+dida pomo preferences --json
+dida pomo list --from 2026-05-01 --to 2026-05-09 --limit 20 --json
+dida pomo timing --from 2026-05-01 --to 2026-05-09 --limit 20 --json
+
+dida habit preferences --json
+dida habit list --json
+dida habit sections --json
+```
+
+Pomodoro range commands convert `YYYY-MM-DD` flags into the millisecond
+timestamps expected by the private Web API. The default range is the last 30
+days and the default output limit is 50.
+
 ## Sync
 
 ```bash

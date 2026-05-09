@@ -28,6 +28,12 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/project/{projectId}/tasks` | Project task list |
 | `GET` | `/column/project/{projectId}` | Kanban column list with names and sort order |
 | `GET` | `/project/all/completed?...` | Completed tasks |
+| `GET` | `/user/preferences/pomodoro` | Pomodoro preferences |
+| `GET` | `/pomodoros?from={millis}&to={millis}` | Pomodoro records |
+| `GET` | `/pomodoros/timing?from={millis}&to={millis}` | Pomodoro timing records |
+| `GET` | `/user/preferences/habit?platform=web` | Habit preferences |
+| `GET` | `/habits` | Habits |
+| `GET` | `/habitSections` | Habit sections |
 
 Observed CN full sync shape:
 
@@ -51,6 +57,10 @@ to=YYYY-MM-DD HH:mm:ss
 ```
 
 Date-only `from/to` values have produced HTTP 500 on the observed CN Web API.
+
+Pomodoro range endpoints expect millisecond timestamps, not formatted datetime
+strings. `dida pomo list` and `dida pomo timing` accept `YYYY-MM-DD` and convert
+to the required millisecond range.
 
 ## Write Endpoints
 

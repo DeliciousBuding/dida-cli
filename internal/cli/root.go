@@ -50,6 +50,8 @@ func rootCommands(version string) []rootCommand {
 		{Name: "sync", Run: runSync},
 		{Name: "settings", Run: runSettings},
 		{Name: "completed", Run: runCompleted},
+		{Name: "pomo", Run: runPomo},
+		{Name: "habit", Run: runHabit},
 		{Name: "quadrant", Run: runQuadrant},
 		{Name: "schema", Run: runSchema},
 		{Name: "raw", Run: runRaw},

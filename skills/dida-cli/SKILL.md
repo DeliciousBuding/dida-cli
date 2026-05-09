@@ -54,6 +54,8 @@ dida +today --compact --json
 dida task upcoming --days 14 --limit 50 --compact --json
 dida quadrant list --json
 dida completed today --compact --json
+dida pomo list --limit 10 --json
+dida habit list --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.

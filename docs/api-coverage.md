@@ -26,6 +26,10 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Filters | sync payload `filters` | `filter list` | Stable read | Unit sync-view test and live read |
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
 | Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke |
+| Pomodoro preferences | `GET /user/preferences/pomodoro` | `pomo preferences` | Stable read | Live read |
+| Pomodoro records | `GET /pomodoros`, `GET /pomodoros/timing` | `pomo list`, `pomo timing` | Stable read | Live read |
+| Habit preferences | `GET /user/preferences/habit?platform=web` | `habit preferences` | Stable read | Live read |
+| Habits and sections | `GET /habits`, `GET /habitSections` | `habit list`, `habit sections` | Stable read | Live read |
 | Raw read | any GET path under base URL | `raw get` | Stable read-only | Live reads |
 | Quadrant view | derived from sync | `quadrant list/view` | Stable derived command | Unit classifier test and live read |
 

@@ -137,6 +137,27 @@ func TestProjectTasksArgsLimit(t *testing.T) {
 	}
 }
 
+func TestParseRangeListFlags(t *testing.T) {
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.Local)
+	opts, err := parseRangeListFlags([]string{"--from", "2026-05-01", "--to", "2026-05-09", "--limit", "3"}, now, 30)
+	if err != nil {
+		t.Fatalf("parseRangeListFlags() error = %v", err)
+	}
+	if opts.Limit != 3 {
+		t.Fatalf("limit = %d, want 3", opts.Limit)
+	}
+	if opts.From.Format("2006-01-02 15:04:05") != "2026-05-01 00:00:00" {
+		t.Fatalf("from = %s", opts.From)
+	}
+	if opts.To.Format("2006-01-02 15:04:05") != "2026-05-09 23:59:59" {
+		t.Fatalf("to = %s", opts.To)
+	}
+	_, err = parseRangeListFlags([]string{"--limit", "-1"}, now, 30)
+	if err == nil {
+		t.Fatalf("parseRangeListFlags() error = nil, want error")
+	}
+}
+
 func TestTaskOutputCompactOmitsLargeFields(t *testing.T) {
 	out := taskOutput([]model.Task{{
 		ID:        "t1",

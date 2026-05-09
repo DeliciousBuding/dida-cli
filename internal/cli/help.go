@@ -22,6 +22,8 @@ Commands:
   sync         Sync tasks/projects/tags
   settings     Read user preferences
   completed    Read completed task history
+  pomo         Read Pomodoro preferences and records
+  habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
   schema       List machine-readable command contracts
   project      Project discovery and CRUD
@@ -109,6 +111,24 @@ Usage:
   dida completed yesterday [--compact] [--json]
   dida completed week [--compact] [--json]
   dida completed list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--compact] [--json]
+`))
+}
+
+func printPomoHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida pomo preferences [--json]
+  dida pomo list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
+  dida pomo timing [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
+`))
+}
+
+func printHabitHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida habit preferences [--json]
+  dida habit list [--json]
+  dida habit sections [--json]
 `))
 }
 
