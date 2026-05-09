@@ -61,19 +61,25 @@ Known status:
 
 ### Task Activity Detail Stream
 
-- `GET /api/v1/task/activity/{taskId}`
+- `GET /task/activity/{taskId}`
+- `GET /task/activity/{taskId}?skip=<n>`
+- `GET /task/activity/{taskId}?lastId=<id>`
 
 Known status:
 
-- path is visible in the webapp bundle
-- optional cursor-like query values such as `skip` and `lastId` are also visible
-- direct probing returned HTTP 500
+- the path is visible in the webapp bundle and uses the legacy v1 client
+- optional cursor-like query values `skip` and `lastId` are visible
+- v2-style `/api/v1/task/activity/{taskId}` returned 404 when sent through the
+  v2 base
+- v1 `/task/activity/{taskId}` reached the route but returned `need_pro` on the
+  observed account
 
 Current implication:
 
-- task activity remains a read-gap
+- task activity remains a read-gap because response fields and cursor semantics
+  are not verified
 - this should not be promoted into a first-class command until a successful
-  browser-traced request shape is captured
+  Pro-account read or browser-traced request shape is captured
 
 ### Attachments
 
@@ -117,7 +123,8 @@ the same dead-end assumptions.
 - `GET /project/{id}/data` on the observed CN Web API returned 404
 - `GET /project/{id}/columns` returned 404
 - `GET /project/{id}` returned 405
-- `GET /api/v1/task/activity/{taskId}` returned 500 under direct probing
+- `GET /api/v1/task/activity/{taskId}` returned 404 through the v2 base
+- `GET /task/activity/{taskId}` returned `need_pro` through the v1 base
 - `GET /project/all/trash/page?type=task` returned 500; use `from=<cursor>` for pagination
 - `POST /column` produced responses that looked successful but did not yet prove
   full semantic correctness of the write

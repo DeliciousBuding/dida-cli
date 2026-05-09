@@ -114,8 +114,11 @@ This remains the highest-value channel because it covers the most.
 ### A1. Read Gaps
 
 - Task activity detail stream
-  - target: `GET /api/v1/task/activity/{taskId}`
-  - need: real successful request shape, cursor semantics
+  - target: `GET /task/activity/{taskId}` on the legacy v1 base
+  - current evidence: real webapp target is legacy v1
+    `GET /task/activity/{taskId}` with optional `skip` and `lastId`
+  - blocker: observed account reaches the v1 route but receives `need_pro`
+  - need: Pro-account response shape and cursor semantics
 
 Acceptance:
 
@@ -405,7 +408,7 @@ Top five next tasks:
 
 1. Finish and live-verify `openapi login`
 2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
-3. Capture a successful Web API task activity request
+3. Capture a successful Web API task activity request with a Pro account or trace
 4. Map attachment metadata and download/upload flows from real Web API evidence
 5. Promote the next high-value MCP/OpenAPI wrappers only after live auth is available
 

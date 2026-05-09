@@ -28,7 +28,7 @@ payload dumps, or local browser exports here.
 
 | Surface | Endpoint | Observed result | Current interpretation | Next evidence needed |
 | --- | --- | --- | --- | --- |
-| Task activity detail | `GET /api/v1/task/activity/{taskId}` / v1 `/task/activity/{taskId}` | HTTP 404/500 under direct probing | 2026-05-10 probes confirmed v2-style `/api/v1/...` is not routed through the v2 base, while v1 `/task/activity/{taskId}` still returns HTTP 500 with `skip`, `lastId`, and `projectId` variants. | Browser-traced successful request including full base URL, query params, and any required page context. |
+| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | HTTP 500 body reported `need_pro`; v2-style route returned 404 | Bundle evidence shows the legacy v1 client is correct. The observed account reaches the route but lacks the required Pro entitlement, so this is not a path-shape failure. | Pro account live read or browser trace that captures response fields and pagination semantics. |
 | Project data by id | `GET /project/{id}/data` | HTTP 404 on observed CN Web API | Not the active private endpoint for current web app. | Recheck only if bundle or network trace changes. |
 | Project columns by id | `GET /project/{id}/columns` | HTTP 404 | Replaced by `/column/project/{projectId}`. | None unless webapp changes. |
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |

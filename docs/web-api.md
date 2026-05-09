@@ -166,13 +166,20 @@ the first 20 deleted tasks and `next=20`; passing `from=20` returned the next
 page and `next=40`. Do not send `type=task`: it returned HTTP 500 on the
 observed CN Web API.
 
-The webapp bundle references task activity detail paths with optional `skip`
-and `lastId` query values. Direct live probes on 2026-05-10 still failed:
-v2-style `/api/v1/task/activity/{taskId}` returned 404 through the v2 base, and
-v1 `/task/activity/{taskId}` returned 500 with `skip`, `lastId`, and
-`projectId` variants. Task activity remains unmapped until a successful browser
-trace identifies the exact base URL, cursor parameters, and required page
-context.
+The webapp bundle references task activity detail reads through the legacy v1
+client:
+
+```text
+GET /task/activity/{taskId}
+GET /task/activity/{taskId}?skip=<n>
+GET /task/activity/{taskId}?lastId=<id>
+```
+
+Direct live probes on 2026-05-10 showed that v2-style
+`/api/v1/task/activity/{taskId}` is the wrong route when sent through the v2
+base. The legacy v1 path is routed, but the observed account returns
+`need_pro`. Treat task activity as a Pro-gated read surface until a Pro account
+or successful browser trace confirms response shape and pagination semantics.
 
 Observed tag merge behavior: the endpoint can return success while the source tag remains listed. Treat merge and delete as separate operations.
 
