@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strconv"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
@@ -118,6 +119,8 @@ func runHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) i
 		return runHabitList(jsonOut, stdout, stderr)
 	case "sections":
 		return runHabitSections(jsonOut, stdout, stderr)
+	case "checkins":
+		return runHabitCheckins(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("habit", fmt.Sprintf("unknown habit command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -170,6 +173,54 @@ func runHabitSections(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	}
 	printMapList(stdout, items, "habit sections")
 	return 0
+}
+
+func runHabitCheckins(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	habitIDs, afterStamp, err := parseHabitCheckinFlags(args)
+	if err != nil {
+		return failTyped("habit checkins", "validation", err.Error(), "run: dida habit --help", jsonOut, stdout, stderr)
+	}
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.HabitCheckins(ctx, habitIDs, afterStamp)
+	})
+	if err != nil {
+		return failTyped("habit checkins", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	data := map[string]any{"habitIds": habitIDs, "afterStamp": afterStamp, "checkins": result}
+	meta := map[string]any{"habitCount": len(habitIDs)}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "habit checkins", Meta: meta, Data: data})
+	}
+	fmt.Fprintf(stdout, "Habit checkins read for %d habit(s).\n", len(habitIDs))
+	return 0
+}
+
+func parseHabitCheckinFlags(args []string) ([]string, int64, error) {
+	habitIDs := []string{}
+	var afterStamp int64
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--habit", "--id":
+			if i+1 >= len(args) {
+				return nil, 0, fmt.Errorf("%s requires a habit id", args[i])
+			}
+			habitIDs = append(habitIDs, args[i+1])
+			i++
+		case "--after-stamp":
+			if i+1 >= len(args) {
+				return nil, 0, fmt.Errorf("--after-stamp requires a millisecond timestamp")
+			}
+			value, err := strconv.ParseInt(args[i+1], 10, 64)
+			if err != nil || value < 0 {
+				return nil, 0, fmt.Errorf("--after-stamp must be a non-negative integer")
+			}
+			afterStamp = value
+			i++
+		default:
+			return nil, 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return habitIDs, afterStamp, nil
 }
 
 func parseRangeListFlags(args []string, now time.Time, defaultDays int) (rangeListOptions, error) {

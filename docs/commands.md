@@ -77,6 +77,7 @@ dida task list --filter all --limit 50 --compact --json
 dida task get <task-id> --json
 dida task search --query <text> --limit 20 --compact --json
 dida task upcoming --days 14 --limit 50 --compact --json
+dida task due-counts --json
 dida quadrant list --json
 dida quadrant view Q2 --json
 ```
@@ -194,6 +195,7 @@ dida pomo task --project <project-id> --task <task-id> --json
 dida habit preferences --json
 dida habit list --json
 dida habit sections --json
+dida habit checkins --habit <habit-id> --after-stamp <millis> --json
 ```
 
 Pomodoro range commands convert `YYYY-MM-DD` flags into the millisecond

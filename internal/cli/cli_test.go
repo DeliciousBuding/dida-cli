@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -26,6 +27,51 @@ func TestDoctorJSON(t *testing.T) {
 	}
 	if payload["command"] != "doctor" {
 		t.Fatalf("command = %v, want doctor", payload["command"])
+	}
+}
+
+func TestJSONFlagWithoutCommandReturnsError(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["ok"] != false {
+		t.Fatalf("ok = %v, want false", payload["ok"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+}
+
+func TestAuthStatusVerifyMissingAuthFailsJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"auth", "status", "--verify", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "auth status" {
+		t.Fatalf("command = %v, want auth status", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "auth" {
+		t.Fatalf("error.type = %v, want auth", errPayload["type"])
 	}
 }
 
@@ -92,6 +138,27 @@ func TestAuthCookieTokenArgAllowedWithOptIn(t *testing.T) {
 	}
 	if strings.Contains(stdout.String(), "abc123") {
 		t.Fatalf("json output leaked token: %s", stdout.String())
+	}
+}
+
+func TestParseTokenInputRejectsLargeStdin(t *testing.T) {
+	oldStdin := os.Stdin
+	readFile, writeFile, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Pipe() error = %v", err)
+	}
+	defer func() { os.Stdin = oldStdin }()
+	os.Stdin = readFile
+	go func() {
+		_, _ = writeFile.Write(bytes.Repeat([]byte("x"), int(maxTokenStdinBytes)+1))
+		_ = writeFile.Close()
+	}()
+	_, err = parseTokenInput([]string{"--token-stdin"})
+	if err == nil {
+		t.Fatalf("parseTokenInput() error = nil, want size error")
+	}
+	if !strings.Contains(err.Error(), "exceeded") {
+		t.Fatalf("error = %v, want exceeded", err)
 	}
 }
 

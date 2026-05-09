@@ -119,6 +119,7 @@ dida task today --json
 dida task list --filter all --limit 50 --compact --json
 dida task search --query "exam" --limit 10 --json
 dida task upcoming --days 14 --json
+dida task due-counts --json
 dida quadrant list --json
 dida completed today --json
 dida completed list --from 2026-05-01 --to 2026-05-09 --compact --json
@@ -132,6 +133,7 @@ dida pomo task --project <project-id> --task <task-id> --json
 dida habit preferences --json
 dida habit list --json
 dida habit sections --json
+dida habit checkins --habit <habit-id> --after-stamp <millis> --json
 dida raw get /batch/check/0 --json
 dida raw get /attachment/isUnderQuota --api-version v1 --json
 ```

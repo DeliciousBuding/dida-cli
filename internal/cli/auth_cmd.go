@@ -12,6 +12,8 @@ import (
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
 
+const maxTokenStdinBytes int64 = 64 << 10
+
 func runAuth(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
 		printAuthHelp(stdout)
@@ -22,7 +24,11 @@ func runAuth(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		verify := hasFlag(args[1:], "--verify")
 		data := map[string]any{"cookie": auth.CookieStatus(), "oauth": map[string]any{"available": false, "message": "not implemented"}}
 		if verify {
-			data["verify"] = verifyCookieAuth()
+			verifyResult := verifyCookieAuth()
+			data["verify"] = verifyResult
+			if verifyResult["ok"] != true {
+				return failTyped("auth status", "auth", fmt.Sprint(verifyResult["message"]), fmt.Sprint(verifyResult["hint"]), jsonOut, stdout, stderr)
+			}
 		}
 		if jsonOut {
 			return writeJSON(stdout, envelope{OK: true, Command: "auth status", Data: data})
@@ -187,9 +193,12 @@ func parseTokenInput(args []string) (string, error) {
 			}
 			return args[i+1], nil
 		case "--token-stdin":
-			data, err := io.ReadAll(os.Stdin)
+			data, err := io.ReadAll(io.LimitReader(os.Stdin, maxTokenStdinBytes+1))
 			if err != nil {
 				return "", fmt.Errorf("read token from stdin: %w", err)
+			}
+			if int64(len(data)) > maxTokenStdinBytes {
+				return "", fmt.Errorf("token stdin exceeded %d bytes", maxTokenStdinBytes)
 			}
 			return string(data), nil
 		}

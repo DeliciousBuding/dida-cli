@@ -101,3 +101,30 @@ func TestProjectTasksUsesProjectEndpoint(t *testing.T) {
 		t.Fatalf("tasks len = %d, want 1", len(tasks))
 	}
 }
+
+func TestTaskDueActivityCountsUsesExpectedEndpoint(t *testing.T) {
+	var payload map[string]string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "POST /task/activity/count/all" {
+			t.Fatalf("request = %s, want POST /task/activity/count/all", got)
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"t1": 2})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	counts, err := client.TaskDueActivityCounts(context.Background())
+	if err != nil {
+		t.Fatalf("TaskDueActivityCounts() error = %v", err)
+	}
+	if payload["action"] != "T_DUE" {
+		t.Fatalf("action = %q, want T_DUE", payload["action"])
+	}
+	if counts["t1"] != float64(2) {
+		t.Fatalf("counts = %#v, want t1=2", counts)
+	}
+}

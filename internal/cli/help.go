@@ -169,6 +169,7 @@ Usage:
   dida habit preferences [--json]
   dida habit list [--json]
   dida habit sections [--json]
+  dida habit checkins [--habit <habit-id>] [--after-stamp <millis>] [--json]
 `))
 }
 
@@ -191,6 +192,7 @@ Usage:
   dida task list [--json] [--filter today|all] [--limit N] [--compact]
   dida task search --query <text> [--limit N] [--compact] [--json]
   dida task upcoming [--days N] [--limit N] [--compact] [--json]
+  dida task due-counts [--json]
   dida task get <task-id> [--json]
   dida task create --project <project-id> --title <title> [task fields...] [--dry-run] [--json]
   dida task update <task-id> --project <project-id> [task fields...] [--dry-run] [--json]

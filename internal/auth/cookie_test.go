@@ -85,3 +85,18 @@ func TestClearCookieTokenRemovesBrowserProfile(t *testing.T) {
 		t.Fatalf("browser profile still exists or unexpected error: %v", err)
 	}
 }
+
+func TestValidateBrowserProfileRemovalTargetRejectsUnsafePaths(t *testing.T) {
+	temp := t.TempDir()
+	if _, err := validateBrowserProfileRemovalTarget(filepath.Join(temp, "dida-web-login")); err != nil {
+		t.Fatalf("safe profile path rejected: %v", err)
+	}
+	if _, err := validateBrowserProfileRemovalTarget(filepath.Join(temp, "not-profile")); err == nil {
+		t.Fatalf("unexpected profile basename accepted")
+	}
+	if home, err := os.UserHomeDir(); err == nil {
+		if _, err := validateBrowserProfileRemovalTarget(filepath.Join(home, "dida-web-login")); err == nil {
+			t.Fatalf("home-level profile path accepted")
+		}
+	}
+}

@@ -16,6 +16,15 @@ func TestProductivityReadsUseExpectedEndpoints(t *testing.T) {
 		switch r.URL.Path {
 		case "/user/preferences/pomodoro", "/user/preferences/habit":
 			_ = json.NewEncoder(w).Encode(map[string]any{"enabled": true})
+		case "/habitCheckins/query":
+			var payload map[string]any
+			if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+				t.Fatalf("decode payload: %v", err)
+			}
+			if got := payload["afterStamp"]; got != float64(1234) {
+				t.Fatalf("afterStamp = %v, want 1234", got)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"checkins": map[string]any{}})
 		default:
 			_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "x1", "name": "item"}})
 		}
@@ -34,6 +43,7 @@ func TestProductivityReadsUseExpectedEndpoints(t *testing.T) {
 		func() error { _, err := client.HabitPreferences(ctx); return err },
 		func() error { _, err := client.Habits(ctx); return err },
 		func() error { _, err := client.HabitSections(ctx); return err },
+		func() error { _, err := client.HabitCheckins(ctx, []string{"h1"}, 1234); return err },
 	}
 	for _, call := range calls {
 		if err := call(); err != nil {
@@ -49,6 +59,7 @@ func TestProductivityReadsUseExpectedEndpoints(t *testing.T) {
 		"GET /user/preferences/habit?platform=web",
 		"GET /habits",
 		"GET /habitSections",
+		"POST /habitCheckins/query",
 	}
 	if strings.Join(seen, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("seen endpoints:\n%s\nwant:\n%s", strings.Join(seen, "\n"), strings.Join(want, "\n"))

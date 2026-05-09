@@ -75,3 +75,15 @@ func (c *Client) HabitSections(ctx context.Context) ([]map[string]any, error) {
 	}
 	return out, nil
 }
+
+func (c *Client) HabitCheckins(ctx context.Context, habitIDs []string, afterStamp int64) (map[string]any, error) {
+	payload := map[string]any{"habitIds": habitIDs}
+	if afterStamp > 0 {
+		payload["afterStamp"] = afterStamp
+	}
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodPost, "/habitCheckins/query", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}

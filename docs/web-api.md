@@ -31,6 +31,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/batch/check/{checkpoint}` | Incremental sync |
 | `GET` | `/user/preferences/settings` | User settings |
 | `GET` | `/project/{projectId}/tasks` | Project task list |
+| `POST` | `/task/activity/count/all` | Due-date activity counts with body `{"action":"T_DUE"}` |
 | `GET` | `/column/project/{projectId}` | Kanban column list with names and sort order |
 | `GET` | `/project/all/completed?...` | Completed tasks |
 | `GET` | `/user/preferences/pomodoro` | Pomodoro preferences |
@@ -40,6 +41,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/user/preferences/habit?platform=web` | Habit preferences |
 | `GET` | `/habits` | Habits |
 | `GET` | `/habitSections` | Habit sections |
+| `POST` | `/habitCheckins/query` | Habit check-ins with `habitIds` and optional `afterStamp` |
 | `GET` | `/api/v1/attachment/isUnderQuota` | Attachment quota boolean |
 | `GET` | `/api/v1/attachment/dailyLimit` | Attachment daily upload limit |
 | `GET` | `/user/preferences/dailyReminder` | Daily reminder preferences |

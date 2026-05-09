@@ -52,11 +52,13 @@ dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
 dida +today --compact --json
 dida task upcoming --days 14 --limit 50 --compact --json
+dida task due-counts --json
 dida quadrant list --json
 dida completed today --compact --json
 dida pomo list --limit 10 --json
 dida pomo task --project <project-id> --task <task-id> --json
 dida habit list --json
+dida habit checkins --habit <habit-id> --json
 dida attachment quota --json
 dida reminder daily --json
 dida share project shares <project-id> --json

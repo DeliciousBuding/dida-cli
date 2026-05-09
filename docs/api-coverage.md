@@ -15,6 +15,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Project columns | `GET /column/project/{projectId}` | `project columns`, `column list` | Stable read | Unit endpoint test and live read |
 | Task CRUD | `POST /batch/task` | `task create/update/complete/delete` | Stable | Unit request tests and live reversible smoke |
 | Task advanced fields | `/batch/task` fields | `--content`, `--desc`, `--start`, `--due`, `--timezone`, `--tag`, `--tags`, `--item`, `--column`, `--reminder`, `--repeat*`, `--all-day`, `--floating`, `--priority 0` | Stable | Unit request tests and live reversible smoke |
+| Task due activity counts | `POST /task/activity/count/all` | `task due-counts` | Stable read | Unit endpoint test and live read |
 | Task move | `POST /batch/taskProject` | `task move` | Stable | Unit request tests and live reversible smoke |
 | Task parent/subtask | `POST /batch/taskParent` | `task parent` | Stable | Unit request tests and live reversible smoke |
 | Project CRUD | `POST /batch/project` | `project create/update/delete` | Stable | Unit request tests and live reversible smoke |
@@ -36,6 +37,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Task Pomodoro records | `GET /pomodoros/task?projectId=...&taskId=...` | `pomo task` | Stable read | Unit endpoint test and live read |
 | Habit preferences | `GET /user/preferences/habit?platform=web` | `habit preferences` | Stable read | Live read |
 | Habits and sections | `GET /habits`, `GET /habitSections` | `habit list`, `habit sections` | Stable read | Live read |
+| Habit check-ins | `POST /habitCheckins/query` | `habit checkins` | Stable read | Unit endpoint test and live read with empty account |
 | Raw read | any GET path under base URL | `raw get` | Stable read-only | Live reads |
 | Quadrant view | derived from sync | `quadrant list/view` | Stable derived command | Unit classifier test and live read |
 

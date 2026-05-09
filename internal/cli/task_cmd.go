@@ -25,6 +25,8 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runTaskSearch(args[1:], jsonOut, stdout, stderr)
 	case "upcoming":
 		return runTaskUpcoming(args[1:], jsonOut, stdout, stderr)
+	case "due-counts":
+		return runTaskDueCounts(jsonOut, stdout, stderr)
 	case "get":
 		if len(args) != 2 {
 			return failTyped("task get", "validation", "usage: dida task get <task-id>", "run: dida task --help", jsonOut, stdout, stderr)
@@ -45,6 +47,23 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	default:
 		return fail("task", fmt.Sprintf("unknown task command %q", args[0]), jsonOut, stdout, stderr)
 	}
+}
+
+func runTaskDueCounts(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.TaskDueActivityCounts(ctx)
+	})
+	if err != nil {
+		return failTyped("task due-counts", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	counts := result.(map[string]any)
+	meta := map[string]any{"count": len(counts), "action": "T_DUE"}
+	data := map[string]any{"counts": counts}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "task due-counts", Meta: meta, Data: data})
+	}
+	fmt.Fprintf(stdout, "Due activity counts: %d task(s)\n", len(counts))
+	return 0
 }
 
 func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -794,7 +813,7 @@ func writeMutationPreview(command string, payload any, yes bool, jsonOut bool, s
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: command, Data: data})
 	}
-	fmt.Fprintf(stdout, "%s dry run. Add --yes to execute.\n", command)
+	fmt.Fprintf(stdout, "%s dry run. %s.\n", command, data["hint"])
 	return writeJSON(stdout, payload)
 }
 

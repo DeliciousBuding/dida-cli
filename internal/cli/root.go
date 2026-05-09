@@ -21,6 +21,13 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 	}
 
 	jsonOut, args := consumeJSONFlag(args)
+	if len(args) == 0 {
+		if jsonOut {
+			return failTyped("dida", "validation", "missing command", "run: dida --help", jsonOut, stdout, stderr)
+		}
+		printHelp(stdout)
+		return 1
+	}
 	command := args[0]
 
 	for _, cmd := range rootCommands(version) {

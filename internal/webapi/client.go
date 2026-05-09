@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -98,7 +99,11 @@ func (c *Client) doAtBaseURL(ctx context.Context, baseURL string, method string,
 		return fmt.Errorf("dida web api %s %s response exceeded %d bytes", method, path, limit)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("dida web api %s %s returned %d: %s", method, path, resp.StatusCode, c.redactForError(string(data)))
+		message := fmt.Sprintf("dida web api %s %s returned %d", method, path, resp.StatusCode)
+		if os.Getenv("DIDA_DEBUG_API_ERRORS") == "1" {
+			message += ": " + c.redactForError(string(data))
+		}
+		return fmt.Errorf("%s", message)
 	}
 	if out == nil || len(data) == 0 {
 		return nil

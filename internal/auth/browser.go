@@ -67,16 +67,52 @@ func BrowserLoginProfileDir() string {
 }
 
 func ClearBrowserLoginProfile() error {
-	if err := os.RemoveAll(BrowserLoginProfileDir()); err != nil {
+	if err := removeBrowserProfileDir(BrowserLoginProfileDir()); err != nil {
 		return fmt.Errorf("remove browser login profile: %w", err)
 	}
 	legacy := filepath.Join(legacyBrowserProfileDir(), "dida-web-login")
 	if legacy != BrowserLoginProfileDir() {
-		if err := os.RemoveAll(legacy); err != nil {
+		if err := removeBrowserProfileDir(legacy); err != nil {
 			return fmt.Errorf("remove legacy browser login profile: %w", err)
 		}
 	}
 	return nil
+}
+
+func removeBrowserProfileDir(path string) error {
+	clean, err := validateBrowserProfileRemovalTarget(path)
+	if err != nil {
+		return err
+	}
+	if err := os.RemoveAll(clean); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateBrowserProfileRemovalTarget(path string) (string, error) {
+	if path == "" {
+		return "", fmt.Errorf("empty browser profile path")
+	}
+	abs, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("resolve browser profile path: %w", err)
+	}
+	clean := filepath.Clean(abs)
+	if filepath.Base(clean) != "dida-web-login" {
+		return "", fmt.Errorf("refusing to remove unexpected browser profile path %q", clean)
+	}
+	parent := filepath.Dir(clean)
+	if parent == clean || parent == "." || parent == string(filepath.Separator) {
+		return "", fmt.Errorf("refusing to remove browser profile under filesystem root")
+	}
+	if home, err := os.UserHomeDir(); err == nil && filepath.Clean(home) == parent {
+		return "", fmt.Errorf("refusing to remove browser profile directly under home directory")
+	}
+	if info, err := os.Lstat(clean); err == nil && info.Mode()&os.ModeSymlink != 0 {
+		return "", fmt.Errorf("refusing to remove symlinked browser profile")
+	}
+	return clean, nil
 }
 
 func findPython() (string, error) {

@@ -85,3 +85,12 @@ func (c *Client) ProjectTasks(ctx context.Context, projectID string) ([]map[stri
 	}
 	return out, nil
 }
+
+func (c *Client) TaskDueActivityCounts(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	payload := map[string]string{"action": "T_DUE"}
+	if err := c.Do(ctx, http.MethodPost, "/task/activity/count/all", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
