@@ -27,7 +27,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Requirement | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Web API channel is explicit | `README.md`, `docs/commands.md`, `docs/api-coverage.md`, `docs/research/api-channel-inventory.md` | done | Private Web API remains drift-prone by design. |
-| Web API read coverage is documented | `docs/api-coverage.md`, `docs/research/webapi-gap-catalog.md` | partial | Task activity detail still blocked by `need_pro`; attachment and write flows need more evidence. |
+| Web API read coverage is documented | `docs/api-coverage.md`, `docs/research/webapi-gap-catalog.md` | partial | Task activity detail still blocked by `need_pro`; task-level attachment and private write flows need more evidence. |
 | Web API commands prefer JSON and compact output | `internal/cli/*`, `docs/commands.md`, `README.md` | done | Continue adding compact output when new noisy reads are promoted. |
 | Official MCP channel is explicit | `docs/research/official-mcp-tool-crosswalk.md`, `docs/research/official-mcp-vs-webapi.md` | done | Token-based health, tools, project get/data, task get/query/search/undone/filter, habit list/sections, and focus list were live-smoked on 2026-05-10. |
 | Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/habit/focus reads are live-smoked where safe IDs exist; known-id detail reads and write wrappers still need safe targets. |
@@ -75,6 +75,11 @@ Recently run successfully:
 - WSL Linux `install.sh` smoke against `v0.1.4`
 - Web API `auth status --verify`, `agent context`, `attachment quota`, and
   empty `comment list` live reads on 2026-05-10
+- Web API comment attachment upload/create was implemented as
+  `comment create --file <path>` after reversible live evidence confirmed
+  multipart field `file`, upload response keys, comment attach payload,
+  read-back, and cleanup; later repeat upload smoke is currently blocked by
+  exhausted attachment quota on the observed account
 - Web API task activity raw probes on 2026-05-10 confirmed the surface remains
   blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
@@ -90,6 +95,9 @@ Skipped or blocked verification:
 - Official OpenAPI live smoke: saved client config is present, but no OAuth
   access token is present
 - Web API task activity detail: current account receives `need_pro`
+- Web API repeat comment attachment upload: current account reports
+  `underQuota=false`, so new upload smokes require quota to reset or another
+  disposable account with available quota
 
 ## Completion Rule
 

@@ -207,7 +207,7 @@ skills/dida-cli/SKILL.md
 
 - `/batch/check/...`
 - `/user/preferences/settings`
-- 任务 / 项目 / 文件夹 / 标签 / 评论
+- 任务 / 项目 / 文件夹 / 标签 / 评论，以及已验证的评论附件创建
 - `/pomodoros...`、`/habit...`
 - `/statistics/general`
 - `/projectTemplates/all`

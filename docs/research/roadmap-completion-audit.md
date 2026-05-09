@@ -26,14 +26,17 @@ Implemented and documented:
 - Sync, agent context, settings, projects, folders, tags, filters, columns,
   comments, tasks, completed history, closed history, trash, search, user
   metadata, sharing reads, calendar reads, statistics, templates, Pomodoro,
-  habits, attachment quota, and raw GET probes.
+  habits, attachment quota, comment attachment create, and raw GET probes.
 - Coverage truth: `docs/api-coverage.md`.
 - Gap truth: `docs/research/webapi-gap-catalog.md`.
 
 Not complete:
 
 - Task activity detail is blocked by `need_pro` on the current account.
-- Attachment upload / attach / download flow is only partially mapped.
+- Comment attachment upload/create is implemented through
+  `comment create --file <path>` after reversible live evidence. Task-level
+  attachment association, download/preview, and orphan cleanup are still only
+  partially mapped.
 - Filter writes, column update/delete/order, and collaboration writes still
   need real request-body evidence and rollback plans.
 

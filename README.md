@@ -214,7 +214,7 @@ DidaCLI currently covers a broad slice of the observed Dida365 Web API, includin
 
 - sync: `/batch/check/...`
 - settings: `/user/preferences/settings`
-- tasks/projects/folders/tags/comments
+- tasks/projects/folders/tags/comments, including verified comment attachment create
 - productivity: `/pomodoros...`, `/habit...`
 - sharing/calendar/statistics/templates/search
 - raw read-only probing

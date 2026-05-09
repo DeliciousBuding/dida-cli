@@ -140,21 +140,27 @@ Acceptance:
 
 ### A2. Attachment Flows
 
-- upload attachment
+- comment attachment upload
 - attach to comment
 - download / reference model
 
 Current evidence:
 
-- comment attachment upload/display paths and comment create payload shape are
-  documented in `docs/research/webapi-attachment-flow-notes.md`
-- multipart field names, upload response shape, task-level attachment
-  association, and cleanup behavior remain unverified
+- comment attachment upload/display paths, multipart field `file`, upload
+  response keys, and comment create payload shape are documented in
+  `docs/research/webapi-attachment-flow-notes.md`
+- `comment create --file <path>` is implemented and covered by schema, docs,
+  dry-run tests, multipart request-shape tests, and reversible live evidence
+- the CLI checks attachment quota before upload; the current observed account
+  later reached `underQuota=false`, so future live upload smokes need available
+  attachment quota
+- task-level attachment association, download/preview semantics, accepted file
+  matrix, and uploaded-but-not-attached cleanup behavior remain unverified
 
 Acceptance:
 
-- multipart flow fully mapped
-- reversible live test
+- comment multipart flow fully mapped
+- reversible live test for comment attachments
 - no secrets or file dumps committed
 
 ### A3. Filter and Column Writes
@@ -460,7 +466,7 @@ Top five next tasks:
 1. Finish and live-verify `openapi login`
 2. Live-smoke remaining known-id official MCP habit/focus reads where safe targets exist
 3. Capture a successful Web API task activity request with a Pro account or trace
-4. Map attachment metadata and download/upload flows from real Web API evidence
+4. Map task-level attachment metadata, association, download, and preview flows from real Web API evidence
 5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available
 
 ## Done Means Done
