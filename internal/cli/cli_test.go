@@ -920,6 +920,43 @@ func TestOpenAPILoginJSONNoOpenFailsSingleEnvelope(t *testing.T) {
 	}
 }
 
+func TestOpenAPIClientSetStatusJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	oldStdin := os.Stdin
+	readFile, writeFile, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Pipe() error = %v", err)
+	}
+	defer func() { os.Stdin = oldStdin }()
+	os.Stdin = readFile
+	go func() {
+		_, _ = writeFile.Write([]byte("client-secret"))
+		_ = writeFile.Close()
+	}()
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "client", "set", "--id", "client-id", "--secret-stdin", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(set) code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if strings.Contains(stdout.String(), "client-secret") {
+		t.Fatalf("client set leaked secret: %s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"openapi", "client", "status", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(status) code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if strings.Contains(stdout.String(), "client-secret") {
+		t.Fatalf("client status leaked secret: %s", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"available": true`) {
+		t.Fatalf("status missing available true: %s", stdout.String())
+	}
+}
+
 func TestValidateOpenAPICallback(t *testing.T) {
 	if err := validateOpenAPICallback("state-1", "code-1", "state-1"); err != nil {
 		t.Fatalf("validateOpenAPICallback() error = %v", err)

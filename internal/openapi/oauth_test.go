@@ -30,3 +30,33 @@ func TestTokenStatusDoesNotExposeLocalPath(t *testing.T) {
 		t.Fatalf("available = %#v, want false", status["available"])
 	}
 }
+
+func TestClientConfigResolveAndStatus(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "")
+	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "")
+	if _, err := SaveClientConfig("client-id", "client-secret"); err != nil {
+		t.Fatalf("SaveClientConfig() error = %v", err)
+	}
+	clientID, err := ResolveClientID("")
+	if err != nil {
+		t.Fatalf("ResolveClientID() error = %v", err)
+	}
+	if clientID != "client-id" {
+		t.Fatalf("clientID = %q", clientID)
+	}
+	clientSecret, err := ResolveClientSecret("")
+	if err != nil {
+		t.Fatalf("ResolveClientSecret() error = %v", err)
+	}
+	if clientSecret != "client-secret" {
+		t.Fatalf("clientSecret = %q", clientSecret)
+	}
+	status := ClientConfigStatus()
+	if status["available"] != true {
+		t.Fatalf("status = %#v", status)
+	}
+	if _, ok := status["client_secret"]; ok {
+		t.Fatalf("status exposed client secret: %#v", status)
+	}
+}

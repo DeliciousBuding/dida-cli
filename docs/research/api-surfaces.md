@@ -93,6 +93,8 @@ Use for stable long-term operations where feature coverage is enough.
 Expected auth:
 
 - OAuth2 app from the Dida365/TickTick developer portal.
+- Client id and client secret can come from environment variables or `dida
+  openapi client set --id <client-id> --secret-stdin`.
 - Access token and refresh token are stored by `dida openapi login`.
 - This channel is separate from Web API cookie auth and official MCP
   `DIDA365_TOKEN` auth.

@@ -39,6 +39,7 @@ dida official task batch-add --args-json '{"tasks":[{"title":"Agent task"}]}' --
 
 # Official OpenAPI: OAuth REST
 dida openapi doctor --json
+dida openapi client status --json
 dida openapi project list --json
 dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
@@ -91,6 +92,7 @@ dida task delete <task-id> --project <project-id> --yes --json
 - Do not ask the user to paste cookies or tokens into chat.
 - Do not use official MCP tokens as OpenAPI bearer tokens.
 - Do not use Web API cookies as official OpenAPI tokens.
+- If OpenAPI client config is missing, ask the user to run `dida openapi client set --id <client-id> --secret-stdin --json` locally.
 - Do not run destructive commands without `--yes`.
 - Do not use raw probes for writes; DidaCLI intentionally supports only raw
   read probes.

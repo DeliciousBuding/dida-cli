@@ -67,6 +67,8 @@ dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
 dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
 dida openapi doctor --json
+dida openapi client status --json
+dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi auth-url --json
 dida openapi exchange-code --code <code> --json
 dida openapi project list --json
@@ -284,6 +286,10 @@ batch commands support local `--dry-run` previews without a token; remove
 ## Official OpenAPI Focus And Habit
 
 ```bash
+dida openapi client status --json
+dida openapi client set --id <client-id> --secret-stdin --json
+dida openapi client clear --json
+
 dida openapi focus get <focus-id> --type 0 --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi focus delete <focus-id> --type 0 --dry-run --json
@@ -304,6 +310,9 @@ commands support `--dry-run`; focus delete requires `--yes` when executed.
 `dida openapi login --json` emits one final JSON envelope after browser
 authorization completes. For manual no-browser OAuth, use `dida openapi
 auth-url --json` and `dida openapi listen-callback --json`.
+`dida openapi client set` stores the OAuth client id and secret locally; use
+`--secret-stdin` so the secret does not enter shell history. Environment
+variables still take precedence.
 
 ## Account Metadata
 

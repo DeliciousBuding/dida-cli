@@ -89,6 +89,7 @@ Usage:
   dida openapi doctor [--json]
   dida openapi status [--json]
   dida openapi logout [--json]
+  dida openapi client <status|set|clear> [--json]
   dida openapi login [--host HOST] [--port PORT] [--scope SCOPES] [--state VALUE] [--timeout SECONDS] [--no-open] [--json]
   dida openapi auth-url [--redirect-uri URL] [--scope SCOPES] [--state VALUE] [--json]
   dida openapi listen-callback [--host HOST] [--port PORT] [--json]
@@ -118,6 +119,20 @@ These commands use the official OAuth-based OpenAPI channel.
 They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.
 In --json mode, interactive login opens the browser and emits one final JSON envelope.
 Use auth-url and listen-callback for manual no-browser OAuth flows.
+`))
+}
+
+func printOpenAPIClientHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida openapi client status [--json]
+  dida openapi client set --id <client-id> --secret-stdin [--json]
+  dida openapi client clear [--json]
+
+Client config is stored locally for OpenAPI OAuth commands. Prefer
+--secret-stdin so the client secret does not enter shell history.
+Environment variables DIDA365_OPENAPI_CLIENT_ID and
+DIDA365_OPENAPI_CLIENT_SECRET still take precedence when set.
 `))
 }
 

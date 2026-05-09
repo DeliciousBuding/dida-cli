@@ -36,8 +36,18 @@ type TokenResponse struct {
 	OAuthToken
 }
 
+type ClientConfig struct {
+	ClientID     string `json:"client_id"`
+	ClientSecret string `json:"client_secret"`
+	SavedAt      int64  `json:"saved_at"`
+}
+
 func TokenPath() string {
 	return filepath.Join(config.DefaultDir(), "openapi-oauth.json")
+}
+
+func ClientConfigPath() string {
+	return filepath.Join(config.DefaultDir(), "openapi-client.json")
 }
 
 func ResolveClientID(explicit string) (string, error) {
@@ -46,6 +56,9 @@ func ResolveClientID(explicit string) (string, error) {
 	}
 	if value := strings.TrimSpace(os.Getenv("DIDA365_OPENAPI_CLIENT_ID")); value != "" {
 		return value, nil
+	}
+	if cfg, err := LoadClientConfig(); err == nil && strings.TrimSpace(cfg.ClientID) != "" {
+		return strings.TrimSpace(cfg.ClientID), nil
 	}
 	return "", fmt.Errorf("missing DIDA365_OPENAPI_CLIENT_ID")
 }
@@ -57,7 +70,75 @@ func ResolveClientSecret(explicit string) (string, error) {
 	if value := strings.TrimSpace(os.Getenv("DIDA365_OPENAPI_CLIENT_SECRET")); value != "" {
 		return value, nil
 	}
+	if cfg, err := LoadClientConfig(); err == nil && strings.TrimSpace(cfg.ClientSecret) != "" {
+		return strings.TrimSpace(cfg.ClientSecret), nil
+	}
 	return "", fmt.Errorf("missing DIDA365_OPENAPI_CLIENT_SECRET")
+}
+
+func SaveClientConfig(clientID string, clientSecret string) (*ClientConfig, error) {
+	clientID = strings.TrimSpace(clientID)
+	clientSecret = strings.TrimSpace(clientSecret)
+	if clientID == "" {
+		return nil, fmt.Errorf("empty openapi client id")
+	}
+	if clientSecret == "" {
+		return nil, fmt.Errorf("empty openapi client secret")
+	}
+	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
+		return nil, fmt.Errorf("create config dir: %w", err)
+	}
+	cfg := &ClientConfig{ClientID: clientID, ClientSecret: clientSecret, SavedAt: time.Now().Unix()}
+	payload, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("encode openapi client config: %w", err)
+	}
+	if err := os.WriteFile(ClientConfigPath(), append(payload, '\n'), 0o600); err != nil {
+		return nil, fmt.Errorf("write openapi client config: %w", err)
+	}
+	return cfg, nil
+}
+
+func LoadClientConfig() (*ClientConfig, error) {
+	data, err := os.ReadFile(ClientConfigPath())
+	if err != nil {
+		return nil, err
+	}
+	var cfg ClientConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("decode openapi client config: %w", err)
+	}
+	if strings.TrimSpace(cfg.ClientID) == "" {
+		return nil, fmt.Errorf("openapi client config has no client id")
+	}
+	if strings.TrimSpace(cfg.ClientSecret) == "" {
+		return nil, fmt.Errorf("openapi client config has no client secret")
+	}
+	return &cfg, nil
+}
+
+func ClearClientConfig() error {
+	if err := os.Remove(ClientConfigPath()); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove openapi client config: %w", err)
+	}
+	return nil
+}
+
+func ClientConfigStatus() map[string]any {
+	status := map[string]any{}
+	cfg, err := LoadClientConfig()
+	if err != nil {
+		status["available"] = false
+		status["message"] = "missing"
+		return status
+	}
+	status["available"] = true
+	status["client_id_preview"] = redactToken(cfg.ClientID)
+	status["client_secret_available"] = true
+	if cfg.SavedAt > 0 {
+		status["saved_at"] = time.Unix(cfg.SavedAt, 0).Format(time.RFC3339)
+	}
+	return status
 }
 
 func AuthorizationURL(clientID string, redirectURI string, scope string, state string) string {
@@ -182,4 +263,8 @@ func redactToken(token string) string {
 		return "***"
 	}
 	return token[:4] + "..." + token[len(token)-4:]
+}
+
+func RedactForStatus(value string) string {
+	return redactToken(value)
 }

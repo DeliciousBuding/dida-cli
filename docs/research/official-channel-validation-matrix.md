@@ -46,7 +46,8 @@ They are intentionally not interchangeable.
 
 | Area | Endpoint / action | DidaCLI surface | Status | Evidence / next action |
 | --- | --- | --- | --- | --- |
-| OAuth URL | `GET https://dida365.com/oauth/authorize` | `openapi auth-url` | implemented | Generates authorization URL from env-provided client credentials. |
+| Client config | local OAuth app credentials | `openapi client status/set/clear` | implemented | Stores client id/secret locally for OAuth commands; secret is accepted through stdin and not printed. |
+| OAuth URL | `GET https://dida365.com/oauth/authorize` | `openapi auth-url` | implemented | Generates authorization URL from env or saved client credentials. |
 | Callback listener | local HTTP callback | `openapi listen-callback` | implemented | Needs end-to-end browser approval smoke. |
 | Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | implemented | Invalid-code test confirmed client authentication path; real code still needed. |
 | Interactive login | OAuth URL + listener + token exchange | `openapi login` | implemented | Needs full live OAuth approval and persisted token verification. |

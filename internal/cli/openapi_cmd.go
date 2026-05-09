@@ -7,8 +7,10 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/openapi"
@@ -26,6 +28,8 @@ func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		return runOpenAPIStatus(jsonOut, stdout, stderr)
 	case "logout":
 		return runOpenAPILogout(jsonOut, stdout, stderr)
+	case "client":
+		return runOpenAPIClient(args[1:], jsonOut, stdout, stderr)
 	case "login":
 		return runOpenAPILogin(args[1:], jsonOut, stdout, stderr)
 	case "auth-url":
@@ -47,6 +51,91 @@ func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	}
 }
 
+func runOpenAPIClient(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printOpenAPIClientHelp(stdout)
+		return 0
+	}
+	switch args[0] {
+	case "status":
+		data := map[string]any{"client": openapi.ClientConfigStatus()}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi client status", Data: data})
+		}
+		fmt.Fprintf(stdout, "OpenAPI client config available: %v\n", data["client"].(map[string]any)["available"])
+		return 0
+	case "set":
+		clientID, clientSecret, err := parseOpenAPIClientSetFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi client set", "validation", err.Error(), "run: dida openapi client --help", jsonOut, stdout, stderr)
+		}
+		cfg, err := openapi.SaveClientConfig(clientID, clientSecret)
+		if err != nil {
+			return failTyped("openapi client set", "auth", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		data := map[string]any{
+			"saved":                   true,
+			"client_id_preview":       openapi.RedactForStatus(cfg.ClientID),
+			"client_secret_available": true,
+			"next":                    "dida openapi doctor --json",
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi client set", Data: data})
+		}
+		fmt.Fprintln(stdout, "OpenAPI client config saved.")
+		fmt.Fprintln(stdout, "Next: dida openapi doctor --json")
+		return 0
+	case "clear":
+		if err := openapi.ClearClientConfig(); err != nil {
+			return failTyped("openapi client clear", "auth", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi client clear", Data: map[string]any{"client_config_cleared": true}})
+		}
+		fmt.Fprintln(stdout, "OpenAPI client config cleared.")
+		return 0
+	default:
+		return fail("openapi client", fmt.Sprintf("unknown client subcommand %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+func parseOpenAPIClientSetFlags(args []string) (string, string, error) {
+	clientID := ""
+	secretFromStdin := false
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--id", "--client-id":
+			if i+1 >= len(args) {
+				return "", "", fmt.Errorf("--id requires a value")
+			}
+			clientID = strings.TrimSpace(args[i+1])
+			i++
+		case "--secret-stdin":
+			secretFromStdin = true
+		default:
+			return "", "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if clientID == "" {
+		return "", "", fmt.Errorf("missing required --id")
+	}
+	if !secretFromStdin {
+		return "", "", fmt.Errorf("missing required --secret-stdin")
+	}
+	data, err := io.ReadAll(io.LimitReader(os.Stdin, maxTokenStdinBytes+1))
+	if err != nil {
+		return "", "", fmt.Errorf("read client secret from stdin: %w", err)
+	}
+	if int64(len(data)) > maxTokenStdinBytes {
+		return "", "", fmt.Errorf("client secret stdin exceeded %d bytes", maxTokenStdinBytes)
+	}
+	clientSecret := strings.TrimSpace(string(data))
+	if clientSecret == "" {
+		return "", "", fmt.Errorf("empty openapi client secret")
+	}
+	return clientID, clientSecret, nil
+}
+
 func runOpenAPIDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	clientID, err := openapi.ResolveClientID("")
 	clientSecret, err2 := openapi.ResolveClientSecret("")
@@ -54,6 +143,7 @@ func runOpenAPIDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	data := map[string]any{
 		"client_id_available":     err == nil && clientID != "",
 		"client_secret_available": err2 == nil && clientSecret != "",
+		"client_config":           openapi.ClientConfigStatus(),
 		"token":                   tokenStatus,
 		"base_url":                openapi.DefaultAPIBaseURL,
 		"auth_url":                openapi.DefaultAuthBaseURL + "/oauth/authorize",

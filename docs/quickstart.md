@@ -88,6 +88,7 @@ MCP.
 
 ```bash
 dida openapi doctor --json
+dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi login --json
 dida openapi project list --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
@@ -98,6 +99,9 @@ dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}'
 `dida openapi login --json` opens the browser and emits one final JSON envelope
 after the OAuth callback. For manual no-browser flows, use `dida openapi
 auth-url --json` and `dida openapi listen-callback --json`.
+You may also use `DIDA365_OPENAPI_CLIENT_ID` and
+`DIDA365_OPENAPI_CLIENT_SECRET`; environment variables take precedence over the
+saved client config.
 
 ## Common Reads
 
