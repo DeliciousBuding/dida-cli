@@ -154,13 +154,19 @@ Current evidence:
 - the CLI checks attachment quota before upload; the current observed account
   later reached `underQuota=false`, so future live upload smokes need available
   attachment quota
-- task-level attachment association, download/preview semantics, accepted file
-  matrix, and uploaded-but-not-attached cleanup behavior remain unverified
+- task-level upload and render/download path shapes are now bundle-mapped:
+  `/api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` and
+  `/api/v1/attachment/{projectId}/{taskId}/{attachmentId}` with optional
+  `action=download` or `action=preview`
+- task-level attachment association/persistence, accepted file matrix, and
+  uploaded-but-not-attached cleanup behavior remain unverified
 
 Acceptance:
 
 - comment multipart flow fully mapped
 - reversible live test for comment attachments
+- task-level flow documented as research-only until a reversible association
+  trace exists
 - no secrets or file dumps committed
 
 ### A3. Filter and Column Writes
@@ -468,7 +474,7 @@ Top five next tasks:
 1. Finish and live-verify `openapi login`
 2. Create or identify disposable official MCP habit/focus targets for known-id reads
 3. Capture a successful Web API task activity request with a Pro account or trace
-4. Map task-level attachment metadata, association, download, and preview flows from real Web API evidence
+4. Capture a reversible task-level attachment association trace, then decide whether to expose task attachment upload/download commands
 5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available
 
 ## Done Means Done

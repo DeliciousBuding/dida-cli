@@ -35,7 +35,7 @@ payload dumps, or local browser exports here.
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |
 | Column project batch | `POST /batch/columnProject` | visible but not mapped | Update/delete/reorder bodies unknown. | Capture real kanban column edit/delete/reorder traffic. |
 | Filter batch | `POST /batch/filter` | visible but not mapped | Create/update/delete bodies unknown. | Capture real filter edit traffic. |
-| Task attachment upload/download | task-level multipart/download chain | not mapped | Comment attachment create is mapped, but task-level attachment association and download/preview are separate flows. | Capture task attach, download, preview, and orphan cleanup behavior. |
+| Task attachment upload/download | `POST /api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` and `GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}` with optional `action=download` or `action=preview` | bundle-mapped, not live-verified | Comment attachment create is live-confirmed. Task-level upload uses a generated attachment id/refId and separate render/download paths, but the task association/persistence mutation is not yet proven. | Capture a reversible task attach trace, confirm the task payload or batch mutation, then test download, preview, file limits, quota failure, and orphan cleanup behavior. |
 | Collaboration writes | invite and permission mutation paths | not mapped | Multi-user side effects and rollback unclear. | Trace with disposable project/user setup. |
 
 ## Implementation Rule

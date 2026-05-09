@@ -91,6 +91,7 @@ Current implication:
 - attachment upload
 - attachment association with comments
 - comment attachment flow
+- task-level attachment upload/download
 
 Known status:
 
@@ -104,8 +105,21 @@ Known status:
   comment/task
 - logical `projectId=inbox` is not valid for upload; use the real inbox/list id
   from `dida agent context --json`
-- task-level association, download/preview semantics, accepted file matrix, and
-  uploaded-but-not-attached cleanup behavior still need evidence
+- task-level upload is bundle-mapped as
+  `POST /api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` with a
+  generated local attachment id/refId
+- task-level render/download/preview path shape is bundle-mapped as
+  `/api/v1/attachment/{projectId}/{taskId}/{attachmentId}` with optional
+  `action=download` or `action=preview`
+- task-level association/persistence, accepted file matrix, and
+  uploaded-but-not-attached cleanup behavior still need live evidence
+
+Current implication:
+
+- comment attachments are implemented because upload, comment payload, read-back,
+  and cleanup are live-confirmed
+- task-level attachment commands should stay out of the public command surface
+  until a reversible trace proves the task mutation semantics
 
 ### Collaboration Writes
 

@@ -72,22 +72,74 @@ write path:
 
 ## Task Attachment Flow
 
-Bundle evidence also shows task-level attachment references under:
+Bundle evidence also shows task-level attachments use a separate flow from
+comment attachments.
+
+Observed task attachment upload path:
 
 ```text
-GET /attachment/{encodedAttachmentPath}
-GET /attachment/{encodedAttachmentPath}?action=preview
-GET /attachment/upload/countdown?attachmentId={attachmentId}
+POST /api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}
+```
+
+Observed local pre-upload metadata:
+
+- `id`: generated local attachment id
+- `refId`: same generated id
+- `projectId`: task project id
+- `taskId`: task id
+- `fileName`: local file name
+- `fileType`: webapp file type classification from extension or MIME type
+- `size`: local file size
+- `isLocal`: `true`
+- `previewUrl`: local object URL while upload is pending
+
+Observed upload response handling:
+
+- The server response includes a `refId`.
+- The webapp matches uploaded attachments by `refId`.
+- The response object is merged back into the matching local attachment.
+- Response fields `id` and `taskId` are removed before the merge.
+- After merge, `isLocal` becomes `false` and transient render state is removed.
+- If a failed or inactive attachment has no server path, the webapp preserves
+  inactive status and marks the object as updated for sync.
+- An `exceed_quota` upload failure disables upload capability and triggers
+  failure cleanup events.
+
+Observed task attachment render/download paths:
+
+```text
+GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}
+GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}?action=download
+GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}?action=preview
+```
+
+Image display paths append the lower-cased file extension to the attachment
+path. PDF preview uses `action=preview`. Download uses `action=download` and
+expects a binary response.
+
+Countdown-specific attachment paths are separate from task attachments:
+
+```text
+POST /api/v1/attachment/upload/countdown?attachmentId={attachmentId}
 GET /api/v1/attachment/countdown?id={id}&attachmentId={attachmentId}
 ```
 
-The exact `encodedAttachmentPath` helper still needs to be decoded before the
-CLI can safely expose task attachment download or preview helpers.
+Current confidence:
+
+- Upload path, local metadata model, response merge behavior, and
+  render/download path shape are bundle-mapped.
+- Live creation/association is not yet verified.
+- The task write payload or sync mutation that persists the uploaded attachment
+  on a task still needs a reversible trace.
 
 ## Remaining Gaps
 
 - Full accepted file type matrix and size failure responses.
 - Task-level attachment creation and association payloads.
+- Whether task-level attachment persistence is only a `/batch/task`
+  `attachments` mutation or requires additional batch semantics.
+- Whether download/preview paths need any extra query parameters for non-image
+  files or Pro-gated file types.
 - Delete behavior for uploaded-but-not-attached files.
 - Whether comment attachment ids are reusable across comment create/update.
 
