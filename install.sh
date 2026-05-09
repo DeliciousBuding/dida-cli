@@ -44,21 +44,8 @@ detect_arch() {
   esac
 }
 
-latest_version() {
-  tmp="${TMPDIR:-/tmp}/dida-release-latest.json"
-  download "https://api.github.com/repos/$repo/releases/latest" "$tmp"
-  sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$tmp" | head -n 1
-}
-
 os="$(detect_os)"
 arch="$(detect_arch)"
-if [ -z "$version" ]; then
-  version="$(latest_version)"
-fi
-if [ -z "$version" ]; then
-  echo "error: could not resolve latest release version" >&2
-  exit 1
-fi
 
 archive_ext="tar.gz"
 binary_name="dida"
@@ -67,14 +54,25 @@ if [ "$os" = "windows" ]; then
   binary_name="dida.exe"
 fi
 
-asset="dida_${version}_${os}_${arch}.${archive_ext}"
-base_url="https://github.com/$repo/releases/download/$version"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT INT TERM
+if [ -z "$version" ]; then
+  base_url="https://github.com/$repo/releases/latest/download"
+  download "$base_url/checksums.txt" "$tmp_dir/checksums.txt"
+  asset="$(grep "  dida_v.*_${os}_${arch}\\.${archive_ext}\$" "$tmp_dir/checksums.txt" | awk '{print $2}' | head -n 1)"
+  version="$(printf '%s\n' "$asset" | sed -n "s/^dida_\\(v[^_]*\\)_${os}_${arch}\\.${archive_ext}\$/\\1/p")"
+else
+  base_url="https://github.com/$repo/releases/download/$version"
+  download "$base_url/checksums.txt" "$tmp_dir/checksums.txt"
+  asset="dida_${version}_${os}_${arch}.${archive_ext}"
+fi
+if [ -z "$version" ] || [ -z "$asset" ]; then
+  echo "error: could not resolve latest release asset for $os/$arch" >&2
+  exit 1
+fi
 
 echo "Installing DidaCLI $version for $os/$arch"
 download "$base_url/$asset" "$tmp_dir/$asset"
-download "$base_url/checksums.txt" "$tmp_dir/checksums.txt"
 
 expected="$(grep "  $asset\$" "$tmp_dir/checksums.txt" | awk '{print $1}')"
 if [ -z "$expected" ]; then

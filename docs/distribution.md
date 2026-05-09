@@ -8,8 +8,8 @@ cloning the repository. GitHub Releases are the canonical binary source.
 | Channel | Status | Notes |
 | --- | --- | --- |
 | GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS. |
-| `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`. |
-| `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables. |
+| `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`; latest resolution uses release checksum assets instead of the GitHub API. |
+| `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables; latest resolution uses release checksum assets instead of the GitHub API. |
 | npm installer package | Smoke-tested skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries. Not published yet. |
 | `go install` | Developer fallback | Works when Go is installed, but does not use release archives. |
 
@@ -80,8 +80,10 @@ The `npm/` directory is a package skeleton for a future npm distribution:
   wrapper is not overwritten
 - local Windows and WSL Linux smoke tests installed `v0.1.4` from GitHub
   Releases in temporary copies and verified `node bin/dida version`
-- Windows `install.ps1` smoke installed `v0.1.6` from GitHub Releases and
-  verified `dida version` plus the installer's `dida doctor --json` check
+- Windows `install.ps1` latest smoke installed `v0.1.7` from GitHub Releases
+  and verified `dida version` plus the installer's `dida doctor --json` check
+- WSL Linux `install.sh` latest smoke installed `v0.1.7` from GitHub Releases
+  and verified `dida version` plus the installer's `dida doctor --json` check
 
 Do not publish it until:
 
@@ -105,9 +107,9 @@ toolchain and may not match packaged release behavior.
 `packaging/` contains maintainer templates for package managers that generally
 live outside this repository:
 
-- `packaging/homebrew/dida.rb` pins `v0.1.6` macOS and Linux release archives
+- `packaging/homebrew/dida.rb` pins `v0.1.7` macOS and Linux release archives
   with checksums.
-- `packaging/scoop/dida.json` pins `v0.1.6` Windows amd64 and arm64 release
+- `packaging/scoop/dida.json` pins `v0.1.7` Windows amd64 and arm64 release
   archives with checksums.
 - `packaging/winget/README.md` records the future winget submission boundary
   without committing generated manifests prematurely.

@@ -20,29 +20,35 @@ function Get-Arch {
   }
 }
 
-if (-not $Version) {
-  $latest = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repo/releases/latest"
-  $Version = $latest.tag_name
-}
-if (-not $Version) {
-  throw "could not resolve latest release version"
-}
-
 $OS = Get-Platform
 $Arch = Get-Arch
 $Ext = if ($OS -eq "windows") { "zip" } else { "tar.gz" }
 $Binary = if ($OS -eq "windows") { "dida.exe" } else { "dida" }
-$Asset = "dida_${Version}_${OS}_${Arch}.${Ext}"
-$BaseUrl = "https://github.com/$Repo/releases/download/$Version"
 $TempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("dida-install-" + [System.Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $TempDir | Out-Null
 
 try {
+  $ChecksumsPath = Join-Path $TempDir "checksums.txt"
+  if ($Version) {
+    $BaseUrl = "https://github.com/$Repo/releases/download/$Version"
+    $Asset = "dida_${Version}_${OS}_${Arch}.${Ext}"
+    Invoke-WebRequest -Uri "$BaseUrl/checksums.txt" -OutFile $ChecksumsPath
+  } else {
+    $BaseUrl = "https://github.com/$Repo/releases/latest/download"
+    Invoke-WebRequest -Uri "$BaseUrl/checksums.txt" -OutFile $ChecksumsPath
+    $Pattern = "dida_v.*_${OS}_${Arch}\.$([regex]::Escape($Ext))$"
+    $Asset = (Get-Content $ChecksumsPath | ForEach-Object { ($_ -split "\s+")[1] } | Where-Object { $_ -match $Pattern } | Select-Object -First 1)
+    if ($Asset -match "^dida_(v[^_]+)_${OS}_${Arch}\.$([regex]::Escape($Ext))$") {
+      $Version = $Matches[1]
+    }
+  }
+  if (-not $Version -or -not $Asset) {
+    throw "could not resolve latest release asset for $OS/$Arch"
+  }
+
   Write-Host "Installing DidaCLI $Version for $OS/$Arch"
   $ArchivePath = Join-Path $TempDir $Asset
-  $ChecksumsPath = Join-Path $TempDir "checksums.txt"
   Invoke-WebRequest -Uri "$BaseUrl/$Asset" -OutFile $ArchivePath
-  Invoke-WebRequest -Uri "$BaseUrl/checksums.txt" -OutFile $ChecksumsPath
 
   $Line = Get-Content $ChecksumsPath | Where-Object { $_ -match "\s$([regex]::Escape($Asset))$" } | Select-Object -First 1
   if (-not $Line) { throw "checksum not found for $Asset" }
