@@ -81,8 +81,9 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 - local Windows smoke tests installed `v0.1.11` from GitHub Releases in a
   temporary copy and verified `node bin/dida version` plus
   `node bin/dida doctor --json`
-- local WSL Linux smoke tests installed `v0.1.4` from GitHub Releases in a
-  temporary copy and verified `node bin/dida version`
+- local WSL Linux smoke tests installed `v0.1.11` from GitHub Releases in a
+  temporary copy and verified `node bin/dida version` plus
+  `node bin/dida doctor --json`
 - Windows `install.ps1` latest smoke installed `v0.1.11` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
 - WSL Linux `install.sh` latest smoke installed `v0.1.11` from GitHub Releases

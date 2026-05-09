@@ -54,7 +54,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | README Chinese Quickstart | `README.zh-CN.md`, `docs/quickstart.zh-CN.md` | done | Keep examples synchronized with command changes. |
 | LLM/Agent quickstart | `docs/llm-quickstart.md` | done | Keep short and command-first. |
 | Agent warning not to paste cookies/tokens | `README.md`, `README.zh-CN.md`, `docs/quickstart*.md`, `docs/llm-quickstart.md` | done | None. |
-| npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows against `v0.1.11` and WSL Linux against `v0.1.4`; package is not published. |
+| npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows and WSL Linux against `v0.1.11`; package is not published. |
 | Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.1.11`; no external tap or native install smoke yet. |
 | Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.1.11`; no external bucket or Scoop install smoke on this machine. |
 | winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final. |
@@ -78,8 +78,9 @@ Recently run successfully:
 - Windows `install.ps1` latest smoke against `v0.1.11`
 - WSL Linux `install.sh` latest smoke against `v0.1.11`
 - Windows npm installer smoke against `v0.1.11`
-- WSL Linux npm installer smoke against `v0.1.4`
-- WSL Linux `install.sh` smoke against `v0.1.4`
+- WSL Linux npm installer smoke against `v0.1.11`
+- Installed `v0.1.11` binary OpenAPI client config smoke:
+  `openapi client set/status/clear`
 - Web API `auth status --verify`, `agent context`, `attachment quota`, and
   empty `comment list` live reads on 2026-05-10
 - Web API comment attachment upload/create was implemented as

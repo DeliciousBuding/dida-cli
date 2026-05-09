@@ -98,13 +98,13 @@ Implemented:
 - `checksums.txt` is attached.
 - Windows installer latest smoke passed against `v0.1.11`.
 - WSL Linux installer latest smoke passed against `v0.1.11`.
-- Linux/amd64 `install.sh` smoke passed against `v0.1.4` under WSL.
-- Installed `v0.1.4` binary smoke passed for `version`,
+- Linux/amd64 `install.sh` smoke passed against `v0.1.11` under WSL.
+- Installed `v0.1.11` binary smoke passed for `version`,
   `schema show openapi.clientSet`, and `openapi client set/status/clear`.
 - npm installer skeleton smoke passed on Windows against `v0.1.11` from a
   temporary copy of `npm/`; this verified download/checksum, wrapper startup,
   `version`, and `doctor --json`.
-- npm installer skeleton smoke passed on WSL Linux against `v0.1.4`; this also
+- npm installer skeleton smoke passed on WSL Linux against `v0.1.11`; this also
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as `bin/dida-bin`.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
