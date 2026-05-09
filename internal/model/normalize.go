@@ -33,6 +33,13 @@ type Task struct {
 	Raw         any    `json:"raw,omitempty"`
 }
 
+type Column struct {
+	ID        string `json:"id"`
+	ProjectID string `json:"projectId,omitempty"`
+	Name      string `json:"name,omitempty"`
+	TaskCount int    `json:"taskCount"`
+}
+
 type SyncView struct {
 	InboxID       string           `json:"inboxId,omitempty"`
 	Projects      []Project        `json:"projects"`
@@ -164,6 +171,48 @@ func TodayTasks(tasks []Task, now time.Time) []Task {
 			out = append(out, task)
 		}
 	}
+	return out
+}
+
+func FindTask(tasks []Task, id string) (Task, bool) {
+	for _, task := range tasks {
+		if task.ID == id {
+			return task, true
+		}
+	}
+	return Task{}, false
+}
+
+func ProjectTasks(tasks []Task, projectID string) []Task {
+	out := make([]Task, 0)
+	for _, task := range tasks {
+		if task.ProjectID == projectID {
+			out = append(out, task)
+		}
+	}
+	return out
+}
+
+func InferColumns(projectID string, tasks []Task) []Column {
+	columns := make(map[string]*Column)
+	for _, task := range tasks {
+		if task.ProjectID != projectID || task.ColumnID == "" {
+			continue
+		}
+		column := columns[task.ColumnID]
+		if column == nil {
+			column = &Column{ID: task.ColumnID, ProjectID: projectID}
+			columns[task.ColumnID] = column
+		}
+		column.TaskCount++
+	}
+	out := make([]Column, 0, len(columns))
+	for _, column := range columns {
+		out = append(out, *column)
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		return out[i].ID < out[j].ID
+	})
 	return out
 }
 

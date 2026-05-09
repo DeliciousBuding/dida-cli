@@ -20,6 +20,7 @@ import (
 type envelope struct {
 	OK      bool      `json:"ok"`
 	Command string    `json:"command"`
+	Meta    any       `json:"meta,omitempty"`
 	Data    any       `json:"data,omitempty"`
 	Error   *cliError `json:"error,omitempty"`
 }
@@ -326,21 +327,74 @@ func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		printProjectHelp(stdout)
 		return 0
 	}
-	if args[0] != "list" {
+	switch args[0] {
+	case "list":
+		return runProjectList(jsonOut, stdout, stderr)
+	case "tasks":
+		if len(args) != 2 {
+			return failTyped("project tasks", "validation", "usage: dida project tasks <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
+		}
+		return runProjectTasks(args[1], jsonOut, stdout, stderr)
+	case "columns":
+		if len(args) != 2 {
+			return failTyped("project columns", "validation", "usage: dida project columns <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
+		}
+		return runProjectColumns(args[1], jsonOut, stdout, stderr)
+	default:
 		return fail("project", fmt.Sprintf("unknown project command %q", args[0]), jsonOut, stdout, stderr)
 	}
+}
+
+func runProjectList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	view, err := loadSyncView()
 	if err != nil {
 		return failTyped("project list", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
 	}
-	data := map[string]any{
-		"projects": view.Projects,
-		"count":    len(view.Projects),
-	}
+	projects := stripProjectRaw(view.Projects)
+	data := map[string]any{"projects": projects}
+	meta := map[string]any{"count": len(projects)}
 	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "project list", Data: data})
+		return writeJSON(stdout, envelope{OK: true, Command: "project list", Meta: meta, Data: data})
 	}
 	printProjects(stdout, view.Projects)
+	return 0
+}
+
+func runProjectTasks(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("project tasks", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	tasks := model.ProjectTasks(view.Tasks, projectID)
+	tasks = model.ActiveTasks(tasks)
+	data := map[string]any{"projectId": projectID, "tasks": stripTaskRaw(tasks)}
+	meta := map[string]any{"count": len(tasks)}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "project tasks", Meta: meta, Data: data})
+	}
+	printTasks(stdout, tasks, len(tasks))
+	return 0
+}
+
+func runProjectColumns(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("project columns", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	columns := model.InferColumns(projectID, view.Tasks)
+	data := map[string]any{"projectId": projectID, "columns": columns}
+	meta := map[string]any{"count": len(columns), "source": "inferred_from_tasks"}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "project columns", Meta: meta, Data: data})
+	}
+	if len(columns) == 0 {
+		fmt.Fprintln(stdout, "No columns found.")
+		return 0
+	}
+	fmt.Fprintf(stdout, "%-28s  %-8s\n", "ID", "TASKS")
+	for _, column := range columns {
+		fmt.Fprintf(stdout, "%-28s  %-8d\n", column.ID, column.TaskCount)
+	}
 	return 0
 }
 
@@ -354,6 +408,11 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runTaskList(append([]string{"list", "--filter", "today"}, args[1:]...), jsonOut, stdout, stderr)
 	case "list":
 		return runTaskList(args, jsonOut, stdout, stderr)
+	case "get":
+		if len(args) != 2 {
+			return failTyped("task get", "validation", "usage: dida task get <task-id>", "run: dida task --help", jsonOut, stdout, stderr)
+		}
+		return runTaskGet(args[1], jsonOut, stdout, stderr)
 	default:
 		return fail("task", fmt.Sprintf("unknown task command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -384,18 +443,33 @@ func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	}
 	data := map[string]any{
 		"filter": filter,
-		"tasks":  tasks,
-		"count":  len(tasks),
-		"total":  total,
+		"tasks":  stripTaskRaw(tasks),
 	}
+	meta := map[string]any{"count": len(tasks), "total": total}
 	command := "task list"
 	if filter == "today" && len(args) > 0 && args[0] != "list" {
 		command = "task today"
 	}
 	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: command, Data: data})
+		return writeJSON(stdout, envelope{OK: true, Command: command, Meta: meta, Data: data})
 	}
 	printTasks(stdout, tasks, total)
+	return 0
+}
+
+func runTaskGet(taskID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("task get", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	task, ok := model.FindTask(view.Tasks, taskID)
+	if !ok {
+		return failTyped("task get", "not_found", "task not found", "run: dida task list --filter all --json", jsonOut, stdout, stderr)
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "task get", Data: map[string]any{"task": stripSingleTaskRaw(task)}})
+	}
+	printTasks(stdout, []model.Task{task}, 1)
 	return 0
 }
 
@@ -608,6 +682,8 @@ func printProjectHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida project list [--json]
+  dida project tasks <project-id> [--json]
+  dida project columns <project-id> [--json]
 `))
 }
 
@@ -616,6 +692,7 @@ func printTaskHelp(w io.Writer) {
 Usage:
   dida task today [--json] [--limit N]
   dida task list [--json] [--filter today|all] [--limit N]
+  dida task get <task-id> [--json]
   dida +today [--json] [--limit N]
 `))
 }
@@ -661,4 +738,27 @@ func printTasks(w io.Writer, tasks []model.Task, total int) {
 		}
 		fmt.Fprintf(w, "%-28s  %-10s  %-8d  %-16s  %s\n", task.ID, project, task.Priority, due, task.Title)
 	}
+}
+
+func stripProjectRaw(projects []model.Project) []model.Project {
+	out := make([]model.Project, len(projects))
+	copy(out, projects)
+	for i := range out {
+		out[i].Raw = nil
+	}
+	return out
+}
+
+func stripTaskRaw(tasks []model.Task) []model.Task {
+	out := make([]model.Task, len(tasks))
+	copy(out, tasks)
+	for i := range out {
+		out[i].Raw = nil
+	}
+	return out
+}
+
+func stripSingleTaskRaw(task model.Task) model.Task {
+	task.Raw = nil
+	return task
 }

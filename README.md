@@ -106,9 +106,11 @@ dida auth oauth start
 dida sync all [--json]
 dida project list [--json]
 dida project columns <project-id> [--json]
+dida project tasks <project-id> [--json]
 dida tag list [--json]
 dida completed list [--from YYYY-MM-DD --to YYYY-MM-DD] [--json]
 dida task today [--json]
+dida task get <task-id> [--json]
 dida task create --project <id> --title <title> [--dry-run]
 dida task update <task-id> --project <id> [--title ...] [--due ...] [--dry-run]
 dida task complete <task-id> --project <id> [--dry-run]
@@ -155,7 +157,10 @@ Implemented:
 - `dida auth logout`
 - `dida sync all [--json]`
 - `dida project list [--json]`
+- `dida project tasks <project-id> [--json]`
+- `dida project columns <project-id> [--json]`
 - `dida task list --filter today|all [--limit N] [--json]`
+- `dida task get <task-id> [--json]`
 - `dida task today [--limit N] [--json]`
 - `dida +today [--limit N] [--json]`
 - `dida raw get <path> [--json]`
@@ -170,6 +175,7 @@ Recommended read-only flow:
 dida doctor --json
 dida auth status --verify --json
 dida project list --json
+dida project tasks <project-id> --json
 dida +today --json
 dida task list --filter all --limit 50 --json
 ```

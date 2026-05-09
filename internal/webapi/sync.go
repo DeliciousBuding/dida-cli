@@ -21,11 +21,32 @@ func (c *Client) FullSync(ctx context.Context) (*SyncPayload, error) {
 	}
 	payload := &SyncPayload{Raw: raw}
 	payload.InboxID, _ = raw["inboxId"].(string)
-	payload.Tasks = objectSlice(raw["tasks"])
-	payload.Projects = objectSlice(raw["projects"])
+	payload.Tasks = firstObjectSlice(raw, "tasks")
+	if len(payload.Tasks) == 0 {
+		payload.Tasks = append(payload.Tasks, nestedObjectSlice(raw, "syncTaskBean", "add")...)
+		payload.Tasks = append(payload.Tasks, nestedObjectSlice(raw, "syncTaskBean", "update")...)
+	}
+	payload.Projects = firstObjectSlice(raw, "projects", "projectProfiles")
 	payload.ProjectGroups = objectSlice(raw["projectGroups"])
 	payload.Tags = objectSlice(raw["tags"])
 	return payload, nil
+}
+
+func firstObjectSlice(item map[string]any, keys ...string) []map[string]any {
+	for _, key := range keys {
+		if values := objectSlice(item[key]); len(values) > 0 {
+			return values
+		}
+	}
+	return nil
+}
+
+func nestedObjectSlice(item map[string]any, parent string, child string) []map[string]any {
+	parentObj, ok := item[parent].(map[string]any)
+	if !ok {
+		return nil
+	}
+	return objectSlice(parentObj[child])
 }
 
 func objectSlice(value any) []map[string]any {

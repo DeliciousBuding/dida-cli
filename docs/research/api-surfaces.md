@@ -21,8 +21,9 @@ Observed from the previous Doris setup:
 
 Important existing endpoints:
 
-- `GET /batch/check/0` for full sync payload.
+- `GET /batch/check/0` for full sync payload. Current Dida365 CN response uses `projectProfiles` and `syncTaskBean.add/update`; older tools may expect top-level `projects/tasks`.
 - `GET /user/preferences/settings` for settings.
+- `GET /project/{projectId}/tasks` for project task lists.
 - `GET /project/all/completed?...` for completed task queries.
 - `POST /batch/task` for task operations.
 - `POST /batch/taskParent` for subtask operations.
