@@ -85,6 +85,29 @@ func TestJSONFlagWithoutCommandReturnsError(t *testing.T) {
 	}
 }
 
+func TestJSONErrorDetailsAreIncluded(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := failTypedDetails("openapi login", "timeout", "timed out", "use details", map[string]any{
+		"authorization_url": "https://dida365.com/oauth/authorize?...",
+		"redirect_uri":      "http://127.0.0.1:17890/callback",
+	}, true, &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	details := errPayload["details"].(map[string]any)
+	if details["redirect_uri"] != "http://127.0.0.1:17890/callback" {
+		t.Fatalf("details.redirect_uri = %v", details["redirect_uri"])
+	}
+}
+
 func TestAuthStatusVerifyMissingAuthFailsJSON(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer

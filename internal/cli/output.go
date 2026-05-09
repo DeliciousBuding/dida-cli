@@ -31,8 +31,12 @@ func missingAuth(command string, jsonOut bool, stdout io.Writer, stderr io.Write
 }
 
 func failTyped(command string, errType string, message string, hint string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	return failTypedDetails(command, errType, message, hint, nil, jsonOut, stdout, stderr)
+}
+
+func failTypedDetails(command string, errType string, message string, hint string, details any, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if jsonOut {
-		_ = writeJSON(stdout, envelope{OK: false, Command: command, Error: &cliError{Type: errType, Message: message, Hint: hint}})
+		_ = writeJSON(stdout, envelope{OK: false, Command: command, Error: &cliError{Type: errType, Message: message, Hint: hint, Details: details}})
 		return 1
 	}
 	fmt.Fprintf(stderr, "dida: %s\n", message)

@@ -277,7 +277,19 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		return 0
 	case <-time.After(timeout):
 		_ = server.Close()
-		return failTyped("openapi login", "timeout", "timed out waiting for OAuth callback", "if the browser did not open, run `dida openapi auth-url --json` and `dida openapi listen-callback --json`", jsonOut, stdout, stderr)
+		details := map[string]any{
+			"authorization_url": authURL,
+			"redirect_uri":      redirectURI,
+			"scope":             scope,
+			"state":             state,
+			"listen_address":    addr,
+			"next": []string{
+				"confirm the developer app redirect URL exactly matches " + redirectURI,
+				"open authorization_url in a local browser that can reach the callback listener",
+				"or run `dida openapi auth-url --json` and `dida openapi listen-callback --json` as a manual two-step flow",
+			},
+		}
+		return failTypedDetails("openapi login", "timeout", "timed out waiting for OAuth callback", "complete browser authorization or use the manual OAuth commands in error.details.next", details, jsonOut, stdout, stderr)
 	}
 }
 
