@@ -27,7 +27,7 @@ payload dumps, or local browser exports here.
 
 | Surface | Endpoint | Observed result | Current interpretation | Next evidence needed |
 | --- | --- | --- | --- | --- |
-| Task activity detail | `GET /api/v1/task/activity/{taskId}` | HTTP 500 under direct probing | Missing query shape or context. | Browser-traced successful request including query params such as cursor/skip/lastId. |
+| Task activity detail | `GET /api/v1/task/activity/{taskId}` / v1 `/task/activity/{taskId}` | HTTP 404/500 under direct probing | 2026-05-10 probes confirmed v2-style `/api/v1/...` is not routed through the v2 base, while v1 `/task/activity/{taskId}` still returns HTTP 500 with `skip`, `lastId`, and `projectId` variants. | Browser-traced successful request including full base URL, query params, and any required page context. |
 | Trash pagination | `GET /project/all/trash/page?...` | HTTP 500 under naive probing | Missing required type/page semantics. | Browser trace from trash page with real query params. |
 | Project data by id | `GET /project/{id}/data` | HTTP 404 on observed CN Web API | Not the active private endpoint for current web app. | Recheck only if bundle or network trace changes. |
 | Project columns by id | `GET /project/{id}/columns` | HTTP 404 | Replaced by `/column/project/{projectId}`. | None unless webapp changes. |

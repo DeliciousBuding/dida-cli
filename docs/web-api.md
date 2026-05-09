@@ -153,10 +153,13 @@ Task relationship shapes:
 
 Column update/delete/order endpoints are not yet documented in this CLI. The webapp bundle references `POST /batch/columnProject`, but DidaCLI should not expose first-class update/delete/order commands until payload shapes are observed and covered by tests.
 
-The webapp bundle references `GET /api/v1/task/activity/{taskId}`, with
-optional `skip` and `lastId` query values. A direct live probe against an
-observed task returned HTTP 500, so task activity remains unmapped until a
-successful browser trace identifies the required cursor/context.
+The webapp bundle references task activity detail paths with optional `skip`
+and `lastId` query values. Direct live probes on 2026-05-10 still failed:
+v2-style `/api/v1/task/activity/{taskId}` returned 404 through the v2 base, and
+v1 `/task/activity/{taskId}` returned 500 with `skip`, `lastId`, and
+`projectId` variants. Task activity remains unmapped until a successful browser
+trace identifies the exact base URL, cursor parameters, and required page
+context.
 
 Observed tag merge behavior: the endpoint can return success while the source tag remains listed. Treat merge and delete as separate operations.
 

@@ -56,7 +56,7 @@ These surfaces are visible in payloads or product behavior but do not yet have v
 - Column update/delete/order: exact `/batch/columnProject` endpoint is visible in the webapp bundle, but add/update/delete/order body shapes and rollback behavior are not verified.
 - Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API. Use `GET /column/project/{projectId}` instead.
 - Attachments/media upload: payloads expose attachment metadata, but upload and attach flow has not been mapped.
-- Task activity: `GET /api/v1/task/activity/{taskId}` is visible in the webapp bundle, but returned HTTP 500 against the observed CN account/task without the exact cursor context; keep it in raw probing until a successful trace is captured.
+- Task activity: task activity detail paths are visible in the webapp bundle, but 2026-05-10 live probes returned 404 for the v2-style `/api/v1/...` path and 500 for v1 `/task/activity/{taskId}` with `skip`, `lastId`, and `projectId` variants; keep it in raw probing until a successful browser trace is captured.
 - Comment attachments: comment CRUD is mapped, but multipart upload and attachment body flow are not exposed yet.
 - Collaboration/team permission writes: read-only share metadata is mapped, but invite creation/deletion and user permission changes are not exposed until multi-user behavior and rollback paths are mapped.
 - Filter writes: `/batch/filter` is visible in the webapp bundle, but create/update/delete payloads are not mapped.
