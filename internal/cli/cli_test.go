@@ -81,3 +81,44 @@ func TestUnknownCommandText(t *testing.T) {
 		t.Fatalf("stderr = %q", stderr.String())
 	}
 }
+
+func TestTaskCreateDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "create", "--project", "p1", "--title", "Smoke", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "task create" {
+		t.Fatalf("command = %v, want task create", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	if !strings.Contains(data["hint"].(string), "remove --dry-run") {
+		t.Fatalf("hint = %v", data["hint"])
+	}
+}
+
+func TestTaskDeleteRequiresYesJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "delete", "t1", "--project", "p1", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "confirmation_required" {
+		t.Fatalf("error.type = %v, want confirmation_required", errPayload["type"])
+	}
+}
