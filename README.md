@@ -36,7 +36,7 @@ The primary integration surface is the Dida365 Web API used by the official web 
 
 ## Features
 
-- Web API first: sync, settings, projects, folders, tags, filters, columns, comments, tasks, completed history, and raw GET probes.
+- Web API first: sync, settings, projects, folders, tags, filters, columns, comments, tasks, completed history, attachment quota, reminders, sharing metadata, calendar subscriptions, and raw GET probes.
 - Productivity reads: Pomodoro preferences/records and habit preferences/list/sections.
 - Full task CRUD plus comment CRUD, project/folder/tag CRUD, task move/subtask operations, and conservative kanban column support.
 - Agent-safe JSON: every `--json` response uses a consistent envelope.
@@ -122,12 +122,17 @@ dida task upcoming --days 14 --json
 dida quadrant list --json
 dida completed today --json
 dida completed list --from 2026-05-01 --to 2026-05-09 --compact --json
+dida attachment quota --json
+dida reminder daily --json
+dida share project shares <project-id> --json
+dida calendar subscriptions --json
 dida pomo preferences --json
 dida pomo list --from 2026-05-01 --to 2026-05-09 --limit 20 --json
 dida habit preferences --json
 dida habit list --json
 dida habit sections --json
 dida raw get /batch/check/0 --json
+dida raw get /attachment/isUnderQuota --api-version v1 --json
 ```
 
 ### Write Commands

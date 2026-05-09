@@ -57,6 +57,14 @@ dida filter list --json
 dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
 dida settings get --json
+dida attachment quota --json
+dida reminder daily --json
+dida share contacts --json
+dida share recent-users --json
+dida share project shares <project-id> --json
+dida share project quota <project-id> --json
+dida share project invite-url <project-id> --json
+dida calendar subscriptions --json
 ```
 
 ## Tasks
@@ -191,6 +199,23 @@ Pomodoro range commands convert `YYYY-MM-DD` flags into the millisecond
 timestamps expected by the private Web API. The default range is the last 30
 days and the default output limit is 50.
 
+## Account Metadata
+
+```bash
+dida attachment quota --json
+dida reminder daily --json
+dida share contacts --json
+dida share recent-users --json
+dida share project shares <project-id> --json
+dida share project quota <project-id> --json
+dida share project invite-url <project-id> --json
+dida calendar subscriptions --json
+```
+
+These commands are read-only. Collaboration writes such as creating invite
+links, deleting invite links, inviting users, or changing permissions are not
+exposed until their payloads and rollback paths are traced.
+
 ## Sync
 
 ```bash
@@ -207,6 +232,7 @@ dida sync checkpoint <checkpoint> --json
 ```bash
 dida raw get /batch/check/0 --json
 dida raw get /user/preferences/settings --json
+dida raw get /attachment/isUnderQuota --api-version v1 --json
 ```
 
 Raw calls are intentionally GET-only.

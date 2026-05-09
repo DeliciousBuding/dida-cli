@@ -14,10 +14,12 @@ import (
 )
 
 const DefaultBaseURL = "https://api.dida365.com/api/v2"
+const DefaultBaseURLV1 = "https://api.dida365.com/api/v1"
 const DefaultMaxResponseBytes int64 = 16 << 20
 
 type Client struct {
 	BaseURL          string
+	BaseURLV1        string
 	HTTPClient       *http.Client
 	Token            string
 	UserAgent        string
@@ -28,6 +30,7 @@ type Client struct {
 func NewClient(token string) *Client {
 	return &Client{
 		BaseURL:          DefaultBaseURL,
+		BaseURLV1:        DefaultBaseURLV1,
 		HTTPClient:       http.DefaultClient,
 		Token:            token,
 		UserAgent:        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:95.0) Gecko/20100101 Firefox/95.0",
@@ -37,11 +40,22 @@ func NewClient(token string) *Client {
 }
 
 func (c *Client) Do(ctx context.Context, method string, path string, body any, out any) error {
+	return c.doAtBaseURL(ctx, c.BaseURL, method, path, body, out)
+}
+
+func (c *Client) DoV1(ctx context.Context, method string, path string, body any, out any) error {
+	return c.doAtBaseURL(ctx, c.BaseURLV1, method, path, body, out)
+}
+
+func (c *Client) doAtBaseURL(ctx context.Context, baseURL string, method string, path string, body any, out any) error {
 	if strings.TrimSpace(c.Token) == "" {
 		return fmt.Errorf("missing Dida web cookie token")
 	}
 	if !strings.HasPrefix(path, "/") {
 		path = "/" + path
+	}
+	if strings.TrimSpace(baseURL) == "" {
+		baseURL = DefaultBaseURL
 	}
 
 	var reader io.Reader
@@ -53,7 +67,7 @@ func (c *Client) Do(ctx context.Context, method string, path string, body any, o
 		reader = bytes.NewReader(payload)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(c.BaseURL, "/")+path, reader)
+	req, err := http.NewRequestWithContext(ctx, method, strings.TrimRight(baseURL, "/")+path, reader)
 	if err != nil {
 		return fmt.Errorf("build request: %w", err)
 	}

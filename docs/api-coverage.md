@@ -26,6 +26,11 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Filters | sync payload `filters` | `filter list` | Stable read | Unit sync-view test and live read |
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
 | Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke |
+| Attachment quota | `GET /api/v1/attachment/isUnderQuota`, `GET /api/v1/attachment/dailyLimit` | `attachment quota` | Stable read | Unit endpoint test and live read |
+| Daily reminder preferences | `GET /user/preferences/dailyReminder` | `reminder daily` | Stable read | Unit endpoint test and live read |
+| Sharing contacts | `GET /share/shareContacts`, `GET /project/share/recentProjectUsers` | `share contacts`, `share recent-users` | Stable read | Unit endpoint test and live read |
+| Project share state | `GET /project/{projectId}/shares`, `GET /project/{projectId}/share/check-quota`, `GET /project/{projectId}/collaboration/invite-url` | `share project shares/quota/invite-url` | Stable read | Unit endpoint test and live read |
+| Calendar subscriptions | `GET /calendar/subscription` | `calendar subscriptions` | Stable read | Unit endpoint test and live read |
 | Pomodoro preferences | `GET /user/preferences/pomodoro` | `pomo preferences` | Stable read | Live read |
 | Pomodoro records | `GET /pomodoros`, `GET /pomodoros/timing` | `pomo list`, `pomo timing` | Stable read | Live read |
 | Habit preferences | `GET /user/preferences/habit?platform=web` | `habit preferences` | Stable read | Live read |
@@ -40,8 +45,9 @@ These surfaces are visible in payloads or product behavior but do not yet have v
 - Column update/delete/order: exact `/batch/columnProject` endpoint is visible in the webapp bundle, but add/update/delete/order body shapes and rollback behavior are not verified.
 - Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API. Use `GET /column/project/{projectId}` instead.
 - Attachments/media upload: payloads expose attachment metadata, but upload and attach flow has not been mapped.
+- Task activity: `GET /api/v1/task/activity/{taskId}` is visible in the webapp bundle, but returned HTTP 500 against the observed CN account/task without the exact cursor context; keep it in raw probing until a successful trace is captured.
 - Comment attachments: comment CRUD is mapped, but multipart upload and attachment body flow are not exposed yet.
-- Collaboration/team permissions: project payloads expose team and permission fields, but multi-user behavior is not mapped.
+- Collaboration/team permission writes: read-only share metadata is mapped, but invite creation/deletion and user permission changes are not exposed until multi-user behavior and rollback paths are mapped.
 - Filter writes: `/batch/filter` is visible in the webapp bundle, but create/update/delete payloads are not mapped.
 - Arbitrary raw writes: intentionally unavailable for safety. Add a first-class command and tests instead.
 

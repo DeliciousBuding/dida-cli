@@ -8,7 +8,12 @@ For command-by-command implementation status, see [api-coverage.md](api-coverage
 
 ```text
 https://api.dida365.com/api/v2
+https://api.dida365.com/api/v1
 ```
+
+Most commands use v2. The webapp bundle also defines a legacy v1 client
+exported as `_s`; DidaCLI uses it only for endpoints that were observed and
+live-tested on v1, such as attachment quota reads.
 
 Required headers:
 
@@ -34,6 +39,15 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/user/preferences/habit?platform=web` | Habit preferences |
 | `GET` | `/habits` | Habits |
 | `GET` | `/habitSections` | Habit sections |
+| `GET` | `/api/v1/attachment/isUnderQuota` | Attachment quota boolean |
+| `GET` | `/api/v1/attachment/dailyLimit` | Attachment daily upload limit |
+| `GET` | `/user/preferences/dailyReminder` | Daily reminder preferences |
+| `GET` | `/share/shareContacts` | Share contacts |
+| `GET` | `/project/share/recentProjectUsers` | Recent project users |
+| `GET` | `/project/{projectId}/shares` | Project share members |
+| `GET` | `/project/{projectId}/share/check-quota` | Project share quota |
+| `GET` | `/project/{projectId}/collaboration/invite-url` | Project invite-link state |
+| `GET` | `/calendar/subscription` | Calendar subscriptions |
 
 Observed CN full sync shape:
 
@@ -123,6 +137,11 @@ Task relationship shapes:
 ```
 
 Column update/delete/order endpoints are not yet documented in this CLI. The webapp bundle references `POST /batch/columnProject`, but DidaCLI should not expose first-class update/delete/order commands until payload shapes are observed and covered by tests.
+
+The webapp bundle references `GET /api/v1/task/activity/{taskId}`, with
+optional `skip` and `lastId` query values. A direct live probe against an
+observed task returned HTTP 500, so task activity remains unmapped until a
+successful browser trace identifies the required cursor/context.
 
 Observed tag merge behavior: the endpoint can return success while the source tag remains listed. Treat merge and delete as separate operations.
 

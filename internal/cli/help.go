@@ -22,6 +22,10 @@ Commands:
   sync         Sync tasks/projects/tags
   settings     Read user preferences
   completed    Read completed task history
+  attachment   Read attachment quota and upload limits
+  reminder     Read reminder preferences
+  share        Read sharing and collaboration metadata
+  calendar     Read calendar subscription metadata
   pomo         Read Pomodoro preferences and records
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
@@ -111,6 +115,41 @@ Usage:
   dida completed yesterday [--compact] [--json]
   dida completed week [--compact] [--json]
   dida completed list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--compact] [--json]
+`))
+}
+
+func printAttachmentHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida attachment quota [--json]
+`))
+}
+
+func printReminderHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida reminder daily [--json]
+`))
+}
+
+func printShareHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida share contacts [--json]
+  dida share recent-users [--json]
+  dida share project shares <project-id> [--json]
+  dida share project quota <project-id> [--json]
+  dida share project invite-url <project-id> [--json]
+
+These commands are read-only. Invite creation, deletion, and user invitation
+writes are not exposed until collaboration payloads and rollback paths are verified.
+`))
+}
+
+func printCalendarHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida calendar subscriptions [--json]
 `))
 }
 
@@ -240,7 +279,7 @@ Comment attachments are not exposed until the multipart upload flow is verified.
 func printRawHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida raw get <path> [--json]
+  dida raw get <path> [--api-version v1|v2] [--json]
 
 Only GET is supported for raw calls.
 `))

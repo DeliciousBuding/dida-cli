@@ -56,6 +56,10 @@ dida quadrant list --json
 dida completed today --compact --json
 dida pomo list --limit 10 --json
 dida habit list --json
+dida attachment quota --json
+dida reminder daily --json
+dida share project shares <project-id> --json
+dida calendar subscriptions --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
@@ -139,6 +143,26 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 
 Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
 
+## Account Metadata
+
+Use these read-only commands for operational context around uploads, reminders,
+sharing, and calendar integrations:
+
+```bash
+dida attachment quota --json
+dida reminder daily --json
+dida share contacts --json
+dida share recent-users --json
+dida share project shares <project-id> --json
+dida share project quota <project-id> --json
+dida share project invite-url <project-id> --json
+dida calendar subscriptions --json
+```
+
+Do not create invite links, delete invite links, invite users, or change
+sharing permissions unless the CLI exposes a first-class command with dry-run or
+confirmation behavior.
+
 ## Error Handling
 
 If a JSON command returns `ok: false`, surface `error.message` and `error.hint` to the operator. Do not retry destructive operations automatically.
@@ -164,6 +188,7 @@ Use raw reads only when a high-level command is missing:
 ```bash
 dida raw get /batch/check/0 --json
 dida raw get /user/preferences/settings --json
+dida raw get /attachment/isUnderQuota --api-version v1 --json
 ```
 
 Raw writes are intentionally unavailable. Add a first-class command with tests instead of tunneling writes through raw calls.
