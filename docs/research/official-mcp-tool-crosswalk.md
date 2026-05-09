@@ -46,19 +46,19 @@ first-class commands.
 | --- | --- | --- |
 | `list_habits` | `habit list` | Overlap |
 | `list_habit_sections` | `habit sections` | Overlap |
-| `get_habit` | none | Worth wrapping |
-| `create_habit` | none | Worth wrapping |
-| `update_habit` | none | Worth wrapping |
-| `upsert_habit_checkins` | none | Worth wrapping |
+| `get_habit` | `official habit get` | Wrapped |
+| `create_habit` | `official habit create` | Wrapped |
+| `update_habit` | `official habit update` | Wrapped |
+| `upsert_habit_checkins` | `official habit checkin` | Wrapped for one check-in at a time |
 | `get_habit_checkins` | `habit checkins` | Overlap |
 
 ## Focus Tools
 
 | Official MCP tool | Current DidaCLI equivalent | Assessment |
 | --- | --- | --- |
-| `get_focus` | none | Worth wrapping |
-| `get_focuses_by_time` | no exact equivalent | Worth wrapping |
-| `delete_focus` | none | Worth wrapping |
+| `get_focus` | `official focus get` | Wrapped |
+| `get_focuses_by_time` | `official focus list` | Wrapped |
+| `delete_focus` | `official focus delete` | Wrapped |
 
 ## Preference Tool
 
@@ -79,13 +79,13 @@ commands instead of only `official call`.
 6. `filter_tasks`
 7. `list_undone_tasks_by_date`
 8. `search_task`
-9. `get_habit`
-10. `create_habit`
-11. `update_habit`
-12. `upsert_habit_checkins`
-13. `get_focus`
-14. `get_focuses_by_time`
-15. `delete_focus`
+9. `get_habit` - wrapped as `official habit get`
+10. `create_habit` - wrapped as `official habit create`
+11. `update_habit` - wrapped as `official habit update`
+12. `upsert_habit_checkins` - wrapped as `official habit checkin`
+13. `get_focus` - wrapped as `official focus get`
+14. `get_focuses_by_time` - wrapped as `official focus list`
+15. `delete_focus` - wrapped as `official focus delete`
 
 ## Notable Overlap Pattern
 

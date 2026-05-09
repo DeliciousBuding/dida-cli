@@ -67,6 +67,8 @@ dida stats general --json
 dida pomo timeline --limit 10 --json
 dida template project list --limit 10 --json
 dida search all --query <text> --limit 20 --json
+dida official doctor --json
+dida official tools --limit 20 --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
@@ -149,6 +151,25 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 ```
 
 Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
+
+## Official MCP And OpenAPI
+
+Keep official channels separate from browser-cookie Web API commands.
+
+Use official MCP when the operator has configured `DIDA365_TOKEN`:
+
+```bash
+dida official doctor --json
+dida official show get_focuses_by_time --json
+dida official habit get <habit-id> --json
+dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
+dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+```
+
+Use official OpenAPI only through `dida openapi ...`. It is OAuth-based and
+does not accept MCP `dp_...` tokens or Web API cookies as bearer tokens.
+Do not delete focus records unless the operator has identified a disposable
+record; `dida official focus delete` requires `--yes`.
 
 ## Account Metadata
 

@@ -54,6 +54,9 @@ dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
 dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
+dida official habit get <habit-id> --json
+dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
+dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
 dida openapi doctor --json
 dida openapi auth-url --json
 dida openapi exchange-code --code <code> --json
@@ -223,6 +226,24 @@ dida habit checkins --habit <habit-id> --after-stamp <millis> --json
 Pomodoro range commands convert `YYYY-MM-DD` flags into the millisecond
 timestamps expected by the private Web API. The default range is the last 30
 days and the default output limit is 50.
+
+## Official MCP Habit And Focus
+
+```bash
+dida official habit get <habit-id> --json
+dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --json
+dida official habit update <habit-id> --args-json "{\"name\":\"Read more\"}" --json
+dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
+
+dida official focus get <focus-id> --json
+dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+dida official focus delete <focus-id> --yes --json
+```
+
+These commands use the official MCP channel and require `DIDA365_TOKEN`.
+Use `dida official show <tool-name> --json` to inspect the exact upstream
+schema before passing larger `--args-json` payloads. Web API habit and Pomodoro
+commands remain separate under `dida habit` and `dida pomo`.
 
 ## Account Metadata
 

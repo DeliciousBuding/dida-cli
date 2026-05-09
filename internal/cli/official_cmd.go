@@ -182,34 +182,42 @@ func parseOfficialCallFlags(args []string) (string, map[string]any, error) {
 		return "", nil, fmt.Errorf("usage: dida official call <tool-name> [--args-json <json>] [--args-file <file>]")
 	}
 	tool := args[0]
+	payload, err := parseOfficialPayloadFlags(args[1:])
+	if err != nil {
+		return "", nil, err
+	}
+	return tool, payload, nil
+}
+
+func parseOfficialPayloadFlags(args []string) (map[string]any, error) {
 	payload := map[string]any{}
-	for i := 1; i < len(args); i++ {
+	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--args-json":
 			if i+1 >= len(args) {
-				return "", nil, fmt.Errorf("--args-json requires a value")
+				return nil, fmt.Errorf("--args-json requires a value")
 			}
 			if err := json.Unmarshal([]byte(args[i+1]), &payload); err != nil {
-				return "", nil, fmt.Errorf("decode --args-json: %w", err)
+				return nil, fmt.Errorf("decode --args-json: %w", err)
 			}
 			i++
 		case "--args-file":
 			if i+1 >= len(args) {
-				return "", nil, fmt.Errorf("--args-file requires a path")
+				return nil, fmt.Errorf("--args-file requires a path")
 			}
 			data, err := os.ReadFile(args[i+1])
 			if err != nil {
-				return "", nil, fmt.Errorf("read args file: %w", err)
+				return nil, fmt.Errorf("read args file: %w", err)
 			}
 			if err := json.Unmarshal(data, &payload); err != nil {
-				return "", nil, fmt.Errorf("decode args file: %w", err)
+				return nil, fmt.Errorf("decode args file: %w", err)
 			}
 			i++
 		default:
-			return "", nil, fmt.Errorf("unknown flag %q", args[i])
+			return nil, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
-	return tool, payload, nil
+	return payload, nil
 }
 
 func compactOfficialTools(tools []officialmcp.Tool) []officialmcp.Tool {
@@ -232,7 +240,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		printOfficialHabitHelp(stdout)
 		return 0
 	}
-	
+
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
 		return failTyped("official habit", "auth", err.Error(), "set DIDA365_TOKEN to the official dida365 API token", jsonOut, stdout, stderr)
@@ -243,7 +251,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
 		return failTyped("official habit", "api", err.Error(), "", jsonOut, stdout, stderr)
 	}
-	
+
 	switch args[0] {
 	case "get":
 		if len(args) < 2 {
@@ -258,7 +266,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official habit get", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	case "create":
 		payload, err := parseHabitCreateArgs(args[1:])
 		if err != nil {
@@ -272,17 +280,17 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official habit create", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	case "update":
-			if len(args) < 2 {
-				return failTyped("official habit update", "validation", "usage: dida official habit update <habit-id> [--args-json <json>]", "run: dida official habit --help", jsonOut, stdout, stderr)
-			}
-			habitID := args[1]
-			_, payload, err := parseOfficialCallFlags(args[2:])
-			if err != nil {
-				return failTyped("official habit update", "validation", err.Error(), "", jsonOut, stdout, stderr)
-			}
-			payload["habitId"] = habitID
+		if len(args) < 2 {
+			return failTyped("official habit update", "validation", "usage: dida official habit update <habit-id> [--args-json <json>]", "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		habitID := args[1]
+		payload, err := parseOfficialPayloadFlags(args[2:])
+		if err != nil {
+			return failTyped("official habit update", "validation", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		payload["habitId"] = habitID
 		result, err := client.CallTool(ctx, "update_habit", payload)
 		if err != nil {
 			return failTyped("official habit update", "api", err.Error(), "", jsonOut, stdout, stderr)
@@ -291,7 +299,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official habit update", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	case "checkin":
 		if len(args) < 2 {
 			return failTyped("official habit checkin", "validation", "usage: dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number>", "run: dida official habit --help", jsonOut, stdout, stderr)
@@ -312,7 +320,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official habit checkin", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	default:
 		return fail("official habit", fmt.Sprintf("unknown habit subcommand %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -329,8 +337,7 @@ func printOfficialHabitHelp(stdout io.Writer) {
 }
 
 func parseHabitCreateArgs(args []string) (map[string]any, error) {
-	_, payload, err := parseOfficialCallFlags(args)
-	return payload, err
+	return parseOfficialPayloadFlags(args)
 }
 
 func parseHabitCheckinArgs(args []string) (map[string]any, error) {
@@ -371,7 +378,7 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		printOfficialFocusHelp(stdout)
 		return 0
 	}
-	
+
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
 		return failTyped("official focus", "auth", err.Error(), "set DIDA365_TOKEN to the official dida365 API token", jsonOut, stdout, stderr)
@@ -382,7 +389,7 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
 		return failTyped("official focus", "api", err.Error(), "", jsonOut, stdout, stderr)
 	}
-	
+
 	switch args[0] {
 	case "get":
 		if len(args) < 2 {
@@ -397,7 +404,7 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official focus get", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	case "list":
 		startTime, endTime, err := parseFocusListArgs(args[1:])
 		if err != nil {
@@ -418,12 +425,19 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official focus list", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	case "delete":
 		if len(args) < 2 {
-			return failTyped("official focus delete", "validation", "usage: dida official focus delete <focus-id>", "run: dida official focus --help", jsonOut, stdout, stderr)
+			return failTyped("official focus delete", "validation", "usage: dida official focus delete <focus-id> --yes", "run: dida official focus --help", jsonOut, stdout, stderr)
 		}
 		focusID := args[1]
+		confirmed, err := parseOfficialYesFlag(args[2:])
+		if err != nil {
+			return failTyped("official focus delete", "validation", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if !confirmed {
+			return failTyped("official focus delete", "confirmation_required", "official focus delete requires --yes", "only delete known disposable focus records", jsonOut, stdout, stderr)
+		}
 		result, err := client.CallTool(ctx, "delete_focus", map[string]any{"focusId": focusID})
 		if err != nil {
 			return failTyped("official focus delete", "api", err.Error(), "", jsonOut, stdout, stderr)
@@ -432,7 +446,7 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return writeJSON(stdout, envelope{OK: true, Command: "official focus delete", Data: result})
 		}
 		return writeJSON(stdout, result)
-		
+
 	default:
 		return fail("official focus", fmt.Sprintf("unknown focus subcommand %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -442,9 +456,22 @@ func printOfficialFocusHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
 	fmt.Fprintln(stdout, "  dida official focus get <focus-id> [--json]")
 	fmt.Fprintln(stdout, "  dida official focus list [--start-time RFC3339] [--end-time RFC3339] [--json]")
-	fmt.Fprintln(stdout, "  dida official focus delete <focus-id> [--json]")
+	fmt.Fprintln(stdout, "  dida official focus delete <focus-id> --yes [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Manage focus sessions using the official MCP API.")
+}
+
+func parseOfficialYesFlag(args []string) (bool, error) {
+	confirmed := false
+	for _, arg := range args {
+		switch arg {
+		case "--yes":
+			confirmed = true
+		default:
+			return false, fmt.Errorf("unknown flag %q", arg)
+		}
+	}
+	return confirmed, nil
 }
 
 func parseFocusListArgs(args []string) (string, string, error) {

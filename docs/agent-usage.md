@@ -46,6 +46,8 @@ dida quadrant list --json
 dida completed today --compact --json
 dida pomo list --limit 10 --json
 dida habit list --json
+dida official doctor --json
+dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
 ```
 
 Prefer `--compact` for broad task reads. It keeps IDs, titles, dates, priority, status, columns, and tags while omitting large descriptions, checklist items, reminders, and raw payloads. Use full JSON only when you need those fields for a specific task.
@@ -95,6 +97,23 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
 
 Use `dida sync checkpoint <checkpoint> --json` when an agent needs deletions, order deltas, or reminder deltas; those live under `data.deltas`.
+
+## Official Channels
+
+Use `dida official ...` only for the official MCP channel. It requires
+`DIDA365_TOKEN` and is separate from browser-cookie Web API auth.
+
+```bash
+dida official tools --limit 20 --json
+dida official show get_focuses_by_time --json
+dida official habit get <habit-id> --json
+dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
+dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+```
+
+Use `dida openapi ...` only for the official OAuth OpenAPI channel. It requires
+OAuth client credentials plus a saved OAuth access token. Do not try to use MCP
+tokens as OpenAPI bearer tokens.
 
 ## Repo Skill
 

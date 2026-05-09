@@ -698,6 +698,47 @@ func TestOfficialCallFlagParsing(t *testing.T) {
 	}
 }
 
+func TestOfficialPayloadFlagParsing(t *testing.T) {
+	payload, err := parseOfficialPayloadFlags([]string{"--args-json", "{\"name\":\"Read\",\"goal\":1}"})
+	if err != nil {
+		t.Fatalf("parseOfficialPayloadFlags() error = %v", err)
+	}
+	if payload["name"] != "Read" {
+		t.Fatalf("payload = %#v", payload)
+	}
+	if payload["goal"] != float64(1) {
+		t.Fatalf("payload goal = %#v, want 1", payload["goal"])
+	}
+}
+
+func TestHabitCreateFlagParsingDoesNotRequireToolName(t *testing.T) {
+	payload, err := parseHabitCreateArgs([]string{"--args-json", "{\"name\":\"Read\"}"})
+	if err != nil {
+		t.Fatalf("parseHabitCreateArgs() error = %v", err)
+	}
+	if payload["name"] != "Read" {
+		t.Fatalf("payload = %#v", payload)
+	}
+}
+
+func TestOfficialYesFlagParsing(t *testing.T) {
+	confirmed, err := parseOfficialYesFlag([]string{"--yes"})
+	if err != nil {
+		t.Fatalf("parseOfficialYesFlag() error = %v", err)
+	}
+	if !confirmed {
+		t.Fatalf("confirmed = false, want true")
+	}
+
+	confirmed, err = parseOfficialYesFlag(nil)
+	if err != nil {
+		t.Fatalf("parseOfficialYesFlag(nil) error = %v", err)
+	}
+	if confirmed {
+		t.Fatalf("confirmed = true, want false")
+	}
+}
+
 func TestOpenAPIAuthURLFlagParsing(t *testing.T) {
 	redirectURI, scope, state, err := parseOpenAPIAuthURLFlags([]string{"--redirect-uri", "http://127.0.0.1:17890/callback", "--scope", "tasks:read", "--state", "abc"})
 	if err != nil {
