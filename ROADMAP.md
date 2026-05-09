@@ -53,6 +53,10 @@ As of the current main branch:
   - channel inventory
   - Web API gap catalog
   - MCP tool crosswalk
+- distribution is live:
+  - `v0.1.0` GitHub Release exists
+  - release assets cover Windows, Linux, and macOS on amd64/arm64
+  - `install.ps1` has been smoke-tested against the release asset on Windows
 
 ## Non-Negotiable Rules
 
@@ -400,9 +404,9 @@ Top five next tasks:
 
 1. Finish and live-verify `openapi login`
 2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
-3. Create the first tagged GitHub Release and test install scripts from release assets
-4. Capture a successful Web API task activity request
-5. Map attachment metadata and download/upload flows from real Web API evidence
+3. Capture a successful Web API task activity request
+4. Map attachment metadata and download/upload flows from real Web API evidence
+5. Test `install.sh` against release assets from a Unix-like environment
 
 ## Done Means Done
 
