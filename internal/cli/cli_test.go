@@ -220,6 +220,29 @@ func TestCommentDeleteRequiresYesJSON(t *testing.T) {
 	}
 }
 
+func TestFilterListMissingAuthJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"filter", "list", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "filter list" {
+		t.Fatalf("command = %v, want filter list", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "auth" {
+		t.Fatalf("error.type = %v, want auth", errPayload["type"])
+	}
+}
+
 func TestResourceCreateDryRunJSON(t *testing.T) {
 	cases := [][]string{
 		{"project", "create", "--name", "Smoke", "--dry-run", "--json"},

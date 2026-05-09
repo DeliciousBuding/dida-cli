@@ -9,26 +9,30 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
 const DefaultBaseURL = "https://api.dida365.com/api/v2"
+const DefaultMaxResponseBytes int64 = 16 << 20
 
 type Client struct {
-	BaseURL    string
-	HTTPClient *http.Client
-	Token      string
-	UserAgent  string
-	DeviceID   string
+	BaseURL          string
+	HTTPClient       *http.Client
+	Token            string
+	UserAgent        string
+	DeviceID         string
+	MaxResponseBytes int64
 }
 
 func NewClient(token string) *Client {
 	return &Client{
-		BaseURL:    DefaultBaseURL,
-		HTTPClient: http.DefaultClient,
-		Token:      token,
-		UserAgent:  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:95.0) Gecko/20100101 Firefox/95.0",
-		DeviceID:   randomDeviceID(),
+		BaseURL:          DefaultBaseURL,
+		HTTPClient:       http.DefaultClient,
+		Token:            token,
+		UserAgent:        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:95.0) Gecko/20100101 Firefox/95.0",
+		DeviceID:         randomDeviceID(),
+		MaxResponseBytes: DefaultMaxResponseBytes,
 	}
 }
 
@@ -68,12 +72,19 @@ func (c *Client) Do(ctx context.Context, method string, path string, body any, o
 	}
 	defer resp.Body.Close()
 
-	data, err := io.ReadAll(resp.Body)
+	limit := c.MaxResponseBytes
+	if limit <= 0 {
+		limit = DefaultMaxResponseBytes
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, limit+1))
 	if err != nil {
 		return fmt.Errorf("read response: %w", err)
 	}
+	if int64(len(data)) > limit {
+		return fmt.Errorf("dida web api %s %s response exceeded %d bytes", method, path, limit)
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("dida web api %s %s returned %d: %s", method, path, resp.StatusCode, redactForError(string(data)))
+		return fmt.Errorf("dida web api %s %s returned %d: %s", method, path, resp.StatusCode, c.redactForError(string(data)))
 	}
 	if out == nil || len(data) == 0 {
 		return nil
@@ -108,10 +119,28 @@ func randomDeviceID() string {
 	return "6490" + hex.EncodeToString(buf[:])
 }
 
-func redactForError(value string) string {
+func (c *Client) redactForError(value string) string {
 	value = strings.TrimSpace(value)
+	if c != nil && strings.TrimSpace(c.Token) != "" {
+		value = strings.ReplaceAll(value, c.Token, "[REDACTED]")
+	}
+	value = redactSensitivePatterns(value)
 	if len(value) > 500 {
 		value = value[:500] + "..."
+	}
+	return value
+}
+
+func redactSensitivePatterns(value string) string {
+	patterns := []*regexp.Regexp{
+		regexp.MustCompile(`(?i)(cookie\s*:\s*)[^\r\n]+`),
+		regexp.MustCompile(`(?i)(set-cookie\s*:\s*)[^\r\n]+`),
+		regexp.MustCompile(`(?i)(authorization\s*:\s*bearer\s+)[A-Za-z0-9._~+\-/=]+`),
+		regexp.MustCompile(`(?i)(["']?(?:token|access_token|refresh_token|cookie)["']?\s*[:=]\s*["']?)[^"',\s}]+`),
+		regexp.MustCompile(`(?i)(\bt=)[^;\s"',}]+`),
+	}
+	for _, pattern := range patterns {
+		value = pattern.ReplaceAllString(value, `${1}[REDACTED]`)
 	}
 	return value
 }

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/DeliciousBuding/dida-cli/internal/config"
 )
@@ -21,9 +22,9 @@ func CookiePath() string {
 }
 
 func SaveCookieToken(token string) (*CookieToken, error) {
-	token = strings.TrimSpace(token)
-	if token == "" {
-		return nil, fmt.Errorf("empty cookie token")
+	token, err := NormalizeCookieToken(token)
+	if err != nil {
+		return nil, err
 	}
 	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
 		return nil, fmt.Errorf("create config dir: %w", err)
@@ -37,6 +38,35 @@ func SaveCookieToken(token string) (*CookieToken, error) {
 		return nil, fmt.Errorf("write cookie token: %w", err)
 	}
 	return item, nil
+}
+
+func NormalizeCookieToken(input string) (string, error) {
+	token := strings.TrimSpace(input)
+	if token == "" {
+		return "", fmt.Errorf("empty cookie token")
+	}
+	lower := strings.ToLower(token)
+	if strings.HasPrefix(lower, "cookie:") {
+		return "", fmt.Errorf("paste only the Dida365 cookie named 't', not a full Cookie header")
+	}
+	if strings.Contains(token, ";") {
+		return "", fmt.Errorf("paste only the Dida365 cookie named 't', not multiple cookies")
+	}
+	if strings.HasPrefix(token, "t=") {
+		token = strings.TrimSpace(strings.TrimPrefix(token, "t="))
+	}
+	if token == "" {
+		return "", fmt.Errorf("empty cookie token")
+	}
+	if strings.Contains(token, "=") {
+		return "", fmt.Errorf("cookie token must be a single t cookie value")
+	}
+	for _, r := range token {
+		if unicode.IsControl(r) || unicode.IsSpace(r) {
+			return "", fmt.Errorf("cookie token contains invalid whitespace or control characters")
+		}
+	}
+	return token, nil
 }
 
 func LoadCookieToken() (*CookieToken, error) {
