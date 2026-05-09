@@ -122,3 +122,53 @@ func TestTaskDeleteRequiresYesJSON(t *testing.T) {
 		t.Fatalf("error.type = %v, want confirmation_required", errPayload["type"])
 	}
 }
+
+func TestResourceCreateDryRunJSON(t *testing.T) {
+	cases := [][]string{
+		{"project", "create", "--name", "Smoke", "--dry-run", "--json"},
+		{"folder", "create", "--name", "Smoke", "--dry-run", "--json"},
+		{"tag", "create", "smoke", "--dry-run", "--json"},
+		{"column", "create", "--project", "p1", "--name", "Doing", "--dry-run", "--json"},
+	}
+	for _, args := range cases {
+		var stdout, stderr bytes.Buffer
+		code := Run(args, "test-version", &stdout, &stderr)
+		if code != 0 {
+			t.Fatalf("%v exit code = %d, stderr=%s", args, code, stderr.String())
+		}
+		var payload map[string]any
+		if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+			t.Fatalf("%v invalid json: %v\n%s", args, err, stdout.String())
+		}
+		data := payload["data"].(map[string]any)
+		if data["dryRun"] != true {
+			t.Fatalf("%v dryRun = %v, want true", args, data["dryRun"])
+		}
+	}
+}
+
+func TestResourceDeleteRequiresYesJSON(t *testing.T) {
+	cases := [][]string{
+		{"project", "delete", "p1", "--json"},
+		{"folder", "delete", "g1", "--json"},
+		{"tag", "delete", "smoke", "--json"},
+	}
+	for _, args := range cases {
+		var stdout, stderr bytes.Buffer
+		code := Run(args, "test-version", &stdout, &stderr)
+		if code != 1 {
+			t.Fatalf("%v exit code = %d, want 1", args, code)
+		}
+		if stderr.Len() != 0 {
+			t.Fatalf("%v stderr = %q, want empty for json errors", args, stderr.String())
+		}
+		var payload map[string]any
+		if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+			t.Fatalf("%v invalid json: %v\n%s", args, err, stdout.String())
+		}
+		errPayload := payload["error"].(map[string]any)
+		if errPayload["type"] != "confirmation_required" {
+			t.Fatalf("%v error.type = %v, want confirmation_required", args, errPayload["type"])
+		}
+	}
+}

@@ -61,6 +61,12 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 		return runRaw(args[1:], jsonOut, stdout, stderr)
 	case "project":
 		return runProject(args[1:], jsonOut, stdout, stderr)
+	case "folder":
+		return runFolder(args[1:], jsonOut, stdout, stderr)
+	case "tag":
+		return runTag(args[1:], jsonOut, stdout, stderr)
+	case "column":
+		return runColumn(args[1:], jsonOut, stdout, stderr)
 	case "task":
 		return runTask(args[1:], jsonOut, stdout, stderr)
 	case "report":
@@ -457,6 +463,12 @@ func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	switch args[0] {
 	case "list":
 		return runProjectList(jsonOut, stdout, stderr)
+	case "create":
+		return runProjectCreate(args[1:], jsonOut, stdout, stderr)
+	case "update":
+		return runProjectUpdate(args[1:], jsonOut, stdout, stderr)
+	case "delete":
+		return runProjectDelete(args[1:], jsonOut, stdout, stderr)
 	case "tasks":
 		if len(args) != 2 {
 			return failTyped("project tasks", "validation", "usage: dida project tasks <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
@@ -552,6 +564,10 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runTaskComplete(args[1:], jsonOut, stdout, stderr)
 	case "delete":
 		return runTaskDelete(args[1:], jsonOut, stdout, stderr)
+	case "move":
+		return runTaskMove(args[1:], jsonOut, stdout, stderr)
+	case "parent":
+		return runTaskParent(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("task", fmt.Sprintf("unknown task command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -1275,7 +1291,10 @@ Commands:
   sync         Sync tasks/projects/tags
   settings     Read user preferences
   completed    Read completed task history
-  project      Project discovery
+  project      Project discovery and CRUD
+  folder       Project folder CRUD
+  tag          Tag discovery and CRUD
+  column       Kanban column discovery and experimental create
   task         Task reads and writes
   report       Generate reports
   raw          Raw read-only API escape hatch
@@ -1353,6 +1372,9 @@ func printProjectHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida project list [--json]
+  dida project create --name <name> [--group <folder-id>] [--dry-run] [--json]
+  dida project update <project-id> [--name <name>] [--group <folder-id>] [--dry-run] [--json]
+  dida project delete <project-id> --yes [--dry-run] [--json]
   dida project tasks <project-id> [--json]
   dida project columns <project-id> [--json]
 `))
@@ -1370,7 +1392,41 @@ Usage:
   dida task update <task-id> --project <project-id> [--title ...] [--dry-run] [--json]
   dida task complete <task-id> --project <project-id> [--dry-run] [--json]
   dida task delete <task-id> --project <project-id> --yes [--dry-run] [--json]
+  dida task move <task-id> --from <project-id> --to <project-id> [--dry-run] [--json]
+  dida task parent <task-id> --parent <task-id> --project <project-id> [--dry-run] [--json]
   dida +today [--json] [--limit N]
+`))
+}
+
+func printFolderHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida folder list [--json]
+  dida folder create --name <name> [--dry-run] [--json]
+  dida folder update <folder-id> --name <name> [--dry-run] [--json]
+  dida folder delete <folder-id> --yes [--dry-run] [--json]
+`))
+}
+
+func printTagHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida tag list [--json]
+  dida tag create <name> [--color <color>] [--parent <name>] [--dry-run] [--json]
+  dida tag update <name> [--color <color>] [--parent <name>] [--label <label>] [--dry-run] [--json]
+  dida tag rename <old-name> <new-name> [--dry-run] [--json]
+  dida tag merge <from-name> <to-name> --yes [--dry-run] [--json]
+  dida tag delete <name> --yes [--dry-run] [--json]
+`))
+}
+
+func printColumnHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida column list <project-id> [--json]
+  dida column create --project <project-id> --name <name> [--dry-run] [--json]
+
+Column create uses an experimental private Web API endpoint. Update/delete are not exposed until verified.
 `))
 }
 
