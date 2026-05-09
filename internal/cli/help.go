@@ -70,6 +70,8 @@ func printOfficialHelp(w io.Writer) {
 Usage:
   dida official doctor [--json]
   dida official tools [--limit N] [--full] [--json]
+  dida official show <tool-name> [--json]
+  dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--json]
 
 These commands use the official dida365 MCP server and require DIDA365_TOKEN.
 `))

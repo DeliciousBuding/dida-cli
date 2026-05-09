@@ -87,6 +87,8 @@ dida auth status --verify --json
 dida doctor --json
 dida official doctor --json
 dida official tools --limit 20 --json
+dida official show list_projects --json
+dida official call list_projects --json
 dida schema list --json
 dida agent context --json
 dida auth status --verify --json

@@ -128,6 +128,40 @@ func (c *Client) Tools(ctx context.Context) ([]Tool, error) {
 	return tools, nil
 }
 
+func (c *Client) ToolSchema(ctx context.Context, name string) (*Tool, error) {
+	tools, err := c.Tools(ctx)
+	if err != nil {
+		return nil, err
+	}
+	for _, tool := range tools {
+		if tool.Name == name {
+			item := tool
+			return &item, nil
+		}
+	}
+	return nil, fmt.Errorf("official mcp tool %q not found", name)
+}
+
+func (c *Client) CallTool(ctx context.Context, name string, arguments map[string]any) (any, error) {
+	body := map[string]any{
+		"jsonrpc": "2.0",
+		"id":      3,
+		"method":  "tools/call",
+		"params": map[string]any{
+			"name":      name,
+			"arguments": arguments,
+		},
+	}
+	resp, _, err := c.post(ctx, body, true)
+	if err != nil {
+		return nil, err
+	}
+	if resp.Error != nil {
+		return nil, fmt.Errorf("official mcp tools/call failed: %s", resp.Error.Message)
+	}
+	return unwrapToolResult(resp.Result), nil
+}
+
 func (c *Client) post(ctx context.Context, payload map[string]any, includeProtocol bool) (rpcResponse, http.Header, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -217,4 +251,39 @@ func stringValue(value any) string {
 func mapValue(value any) map[string]any {
 	item, _ := value.(map[string]any)
 	return item
+}
+
+func unwrapToolResult(result map[string]any) any {
+	if structured, ok := result["structuredContent"]; ok && structured != nil {
+		return unwrapEnvelope(structured)
+	}
+	if content, ok := result["content"].([]any); ok && len(content) == 1 {
+		if item, ok := content[0].(map[string]any); ok && stringValue(item["type"]) == "text" {
+			text := stringValue(item["text"])
+			var decoded any
+			if err := json.Unmarshal([]byte(text), &decoded); err == nil {
+				return unwrapEnvelope(decoded)
+			}
+			return text
+		}
+	}
+	return unwrapEnvelope(result)
+}
+
+func unwrapEnvelope(value any) any {
+	for {
+		item, ok := value.(map[string]any)
+		if !ok || len(item) != 1 {
+			return value
+		}
+		if next, ok := item["result"]; ok {
+			value = next
+			continue
+		}
+		if next, ok := item["results"]; ok {
+			value = next
+			continue
+		}
+		return value
+	}
 }

@@ -49,6 +49,10 @@ task text, checklist, reminder, and raw fields are needed.
 
 ```bash
 dida project list --json
+dida official doctor --json
+dida official tools --limit 20 --json
+dida official show list_projects --json
+dida official call list_projects --json
 dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json

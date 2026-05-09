@@ -2,8 +2,10 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/officialmcp"
@@ -19,6 +21,10 @@ func runOfficial(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 		return runOfficialDoctor(jsonOut, stdout, stderr)
 	case "tools":
 		return runOfficialTools(args[1:], jsonOut, stdout, stderr)
+	case "show":
+		return runOfficialShow(args[1:], jsonOut, stdout, stderr)
+	case "call":
+		return runOfficialCall(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("official", fmt.Sprintf("unknown official command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -95,6 +101,56 @@ func runOfficialTools(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	return 0
 }
 
+func runOfficialShow(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) != 1 {
+		return failTyped("official show", "validation", "usage: dida official show <tool-name>", "run: dida official --help", jsonOut, stdout, stderr)
+	}
+	token, err := officialmcp.ResolveToken("")
+	if err != nil {
+		return failTyped("official show", "auth", err.Error(), "set DIDA365_TOKEN to the official dida365 API token", jsonOut, stdout, stderr)
+	}
+	client := officialmcp.NewClient(token)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
+		return failTyped("official show", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	tool, err := client.ToolSchema(ctx, args[0])
+	if err != nil {
+		return failTyped("official show", "not_found", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "official show", Data: map[string]any{"tool": tool}})
+	}
+	fmt.Fprintf(stdout, "Official tool: %s\n", tool.Name)
+	return 0
+}
+
+func runOfficialCall(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	tool, payload, err := parseOfficialCallFlags(args)
+	if err != nil {
+		return failTyped("official call", "validation", err.Error(), "run: dida official --help", jsonOut, stdout, stderr)
+	}
+	token, err := officialmcp.ResolveToken("")
+	if err != nil {
+		return failTyped("official call", "auth", err.Error(), "set DIDA365_TOKEN to the official dida365 API token", jsonOut, stdout, stderr)
+	}
+	client := officialmcp.NewClient(token)
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
+		return failTyped("official call", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	result, err := client.CallTool(ctx, tool, payload)
+	if err != nil {
+		return failTyped("official call", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "official call", Data: map[string]any{"tool": tool, "result": result}})
+	}
+	return writeJSON(stdout, result)
+}
+
 func parseOfficialToolsFlags(args []string) (int, bool, error) {
 	limit := 100
 	full := false
@@ -115,6 +171,41 @@ func parseOfficialToolsFlags(args []string) (int, bool, error) {
 		}
 	}
 	return limit, full, nil
+}
+
+func parseOfficialCallFlags(args []string) (string, map[string]any, error) {
+	if len(args) == 0 {
+		return "", nil, fmt.Errorf("usage: dida official call <tool-name> [--args-json <json>] [--args-file <file>]")
+	}
+	tool := args[0]
+	payload := map[string]any{}
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "--args-json":
+			if i+1 >= len(args) {
+				return "", nil, fmt.Errorf("--args-json requires a value")
+			}
+			if err := json.Unmarshal([]byte(args[i+1]), &payload); err != nil {
+				return "", nil, fmt.Errorf("decode --args-json: %w", err)
+			}
+			i++
+		case "--args-file":
+			if i+1 >= len(args) {
+				return "", nil, fmt.Errorf("--args-file requires a path")
+			}
+			data, err := os.ReadFile(args[i+1])
+			if err != nil {
+				return "", nil, fmt.Errorf("read args file: %w", err)
+			}
+			if err := json.Unmarshal(data, &payload); err != nil {
+				return "", nil, fmt.Errorf("decode args file: %w", err)
+			}
+			i++
+		default:
+			return "", nil, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return tool, payload, nil
 }
 
 func compactOfficialTools(tools []officialmcp.Tool) []officialmcp.Tool {

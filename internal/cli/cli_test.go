@@ -684,3 +684,16 @@ func TestOfficialToolsFlagValidation(t *testing.T) {
 		t.Fatalf("parseOfficialToolsFlags() error = nil, want validation error")
 	}
 }
+
+func TestOfficialCallFlagParsing(t *testing.T) {
+	tool, payload, err := parseOfficialCallFlags([]string{"list_projects", "--args-json", "{\"query\":\"today\"}"})
+	if err != nil {
+		t.Fatalf("parseOfficialCallFlags() error = %v", err)
+	}
+	if tool != "list_projects" {
+		t.Fatalf("tool = %q, want list_projects", tool)
+	}
+	if payload["query"] != "today" {
+		t.Fatalf("payload = %#v", payload)
+	}
+}
