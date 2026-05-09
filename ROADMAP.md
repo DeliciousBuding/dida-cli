@@ -421,7 +421,9 @@ macOS smoke, and publishing policy are confirmed.
 - both should reference GitHub Release assets and checksums
 
 Status: templates added under `packaging/`; not published to an external tap or
-bucket yet.
+bucket yet. Static URL/hash validation against `v0.1.10/checksums.txt` passed
+for Homebrew and Scoop templates; native package-manager install smoke remains
+pending.
 
 ### F5. winget
 

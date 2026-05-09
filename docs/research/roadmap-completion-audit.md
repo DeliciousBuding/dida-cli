@@ -106,6 +106,8 @@ Implemented:
   and the downloaded binary is stored as `bin/dida-bin`.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
   pinned to `v0.1.10` release assets and checksums.
+- Homebrew and Scoop template URL/hash static validation passed against the
+  `v0.1.10` release `checksums.txt` for all six release assets.
 - winget submission notes exist under `packaging/winget/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
@@ -114,7 +116,7 @@ Remaining:
 
 - macOS installer smoke should be repeated for `v0.1.10` on a native macOS host.
 - Homebrew and Scoop templates are not yet published to external package
-  repositories.
+  repositories, and native package-manager install smoke remains pending.
 - winget manifest generation and submission remain deferred until release
   cadence and package identity are final.
 - npm installer skeleton is smoke-tested on Windows and WSL Linux but is not

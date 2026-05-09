@@ -117,5 +117,10 @@ live outside this repository:
 - `packaging/winget/README.md` records the future winget submission boundary
   without committing generated manifests prematurely.
 
+Static validation on Windows confirmed the Homebrew and Scoop template URLs
+and SHA-256 hashes match the `v0.1.10` release `checksums.txt` for all six
+release assets. Native `brew`/`scoop` install smoke is still pending because
+those package managers are not available in the current environment.
+
 These files are not published channels yet. Treat them as release engineering
 inputs for a future tap, bucket, or winget submission.
