@@ -1,4 +1,4 @@
-# DidaCLI
+# dida-cli
 
 Clean-room Go CLI for Dida365 / TickTick task operations.
 
@@ -7,6 +7,7 @@ This project is intended to replace the old `dida365-ai-tools` + OpenClaw glue w
 ## Naming
 
 - Repository: `DidaCLI`
+- Future repository/module name: `dida-cli`
 - Binary: `dida`
 - Config directory: `~/.dida-cli`
 

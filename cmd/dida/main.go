@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/DeliciousBuding/DidaCLI/internal/cli"
+	"github.com/DeliciousBuding/dida-cli/internal/cli"
 )
 
 var version = "dev"
