@@ -215,10 +215,11 @@ Acceptance:
 Live evidence:
 
 - 2026-05-10 token-based smoke succeeded for `official doctor`,
-  `official tools`, generic `list_projects`, `official project data`,
+  `official tools`, generic `list_projects`, `official project get`,
+  `official project data`,
   `official task query --query today`, `official task search`, `official task
   undone`, `official task filter`, and bounded `official focus list`.
-- Remaining read smokes: `official project get` and known-id habit/focus reads.
+- Remaining read smokes: known-id habit/focus reads.
 - Write smokes remain blocked until disposable project/task/habit/focus targets
   exist.
 

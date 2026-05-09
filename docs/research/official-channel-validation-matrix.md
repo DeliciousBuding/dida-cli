@@ -32,7 +32,7 @@ They are intentionally not interchangeable.
 | Focus read | `get_focus` | `official focus get` | implemented | Needs a known focus id. |
 | Focus range | `get_focuses_by_time` | `official focus list` | live-verified | Bounded range smoke succeeded on 2026-05-10; output was treated as summary-only. |
 | Focus delete | `delete_focus` | `official focus delete --yes` | implemented | Destructive; only test on a disposable focus record. |
-| Project detail | `get_project_by_id` | `official project get` | implemented | `official project data` was live-smoked with a known project; run `project get` when exact metadata-only verification is needed. |
+| Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |
 | Batch task add | `batch_add_tasks` | `official task batch-add` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
