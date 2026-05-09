@@ -361,7 +361,9 @@ the installed-binary OpenAPI client config smoke.
 - postinstall downloads matching GitHub Release binary
 - `bin/dida` forwards to the downloaded binary
 
-Status: skeleton only; do not publish until release assets are proven.
+Status: skeleton smoke-tested on Windows against `v0.1.4`; do not publish until
+package ownership, final npm scope, non-Windows smoke, and publishing policy are
+confirmed.
 
 ### F4. Homebrew / Scoop
 

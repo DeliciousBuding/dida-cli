@@ -10,7 +10,7 @@ cloning the repository. GitHub Releases are the canonical binary source.
 | GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS. |
 | `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`. |
 | `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables. |
-| npm installer package | Skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries. Not published yet. |
+| npm installer package | Smoke-tested skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries. Not published yet. |
 | `go install` | Developer fallback | Works when Go is installed, but does not use release archives. |
 
 ## Planned Channels
@@ -75,12 +75,14 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 - package name placeholder: `@vectorcontrol/dida-cli`
 - postinstall downloads the matching GitHub Release archive
 - `bin/dida` forwards commands to the downloaded binary
+- local smoke has installed `v0.1.4` from GitHub Releases in a temporary copy
+  and verified `node bin/dida version`
 
 Do not publish it until:
 
-1. Release naming has shipped at least once.
-2. The install script has been tested on Windows, Linux, and macOS.
-3. Package ownership and final npm scope are confirmed.
+1. Package ownership and final npm scope are confirmed.
+2. Linux/macOS npm installer smoke is repeated outside Windows.
+3. Publishing automation and provenance policy are defined.
 
 ## `go install`
 

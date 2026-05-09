@@ -74,6 +74,8 @@ Implemented:
 - Windows installer smoke passed against `v0.1.4`.
 - Installed `v0.1.4` binary smoke passed for `version`,
   `schema show openapi.clientSet`, and `openapi client set/status/clear`.
+- npm installer skeleton smoke passed on Windows against `v0.1.4` from a
+  temporary copy of `npm/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
 
@@ -82,7 +84,7 @@ Remaining:
 - Linux/macOS installer smoke should be repeated for `v0.1.4` if those
   environments are available.
 - Homebrew, Scoop, and winget remain planned.
-- npm installer skeleton exists but is not published.
+- npm installer skeleton is smoke-tested on Windows but is not published.
 
 ## Current Blocking Preconditions
 
