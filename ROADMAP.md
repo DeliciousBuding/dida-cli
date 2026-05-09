@@ -57,6 +57,7 @@ As of the current main branch:
   - `v0.1.0` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
   - `install.ps1` has been smoke-tested against the release asset on Windows
+  - `install.sh` has been smoke-tested against the release asset on Linux/amd64
 
 ## Non-Negotiable Rules
 
@@ -406,7 +407,7 @@ Top five next tasks:
 2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
 3. Capture a successful Web API task activity request
 4. Map attachment metadata and download/upload flows from real Web API evidence
-5. Test `install.sh` against release assets from a Unix-like environment
+5. Promote the next high-value MCP/OpenAPI wrappers only after live auth is available
 
 ## Done Means Done
 
