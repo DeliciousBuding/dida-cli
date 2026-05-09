@@ -57,6 +57,7 @@ async function main() {
   const arch = archName();
   const ext = osName === "windows" ? "zip" : "tar.gz";
   const exe = osName === "windows" ? "dida.exe" : "dida";
+  const installedExe = osName === "windows" ? "dida.exe" : "dida-bin";
   const asset = `dida_${resolvedVersion}_${osName}_${arch}.${ext}`;
   const base = `https://github.com/${repo}/releases/download/${resolvedVersion}`;
 
@@ -82,7 +83,7 @@ async function main() {
     const found = findFile(temp, exe);
     if (!found) throw new Error("binary not found in archive");
     fs.mkdirSync(binDir, { recursive: true });
-    const target = path.join(binDir, exe);
+    const target = path.join(binDir, installedExe);
     fs.copyFileSync(found, target);
     if (osName !== "windows") fs.chmodSync(target, 0o755);
   } finally {

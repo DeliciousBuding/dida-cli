@@ -4,7 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
-const exe = process.platform === "win32" ? "dida.exe" : "dida";
+const exe = process.platform === "win32" ? "dida.exe" : "dida-bin";
 const binary = path.join(__dirname, exe);
 
 if (!fs.existsSync(binary)) {

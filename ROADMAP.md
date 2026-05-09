@@ -64,6 +64,8 @@ As of the current main branch:
   - `install.ps1` has been smoke-tested against the `v0.1.4` release asset on Windows
   - installed `v0.1.4` binary has smoke-tested `openapi client set/status/clear`
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
+  - npm installer skeleton has been smoke-tested against `v0.1.4` on Windows
+    and WSL Linux
 
 ## Non-Negotiable Rules
 
@@ -352,7 +354,8 @@ Status: implemented and smoke-tested through `v0.1.4`; release workflow uses Nod
 - install-time `dida version` and `dida doctor --json`
 
 Status: implemented; Windows installer smoke passed against `v0.1.4`, including
-the installed-binary OpenAPI client config smoke.
+the installed-binary OpenAPI client config smoke. Linux/amd64 `install.sh`
+smoke also passed against `v0.1.4`.
 
 ### F3. npm Installer
 
@@ -361,9 +364,9 @@ the installed-binary OpenAPI client config smoke.
 - postinstall downloads matching GitHub Release binary
 - `bin/dida` forwards to the downloaded binary
 
-Status: skeleton smoke-tested on Windows against `v0.1.4`; do not publish until
-package ownership, final npm scope, non-Windows smoke, and publishing policy are
-confirmed.
+Status: skeleton smoke-tested on Windows and WSL Linux against `v0.1.4`; do not
+publish until package ownership, final npm scope, macOS smoke, and publishing
+policy are confirmed.
 
 ### F4. Homebrew / Scoop
 

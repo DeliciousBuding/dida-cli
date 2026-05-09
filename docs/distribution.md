@@ -74,14 +74,17 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 
 - package name placeholder: `@vectorcontrol/dida-cli`
 - postinstall downloads the matching GitHub Release archive
-- `bin/dida` forwards commands to the downloaded binary
-- local smoke has installed `v0.1.4` from GitHub Releases in a temporary copy
-  and verified `node bin/dida version`
+- `bin/dida` is the stable Node wrapper
+- Windows stores the downloaded binary as `bin/dida.exe`
+- Unix-like systems store the downloaded binary as `bin/dida-bin` so the
+  wrapper is not overwritten
+- local Windows and WSL Linux smoke tests installed `v0.1.4` from GitHub
+  Releases in temporary copies and verified `node bin/dida version`
 
 Do not publish it until:
 
 1. Package ownership and final npm scope are confirmed.
-2. Linux/macOS npm installer smoke is repeated outside Windows.
+2. macOS npm installer smoke is repeated on a native macOS host.
 3. Publishing automation and provenance policy are defined.
 
 ## `go install`
