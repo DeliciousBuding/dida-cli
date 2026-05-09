@@ -59,9 +59,9 @@ As of the current main branch:
   - Web API gap catalog
   - MCP tool crosswalk
 - distribution is live:
-  - `v0.1.1` GitHub Release exists
+  - `v0.1.2` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the `v0.1.1` release asset on Windows
+  - `install.ps1` has been smoke-tested against the `v0.1.2` release asset on Windows
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
 
 ## Non-Negotiable Rules
@@ -335,7 +335,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.1.1`.
+Status: implemented and smoke-tested through `v0.1.2`.
 
 ### F2. Install Scripts
 
@@ -347,7 +347,7 @@ Status: implemented and smoke-tested through `v0.1.1`.
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; Windows installer smoke passed against `v0.1.1`.
+Status: implemented; Windows installer smoke passed against `v0.1.2`.
 
 ### F3. npm Installer
 
