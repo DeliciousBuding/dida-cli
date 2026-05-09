@@ -17,6 +17,7 @@ Usage:
 
 Commands:
   doctor       Check local config and auth status
+  official     Inspect the official dida365 MCP channel
   agent        Agent-oriented context pack
   auth         Manage local cookie auth
   sync         Sync tasks/projects/tags
@@ -61,6 +62,16 @@ Usage:
   dida auth logout [--json]
   dida auth cookie set --token-stdin
   DIDA_ALLOW_TOKEN_ARG=1 dida auth cookie set --token <token>
+`))
+}
+
+func printOfficialHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida official doctor [--json]
+  dida official tools [--limit N] [--full] [--json]
+
+These commands use the official dida365 MCP server and require DIDA365_TOKEN.
 `))
 }
 

@@ -38,6 +38,7 @@ The primary integration surface is the Dida365 Web API used by the official web 
 - Agent-safe JSON: every `--json` response uses a consistent envelope.
 - Ergonomic writes: create, update, complete, move, and parent operations run directly; destructive actions still require explicit confirmation.
 - Browser login: visible Dida365 login captures only the `t` cookie into `~/.dida-cli/`.
+- Dual-channel direction: Web API for broad coverage, official MCP for a cleaner token-based integration surface.
 - Safety guardrails: cookie arguments disabled by default, `--dry-run` previews, bounded list output, and no raw write tunnel.
 
 ## Quick Start
@@ -91,6 +92,8 @@ Cookie values are intentionally not accepted through normal command arguments un
 
 ```bash
 dida doctor --json
+dida official doctor --json
+dida official tools --limit 20 --json
 dida schema list --json
 dida agent context --json
 dida auth status --verify --json
@@ -168,6 +171,8 @@ DidaCLI currently covers a broad slice of the observed Dida365 Web API, includin
 - raw read-only probing
 
 See [docs/web-api.md](docs/web-api.md), [docs/api-coverage.md](docs/api-coverage.md), and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for endpoint-level notes.
+
+For channel comparison and future direction, see [docs/research/official-mcp-vs-webapi.md](docs/research/official-mcp-vs-webapi.md).
 
 ## Project Layout
 

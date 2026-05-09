@@ -677,3 +677,10 @@ func TestCompactUserOutputsStaySmall(t *testing.T) {
 		}
 	}
 }
+
+func TestOfficialToolsFlagValidation(t *testing.T) {
+	_, _, err := parseOfficialToolsFlags([]string{"--limit", "-1"})
+	if err == nil {
+		t.Fatalf("parseOfficialToolsFlags() error = nil, want validation error")
+	}
+}
