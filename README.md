@@ -17,7 +17,7 @@
   <a href="#quickstart">Quickstart</a> ·
   <a href="#commands">Commands</a> ·
   <a href="#agent-workflows">Agent Workflows</a> ·
-  <a href="docs/quickstart.md">Docs</a>
+  <a href="docs/README.md">Docs</a>
 </p>
 
 ---
@@ -117,6 +117,7 @@ Full guides:
 
 - [Quickstart](docs/quickstart.md)
 - [LLM / Agent Quickstart](docs/llm-quickstart.md)
+- [Documentation Index](docs/README.md)
 - [Distribution](docs/distribution.md)
 
 ## Commands

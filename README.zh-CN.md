@@ -10,7 +10,7 @@
   <a href="#快速开始">快速开始</a> ·
   <a href="#常用命令">常用命令</a> ·
   <a href="#给-agent-使用">给 Agent 使用</a> ·
-  <a href="docs/quickstart.zh-CN.md">命令文档</a>
+  <a href="docs/README.md">文档索引</a>
 </p>
 
 ---
@@ -115,6 +115,7 @@ go build -o bin/dida ./cmd/dida
 
 - [快速开始](docs/quickstart.zh-CN.md)
 - [LLM / Agent Quickstart](docs/llm-quickstart.md)
+- [文档索引](docs/README.md)
 - [分发说明](docs/distribution.md)
 
 ## 常用命令
