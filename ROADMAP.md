@@ -35,7 +35,9 @@ As of the current main branch:
   - `official show`
   - `official call`
   - first-class project read wrappers
-  - first-class task read/filter wrappers
+  - first-class task read/filter/query wrappers
+  - first-class official task batch-add, batch-update, and project completion
+    wrappers with local dry-run previews
   - first-class habit wrappers
   - first-class focus wrappers
 - `official openapi` has:
@@ -183,24 +185,27 @@ Priority list:
 
 1. `get_project_by_id`
 2. `get_project_with_undone_tasks`
-3. `complete_tasks_in_project`
-4. `batch_add_tasks`
-5. `batch_update_tasks`
+3. `complete_tasks_in_project` - implemented as `official task complete-project`
+4. `batch_add_tasks` - implemented as `official task batch-add`
+5. `batch_update_tasks` - implemented as `official task batch-update`
 6. `filter_tasks`
 7. `list_undone_tasks_by_date`
 8. `search_task`
-9. `get_habit`
-10. `create_habit`
-11. `update_habit`
-12. `upsert_habit_checkins`
-13. `get_focus`
-14. `get_focuses_by_time`
-15. `delete_focus`
+9. `list_undone_tasks_by_time_query` - implemented as `official task query`
+10. `get_habit`
+11. `create_habit`
+12. `update_habit`
+13. `upsert_habit_checkins`
+14. `get_focus`
+15. `get_focuses_by_time`
+16. `delete_focus`
 
 Acceptance:
 
 - each promoted command must be better than `official call`
 - each promoted command must have a reason documented in the crosswalk
+- broad official task writes must support local `--dry-run` previews before
+  requiring `DIDA365_TOKEN`
 
 ### B2. MCP Contract Layer
 
@@ -407,7 +412,7 @@ Before claiming an API surface is done:
 If another agent takes over, the best sequence is:
 
 1. Finish OpenAPI live OAuth verification
-2. Promote high-value official MCP tools
+2. Live-smoke promoted official MCP tools, especially task query and batch dry-run surfaces
 3. Close Web API read gaps
 4. Map Web API write gaps with evidence
 5. Polish docs and command ergonomics
@@ -417,7 +422,7 @@ If another agent takes over, the best sequence is:
 Top five next tasks:
 
 1. Finish and live-verify `openapi login`
-2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
+2. Live-smoke official MCP project, task, habit, and focus wrappers where a safe target exists
 3. Capture a successful Web API task activity request with a Pro account or trace
 4. Map attachment metadata and download/upload flows from real Web API evidence
 5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available

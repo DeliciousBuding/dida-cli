@@ -164,7 +164,10 @@ dida official doctor --json
 dida official show get_focuses_by_time --json
 dida official project data <project-id> --json
 dida official task search --query "today" --json
+dida official task query --query "today" --json
 dida official task filter --project <project-id> --status 0 --json
+dida official task batch-add --args-json "{\"tasks\":[{\"title\":\"Example\"}]}" --dry-run --json
+dida official task complete-project --project <project-id> --task <task-id> --dry-run --json
 dida official habit get <habit-id> --json
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
 dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json

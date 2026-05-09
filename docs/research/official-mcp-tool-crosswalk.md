@@ -21,10 +21,10 @@ first-class commands.
 | `create_task` | `task create` | Overlap |
 | `update_task` | `task update` | Overlap |
 | `complete_task` | `task complete` | Overlap |
-| `complete_tasks_in_project` | none | Worth wrapping |
+| `complete_tasks_in_project` | `official task complete-project` | Wrapped with local dry-run preview |
 | `move_task` | `task move` | Overlap |
-| `batch_add_tasks` | none | Worth wrapping |
-| `batch_update_tasks` | none | Worth wrapping |
+| `batch_add_tasks` | `official task batch-add` | Wrapped with `--args-json` / `--args-file` and dry-run preview |
+| `batch_update_tasks` | `official task batch-update` | Wrapped with `--args-json` / `--args-file` and dry-run preview |
 
 ## Task Read / Query Tools
 
@@ -37,7 +37,7 @@ first-class commands.
 | `search_task` | `official task search` | Wrapped; Web API search remains separate |
 | `filter_tasks` | `official task filter` | Wrapped |
 | `list_undone_tasks_by_date` | `official task undone` | Wrapped |
-| `list_undone_tasks_by_time_query` | `task today`, `task list --filter ...` | Worth wrapping behind a friendlier query command |
+| `list_undone_tasks_by_time_query` | `official task query` | Wrapped as a friendlier query command |
 | `list_completed_tasks_by_date` | `completed list` | Overlap |
 
 ## Habit Tools
@@ -73,19 +73,20 @@ commands instead of only `official call`.
 
 1. `get_project_by_id` - wrapped as `official project get`
 2. `get_project_with_undone_tasks` - wrapped as `official project data`
-3. `complete_tasks_in_project`
-4. `batch_add_tasks`
-5. `batch_update_tasks`
+3. `complete_tasks_in_project` - wrapped as `official task complete-project`
+4. `batch_add_tasks` - wrapped as `official task batch-add`
+5. `batch_update_tasks` - wrapped as `official task batch-update`
 6. `filter_tasks` - wrapped as `official task filter`
 7. `list_undone_tasks_by_date` - wrapped as `official task undone`
 8. `search_task` - wrapped as `official task search`
-9. `get_habit` - wrapped as `official habit get`
-10. `create_habit` - wrapped as `official habit create`
-11. `update_habit` - wrapped as `official habit update`
-12. `upsert_habit_checkins` - wrapped as `official habit checkin`
-13. `get_focus` - wrapped as `official focus get`
-14. `get_focuses_by_time` - wrapped as `official focus list`
-15. `delete_focus` - wrapped as `official focus delete`
+9. `list_undone_tasks_by_time_query` - wrapped as `official task query`
+10. `get_habit` - wrapped as `official habit get`
+11. `create_habit` - wrapped as `official habit create`
+12. `update_habit` - wrapped as `official habit update`
+13. `upsert_habit_checkins` - wrapped as `official habit checkin`
+14. `get_focus` - wrapped as `official focus get`
+15. `get_focuses_by_time` - wrapped as `official focus list`
+16. `delete_focus` - wrapped as `official focus delete`
 
 ## Notable Overlap Pattern
 

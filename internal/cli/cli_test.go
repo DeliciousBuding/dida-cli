@@ -819,6 +819,59 @@ func TestOfficialTaskSearchFlagParsing(t *testing.T) {
 	}
 }
 
+func TestOfficialTaskQueryFlagParsing(t *testing.T) {
+	query, err := parseOfficialTaskQueryFlags([]string{"--query", "next 7 days"})
+	if err != nil {
+		t.Fatalf("parseOfficialTaskQueryFlags() error = %v", err)
+	}
+	if query != "next 7 days" {
+		t.Fatalf("query = %q, want next 7 days", query)
+	}
+}
+
+func TestOfficialTaskBatchDryRunDoesNotRequireToken(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"official", "task", "batch-add", "--args-json", "{\"tasks\":[{\"title\":\"Smoke\"}]}", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run() code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("decode stdout: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	if data["dry_run"] != true || data["tool"] != "batch_add_tasks" {
+		t.Fatalf("data = %#v", data)
+	}
+}
+
+func TestOfficialTaskCompleteProjectFlagParsing(t *testing.T) {
+	payload, dryRun, err := parseOfficialTaskCompleteProjectFlags([]string{"--project", "p1", "--task", "t1", "--tasks", "t2,t3", "--dry-run"})
+	if err != nil {
+		t.Fatalf("parseOfficialTaskCompleteProjectFlags() error = %v", err)
+	}
+	if !dryRun || payload["project_id"] != "p1" {
+		t.Fatalf("payload = %#v dryRun = %v", payload, dryRun)
+	}
+	taskIDs := payload["task_ids"].([]string)
+	if len(taskIDs) != 3 || taskIDs[0] != "t1" || taskIDs[2] != "t3" {
+		t.Fatalf("task_ids = %#v", taskIDs)
+	}
+}
+
+func TestOfficialTaskCompleteProjectDryRunDoesNotRequireToken(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"official", "task", "complete-project", "--project", "p1", "--task", "t1", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run() code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "complete_tasks_in_project") {
+		t.Fatalf("stdout missing tool name: %s", stdout.String())
+	}
+}
+
 func TestOpenAPIAuthURLFlagParsing(t *testing.T) {
 	redirectURI, scope, state, err := parseOpenAPIAuthURLFlags([]string{"--redirect-uri", "http://127.0.0.1:17890/callback", "--scope", "tasks:read", "--state", "abc"})
 	if err != nil {

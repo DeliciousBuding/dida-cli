@@ -34,6 +34,8 @@ dida agent context --json
 
 # Official MCP: token from Dida365 account settings
 DIDA365_TOKEN=... dida official doctor --json
+dida official task query --query today --json
+dida official task batch-add --args-json '{"tasks":[{"title":"Agent task"}]}' --dry-run --json
 
 # Official OpenAPI: OAuth REST
 dida openapi doctor --json
@@ -67,6 +69,8 @@ Preview generated writes first:
 ```bash
 dida task create --project <project-id> --title "Agent task" --dry-run --json
 dida task update <task-id> --project <project-id> --title "New title" --dry-run --json
+dida official task batch-add --args-json '{"tasks":[{"title":"Agent task"}]}' --dry-run --json
+dida official task complete-project --project <project-id> --task <task-id> --dry-run --json
 ```
 
 Execute only after the preview matches the user's request:

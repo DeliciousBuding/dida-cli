@@ -34,8 +34,10 @@ They are intentionally not interchangeable.
 | Focus delete | `delete_focus` | `official focus delete --yes` | implemented | Destructive; only test on a disposable focus record. |
 | Project detail | `get_project_by_id` | `official project get` | implemented | Needs a known project id for live read smoke. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | implemented | Needs a known project id for live read smoke. |
-| Batch task add | `batch_add_tasks` | none | documented | Needs wrapper design with clear payload file support. |
-| Batch task update | `batch_update_tasks` | none | documented | Needs dry-run-like local request preview. |
+| Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | implemented | Safe read; live-smoke after MCP token is available. |
+| Batch task add | `batch_add_tasks` | `official task batch-add` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
+| Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
+| Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | implemented | Local `--dry-run` preview works without token; live write needs known disposable tasks. |
 | Task search | `search_task` | `official task search` | implemented | Safe read; live-smoke after MCP token is available. |
 | Task undone by date | `list_undone_tasks_by_date` | `official task undone` | implemented | Safe read; live-smoke with bounded date range. |
 | Task filtering | `filter_tasks` | `official task filter` | implemented | Safe read; live-smoke with narrow status/project filters. |

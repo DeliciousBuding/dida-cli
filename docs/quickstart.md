@@ -76,7 +76,9 @@ cookie auth.
 DIDA365_TOKEN=... dida official doctor --json
 dida official tools --limit 20 --json
 dida official project data <project-id> --json
+dida official task query --query today --json
 dida official task filter --project <project-id> --status 0 --json
+dida official task batch-add --args-json '{"tasks":[{"title":"Task"}]}' --dry-run --json
 ```
 
 ## Official OpenAPI

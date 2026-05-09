@@ -57,8 +57,12 @@ dida official call list_undone_tasks_by_time_query --args-json "{\"query_command
 dida official project get <project-id> --json
 dida official project data <project-id> --json
 dida official task search --query "today" --json
+dida official task query --query "today" --json
 dida official task undone --start 2026-05-01T00:00:00+08:00 --end 2026-05-09T23:59:59+08:00 --json
 dida official task filter --project <project-id> --status 0 --json
+dida official task batch-add --args-json "{\"tasks\":[{\"title\":\"Task\"}]}" --dry-run --json
+dida official task batch-update --args-json "{\"tasks\":[{\"id\":\"<task-id>\",\"title\":\"Task\"}]}" --dry-run --json
+dida official task complete-project --project <project-id> --task <task-id> --dry-run --json
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
 dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
@@ -253,8 +257,12 @@ dida official project get <project-id> --json
 dida official project data <project-id> --json
 
 dida official task search --query "today" --json
+dida official task query --query "today" --json
 dida official task undone --project <project-id> --start 2026-05-01T00:00:00+08:00 --end 2026-05-09T23:59:59+08:00 --json
 dida official task filter --project <project-id> --priority 0,5 --tag work --status 0 --json
+dida official task batch-add --args-json "{\"tasks\":[{\"title\":\"Task\"}]}" --dry-run --json
+dida official task batch-update --args-json "{\"tasks\":[{\"id\":\"<task-id>\",\"title\":\"Task\"}]}" --dry-run --json
+dida official task complete-project --project <project-id> --task <task-id> --dry-run --json
 
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --json
@@ -269,7 +277,9 @@ dida official focus delete <focus-id> --yes --json
 These commands use the official MCP channel and require `DIDA365_TOKEN`.
 Use `dida official show <tool-name> --json` to inspect the exact upstream
 schema before passing larger `--args-json` payloads. Web API habit and Pomodoro
-commands remain separate under `dida habit` and `dida pomo`.
+commands remain separate under `dida habit` and `dida pomo`. Official task
+batch commands support local `--dry-run` previews without a token; remove
+`--dry-run` only after checking the upstream schema and payload.
 
 ## Official OpenAPI Focus And Habit
 

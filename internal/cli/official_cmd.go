@@ -299,6 +299,9 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		printOfficialTaskHelp(stdout)
 		return 0
 	}
+	if handled, code := runOfficialTaskDryRun(args, jsonOut, stdout, stderr); handled {
+		return code
+	}
 
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
@@ -323,6 +326,19 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		}
 		if jsonOut {
 			return writeJSON(stdout, envelope{OK: true, Command: "official task search", Data: result})
+		}
+		return writeJSON(stdout, result)
+	case "query":
+		query, err := parseOfficialTaskQueryFlags(args[1:])
+		if err != nil {
+			return failTyped("official task query", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "list_undone_tasks_by_time_query", map[string]any{"query_command": query})
+		if err != nil {
+			return failTyped("official task query", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task query", Data: result})
 		}
 		return writeJSON(stdout, result)
 	case "undone":
@@ -351,6 +367,45 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 			return writeJSON(stdout, envelope{OK: true, Command: "official task filter", Data: result})
 		}
 		return writeJSON(stdout, result)
+	case "batch-add":
+		payload, _, err := parseOfficialTaskBatchPayloadFlags(args[1:])
+		if err != nil {
+			return failTyped("official task batch-add", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "batch_add_tasks", payload)
+		if err != nil {
+			return failTyped("official task batch-add", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task batch-add", Data: result})
+		}
+		return writeJSON(stdout, result)
+	case "batch-update":
+		payload, _, err := parseOfficialTaskBatchPayloadFlags(args[1:])
+		if err != nil {
+			return failTyped("official task batch-update", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "batch_update_tasks", payload)
+		if err != nil {
+			return failTyped("official task batch-update", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task batch-update", Data: result})
+		}
+		return writeJSON(stdout, result)
+	case "complete-project":
+		payload, _, err := parseOfficialTaskCompleteProjectFlags(args[1:])
+		if err != nil {
+			return failTyped("official task complete-project", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "complete_tasks_in_project", payload)
+		if err != nil {
+			return failTyped("official task complete-project", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task complete-project", Data: result})
+		}
+		return writeJSON(stdout, result)
 	default:
 		return fail("official task", fmt.Sprintf("unknown task subcommand %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -359,8 +414,12 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 func printOfficialTaskHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
 	fmt.Fprintln(stdout, "  dida official task search --query <text> [--json]")
+	fmt.Fprintln(stdout, "  dida official task query --query <time-query> [--json]")
 	fmt.Fprintln(stdout, "  dida official task undone [--project <project-id>] [--start <time>] [--end <time>] [--json]")
 	fmt.Fprintln(stdout, "  dida official task filter [--project <project-id>] [--start <time>] [--end <time>] [--priority 0,1,3,5] [--tag <tag>] [--kind TEXT,NOTE,CHECKLIST] [--status 0,2] [--json]")
+	fmt.Fprintln(stdout, "  dida official task batch-add --args-json '{...}' --dry-run [--json]")
+	fmt.Fprintln(stdout, "  dida official task batch-update --args-json '{...}' --dry-run [--json]")
+	fmt.Fprintln(stdout, "  dida official task complete-project --project <project-id> --task <task-id> [--dry-run] [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Read and filter tasks using the official MCP API.")
 }
@@ -383,6 +442,10 @@ func parseOfficialTaskSearchFlags(args []string) (string, error) {
 		return "", fmt.Errorf("missing required --query")
 	}
 	return query, nil
+}
+
+func parseOfficialTaskQueryFlags(args []string) (string, error) {
+	return parseOfficialTaskSearchFlags(args)
 }
 
 func parseOfficialTaskDateSearchFlags(args []string) (map[string]any, error) {
@@ -485,6 +548,102 @@ func parseOfficialTaskFilterFlags(args []string) (map[string]any, error) {
 		filter["tag"] = tags
 	}
 	return filter, nil
+}
+
+func runOfficialTaskDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
+	if len(args) == 0 || !officialHasFlag(args[1:], "--dry-run") {
+		return false, 0
+	}
+	switch args[0] {
+	case "batch-add":
+		payload, _, err := parseOfficialTaskBatchPayloadFlags(args[1:])
+		if err != nil {
+			return true, failTyped("official task batch-add", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "official task batch-add", Data: map[string]any{"dry_run": true, "tool": "batch_add_tasks", "arguments": payload}})
+	case "batch-update":
+		payload, _, err := parseOfficialTaskBatchPayloadFlags(args[1:])
+		if err != nil {
+			return true, failTyped("official task batch-update", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "official task batch-update", Data: map[string]any{"dry_run": true, "tool": "batch_update_tasks", "arguments": payload}})
+	case "complete-project":
+		payload, _, err := parseOfficialTaskCompleteProjectFlags(args[1:])
+		if err != nil {
+			return true, failTyped("official task complete-project", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "official task complete-project", Data: map[string]any{"dry_run": true, "tool": "complete_tasks_in_project", "arguments": payload}})
+	default:
+		return false, 0
+	}
+}
+
+func parseOfficialTaskBatchPayloadFlags(args []string) (map[string]any, bool, error) {
+	dryRun := false
+	payloadArgs := make([]string, 0, len(args))
+	for _, arg := range args {
+		if arg == "--dry-run" {
+			dryRun = true
+			continue
+		}
+		payloadArgs = append(payloadArgs, arg)
+	}
+	payload, err := parseOfficialPayloadFlags(payloadArgs)
+	if err != nil {
+		return nil, false, err
+	}
+	if len(payload) == 0 {
+		return nil, false, fmt.Errorf("missing --args-json or --args-file")
+	}
+	return payload, dryRun, nil
+}
+
+func parseOfficialTaskCompleteProjectFlags(args []string) (map[string]any, bool, error) {
+	projectID := ""
+	taskIDs := []string{}
+	dryRun := false
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--project":
+			if i+1 >= len(args) {
+				return nil, false, fmt.Errorf("--project requires a value")
+			}
+			projectID = args[i+1]
+			i++
+		case "--task":
+			if i+1 >= len(args) {
+				return nil, false, fmt.Errorf("--task requires a value")
+			}
+			taskIDs = append(taskIDs, args[i+1])
+			i++
+		case "--tasks":
+			if i+1 >= len(args) {
+				return nil, false, fmt.Errorf("--tasks requires a comma-separated value")
+			}
+			taskIDs = append(taskIDs, splitCSV(args[i+1])...)
+			i++
+		case "--dry-run":
+			dryRun = true
+		default:
+			return nil, false, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if projectID == "" {
+		return nil, false, fmt.Errorf("missing required --project")
+	}
+	if len(taskIDs) == 0 {
+		return nil, false, fmt.Errorf("missing at least one --task")
+	}
+	return map[string]any{"project_id": projectID, "task_ids": taskIDs}, dryRun, nil
+}
+
+func officialHasFlag(args []string, flag string) bool {
+	for _, arg := range args {
+		if arg == flag {
+			return true
+		}
+	}
+	return false
 }
 
 func parseOfficialIntCSV(value string) ([]int, error) {
