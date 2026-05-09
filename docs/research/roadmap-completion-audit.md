@@ -97,7 +97,7 @@ Implemented:
 
 Remaining:
 
-- macOS installer smoke should be repeated for `v0.1.6` on a native macOS host.
+- macOS installer smoke should be repeated for `v0.1.7` on a native macOS host.
 - Homebrew and Scoop templates are not yet published to external package
   repositories.
 - winget manifest generation and submission remain deferred until release

@@ -40,14 +40,14 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Explicit request | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Tag-push GitHub Release workflow | `.github/workflows/release.yml` | done | None for current workflow. |
-| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.6` assets | done | None. |
-| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.6` assets | done | None. |
-| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.6` assets | done | Native macOS install smoke is still unavailable. |
-| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.6` assets | done | None. |
-| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.6` | done | None. |
+| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.7` assets | done | None. |
+| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.7` assets | done | None. |
+| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.7` assets | done | Native macOS install smoke is still unavailable. |
+| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.7` assets | done | None. |
+| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.7` | done | None. |
 | Release notes include install methods | `.github/workflows/release.yml` release-notes step | done | None. |
-| `install.sh` OS/arch detection and checksum verification | `install.sh` | done | Linux/amd64 smoke passed; macOS native smoke pending. |
-| `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows smoke passed. |
+| `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed against `v0.1.7`; macOS native smoke pending. |
+| `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed against `v0.1.7`. |
 | `DIDA_VERSION`, `DIDA_INSTALL_DIR`, `DIDA_REPO` | `install.sh`, `install.ps1`, `npm/scripts/install.js` | done | npm uses `DIDA_INSTALL_DIR` only for local smoke isolation when invoked directly; package installs into package `bin/`. |
 | Install runs `dida version` and `dida doctor --json` | `install.sh`, `install.ps1` | done | npm postinstall intentionally only downloads; wrapper commands are tested separately. |
 | README English Quickstart | `README.md`, `docs/quickstart.md` | done | Keep examples synchronized with command changes. |
@@ -68,7 +68,8 @@ Recently run successfully:
 - `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`
 - `git diff --check`
 - local path and known secret scan
-- Windows `install.ps1` smoke against `v0.1.6`
+- Windows `install.ps1` latest smoke against `v0.1.7`
+- WSL Linux `install.sh` latest smoke against `v0.1.7`
 - Windows npm installer smoke against `v0.1.4`
 - WSL Linux npm installer smoke against `v0.1.4`
 - WSL Linux `install.sh` smoke against `v0.1.4`
@@ -77,7 +78,7 @@ Recently run successfully:
 - Web API task activity raw probes on 2026-05-10 confirmed the surface remains
   blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
-- release checksum comparison against `v0.1.6/checksums.txt`
+- release checksum comparison against `v0.1.7/checksums.txt`
 
 Skipped or blocked verification:
 
