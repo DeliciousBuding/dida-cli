@@ -27,6 +27,8 @@ func runPomo(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runPomoList(args[1:], false, jsonOut, stdout, stderr)
 	case "timing":
 		return runPomoList(args[1:], true, jsonOut, stdout, stderr)
+	case "task":
+		return runPomoTask(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("pomo", fmt.Sprintf("unknown pomo command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -44,6 +46,27 @@ func runPomoPreferences(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 		return writeJSON(stdout, envelope{OK: true, Command: "pomo preferences", Data: data})
 	}
 	fmt.Fprintf(stdout, "Pomodoro preferences: %d keys\n", len(result.(map[string]any)))
+	return 0
+}
+
+func runPomoTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	opts, err := parseCommentTargetFlags(args, "pomo task", false)
+	if err != nil {
+		return failTyped("pomo task", "validation", err.Error(), "run: dida pomo --help", jsonOut, stdout, stderr)
+	}
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.TaskPomodoros(ctx, opts.ProjectID, opts.TaskID)
+	})
+	if err != nil {
+		return failTyped("pomo task", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	items := result.([]map[string]any)
+	meta := map[string]any{"count": len(items)}
+	data := map[string]any{"projectId": opts.ProjectID, "taskId": opts.TaskID, "items": items}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "pomo task", Meta: meta, Data: data})
+	}
+	printMapList(stdout, items, "task pomodoros")
 	return 0
 }
 

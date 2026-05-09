@@ -128,6 +128,7 @@ dida share project shares <project-id> --json
 dida calendar subscriptions --json
 dida pomo preferences --json
 dida pomo list --from 2026-05-01 --to 2026-05-09 --limit 20 --json
+dida pomo task --project <project-id> --task <task-id> --json
 dida habit preferences --json
 dida habit list --json
 dida habit sections --json

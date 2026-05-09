@@ -36,6 +36,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/user/preferences/pomodoro` | Pomodoro preferences |
 | `GET` | `/pomodoros?from={millis}&to={millis}` | Pomodoro records |
 | `GET` | `/pomodoros/timing?from={millis}&to={millis}` | Pomodoro timing records |
+| `GET` | `/pomodoros/task?projectId={projectId}&taskId={taskId}` | Task Pomodoro records |
 | `GET` | `/user/preferences/habit?platform=web` | Habit preferences |
 | `GET` | `/habits` | Habits |
 | `GET` | `/habitSections` | Habit sections |

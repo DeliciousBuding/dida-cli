@@ -33,6 +33,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Calendar subscriptions | `GET /calendar/subscription` | `calendar subscriptions` | Stable read | Unit endpoint test and live read |
 | Pomodoro preferences | `GET /user/preferences/pomodoro` | `pomo preferences` | Stable read | Live read |
 | Pomodoro records | `GET /pomodoros`, `GET /pomodoros/timing` | `pomo list`, `pomo timing` | Stable read | Live read |
+| Task Pomodoro records | `GET /pomodoros/task?projectId=...&taskId=...` | `pomo task` | Stable read | Unit endpoint test and live read |
 | Habit preferences | `GET /user/preferences/habit?platform=web` | `habit preferences` | Stable read | Live read |
 | Habits and sections | `GET /habits`, `GET /habitSections` | `habit list`, `habit sections` | Stable read | Live read |
 | Raw read | any GET path under base URL | `raw get` | Stable read-only | Live reads |

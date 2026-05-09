@@ -159,6 +159,7 @@ Usage:
   dida pomo preferences [--json]
   dida pomo list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
   dida pomo timing [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
+  dida pomo task --project <project-id> --task <task-id> [--json]
 `))
 }
 

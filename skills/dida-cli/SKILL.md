@@ -55,6 +55,7 @@ dida task upcoming --days 14 --limit 50 --compact --json
 dida quadrant list --json
 dida completed today --compact --json
 dida pomo list --limit 10 --json
+dida pomo task --project <project-id> --task <task-id> --json
 dida habit list --json
 dida attachment quota --json
 dida reminder daily --json

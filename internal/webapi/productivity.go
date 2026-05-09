@@ -23,6 +23,17 @@ func (c *Client) PomodoroTimings(ctx context.Context, fromMillis int64, toMillis
 	return c.pomodoroRange(ctx, "/pomodoros/timing", fromMillis, toMillis)
 }
 
+func (c *Client) TaskPomodoros(ctx context.Context, projectID string, taskID string) ([]map[string]any, error) {
+	values := url.Values{}
+	values.Set("projectId", projectID)
+	values.Set("taskId", taskID)
+	var out []map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/pomodoros/task?"+values.Encode(), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *Client) pomodoroRange(ctx context.Context, basePath string, fromMillis int64, toMillis int64) ([]map[string]any, error) {
 	values := url.Values{}
 	if fromMillis > 0 {
