@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="DidaCLI is an agent-friendly command line client for Dida365 and TickTick task automation."
+    />
+    <title>DidaCLI - Agent-friendly Dida365 CLI</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #17211b;
+        --muted: #5a665f;
+        --line: #dce4df;
+        --paper: #f8faf8;
+        --soft: #edf3ef;
+        --accent: #147d4f;
+        --accent-ink: #0a3f2a;
+        --terminal: #101915;
+        --terminal-2: #17251f;
+        --white: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.5;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .nav {
+        position: fixed;
+        z-index: 10;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px clamp(20px, 5vw, 72px);
+        color: var(--white);
+        mix-blend-mode: difference;
+      }
+
+      .brand {
+        font-weight: 800;
+        letter-spacing: 0;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 22px;
+        font-size: 14px;
+      }
+
+      .hero {
+        min-height: 100svh;
+        display: grid;
+        grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
+        align-items: center;
+        gap: clamp(28px, 6vw, 92px);
+        padding: 96px clamp(20px, 5vw, 72px) 56px;
+        background:
+          radial-gradient(circle at 78% 18%, rgba(20, 125, 79, 0.18), transparent 30%),
+          linear-gradient(135deg, #111b16 0%, #17241e 42%, #eef3ef 42%, #f8faf8 100%);
+        overflow: hidden;
+      }
+
+      .hero-copy {
+        color: var(--white);
+        max-width: 680px;
+        animation: rise 700ms ease-out both;
+      }
+
+      .eyebrow {
+        margin: 0 0 18px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #a5d8bd;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(58px, 10vw, 132px);
+        line-height: 0.9;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
+        margin: 26px 0 0;
+        max-width: 560px;
+        font-size: clamp(18px, 2.1vw, 25px);
+        color: #dce9e2;
+      }
+
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 34px;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid rgba(255, 255, 255, 0.34);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--white);
+        font-weight: 700;
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          border-color 160ms ease;
+      }
+
+      .button.primary {
+        background: #dff8e9;
+        color: #0d3a28;
+        border-color: #dff8e9;
+      }
+
+      .button:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .button.primary:hover {
+        background: #ffffff;
+      }
+
+      .terminal-plane {
+        width: min(720px, 100%);
+        justify-self: end;
+        color: #d6f2df;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 28%),
+          var(--terminal);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: 0 34px 90px rgba(9, 18, 13, 0.28);
+        transform: rotate(-1deg);
+        animation: terminalIn 900ms 120ms ease-out both;
+      }
+
+      .terminal-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 42px;
+        padding: 0 16px;
+        background: var(--terminal-2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #89d9aa;
+      }
+
+      .dot:nth-child(2) {
+        background: #e2d68a;
+      }
+
+      .dot:nth-child(3) {
+        background: #da9185;
+      }
+
+      pre {
+        margin: 0;
+        padding: clamp(18px, 3vw, 34px);
+        overflow: auto;
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: clamp(13px, 1.5vw, 16px);
+        line-height: 1.7;
+      }
+
+      .prompt {
+        color: #7ccf9f;
+      }
+
+      .json-key {
+        color: #9ee7bd;
+      }
+
+      .json-val {
+        color: #f4f0b5;
+      }
+
+      .section {
+        padding: clamp(70px, 10vw, 132px) clamp(20px, 5vw, 72px);
+      }
+
+      .section.alt {
+        background: var(--soft);
+      }
+
+      .section h2 {
+        margin: 0;
+        max-width: 820px;
+        font-size: clamp(36px, 6vw, 76px);
+        line-height: 0.98;
+        letter-spacing: 0;
+      }
+
+      .section-lead {
+        margin: 20px 0 0;
+        max-width: 720px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1px;
+        margin-top: 54px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+
+      .feature {
+        min-height: 230px;
+        padding: 28px;
+        background: var(--paper);
+        transition:
+          transform 180ms ease,
+          background 180ms ease;
+      }
+
+      .feature:hover {
+        transform: translateY(-4px);
+        background: #ffffff;
+      }
+
+      .feature b {
+        display: block;
+        margin-bottom: 12px;
+        font-size: 18px;
+      }
+
+      .feature p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .workflow {
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
+        gap: clamp(32px, 7vw, 96px);
+        align-items: start;
+      }
+
+      .steps {
+        border-top: 1px solid var(--line);
+      }
+
+      .step {
+        display: grid;
+        grid-template-columns: 80px 1fr;
+        gap: 20px;
+        padding: 24px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .step span {
+        color: var(--accent);
+        font-weight: 800;
+      }
+
+      .step p {
+        margin: 6px 0 0;
+        color: var(--muted);
+      }
+
+      .code-panel {
+        position: sticky;
+        top: 88px;
+        background: var(--terminal);
+        color: #d6f2df;
+        border: 1px solid #23362d;
+      }
+
+      .final {
+        text-align: center;
+        background: #111b16;
+        color: var(--white);
+      }
+
+      .final h2,
+      .final p {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .final p {
+        color: #cfe3d8;
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes terminalIn {
+        from {
+          opacity: 0;
+          transform: translateY(24px) rotate(-1deg) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) rotate(-1deg) scale(1);
+        }
+      }
+
+      @media (max-width: 860px) {
+        .nav {
+          position: absolute;
+          mix-blend-mode: normal;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hero,
+        .workflow {
+          grid-template-columns: 1fr;
+        }
+
+        .hero {
+          background: linear-gradient(180deg, #111b16 0%, #17241e 56%, #f8faf8 56%);
+        }
+
+        .terminal-plane {
+          justify-self: stretch;
+        }
+
+        .feature-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .code-panel {
+          position: static;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="#">DidaCLI</a>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#workflow">Workflow</a>
+        <a href="commands.md">Commands</a>
+        <a href="https://github.com/DeliciousBuding/dida-cli">GitHub</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Dida365 / TickTick automation</p>
+          <h1>DidaCLI</h1>
+          <p class="subtitle">
+            A command line client built for agents: stable JSON, browser login,
+            full task CRUD, and a private Web API layer that stays explicit.
+          </p>
+          <div class="cta-row">
+            <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">View on GitHub</a>
+            <a class="button" href="commands.md">Read the docs</a>
+          </div>
+        </div>
+
+        <div class="terminal-plane" aria-label="DidaCLI terminal preview">
+          <div class="terminal-head">
+            <i class="dot"></i><i class="dot"></i><i class="dot"></i>
+          </div>
+          <pre><span class="prompt">$</span> dida +today --json
+{
+  "<span class="json-key">ok</span>": <span class="json-val">true</span>,
+  "<span class="json-key">command</span>": "<span class="json-val">task today</span>",
+  "<span class="json-key">meta</span>": { "<span class="json-key">count</span>": <span class="json-val">3</span> },
+  "<span class="json-key">data</span>": { "<span class="json-key">tasks</span>": [ ... ] }
+}
+
+<span class="prompt">$</span> dida task create \
+  --project school \
+  --title "Review lab notes" \
+  --dry-run --json</pre>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <h2>Small surface, serious automation.</h2>
+        <p class="section-lead">
+          DidaCLI keeps the commands boring and the behavior inspectable, so a
+          human can run it comfortably and an agent can recover from errors.
+        </p>
+        <div class="feature-grid">
+          <div class="feature">
+            <b>Agent-ready JSON</b>
+            <p>Every machine path returns a predictable envelope with `ok`, `command`, `meta`, `data`, or `error`.</p>
+          </div>
+          <div class="feature">
+            <b>Web API coverage</b>
+            <p>Reads sync, settings, project tasks, completed history, and writes through `/batch/task`.</p>
+          </div>
+          <div class="feature">
+            <b>Practical safety</b>
+            <p>Create, update, and complete run directly. Delete requires `--yes`; all writes support `--dry-run`.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="workflow" class="section alt">
+        <div class="workflow">
+          <div>
+            <h2>Designed for repeated operator loops.</h2>
+            <p class="section-lead">
+              Login once, inspect context, perform targeted writes, and keep raw
+              endpoint exploration separate from the stable command surface.
+            </p>
+          </div>
+          <div class="steps">
+            <div class="step">
+              <span>01</span>
+              <div>
+                <b>Authenticate locally</b>
+                <p>Use the browser flow; only the Dida365 `t` cookie is stored under `~/.dida-cli`.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span>02</span>
+              <div>
+                <b>Build context</b>
+                <p>Use `project list`, `+today`, `upcoming`, and `completed today` before writing.</p>
+              </div>
+            </div>
+            <div class="step">
+              <span>03</span>
+              <div>
+                <b>Write deliberately</b>
+                <p>Preview generated changes with `--dry-run`; reserve `--yes` for destructive operations.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="workflow">
+          <div>
+            <h2>Commands that map to real resources.</h2>
+            <p class="section-lead">
+              No generic write tunnel by default. High-level verbs cover the
+              jobs agents need most often.
+            </p>
+          </div>
+          <div class="code-panel">
+            <pre>dida auth status --verify --json
+dida project list --json
+dida task upcoming --days 14 --json
+dida completed list --from 2026-05-01 --to 2026-05-09 --json
+dida task create --project &lt;id&gt; --title "Plan review" --json
+dida task delete &lt;task-id&gt; --project &lt;id&gt; --yes --json</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section final">
+        <h2>Use Dida365 from the shell, safely.</h2>
+        <p class="section-lead">
+          Install the binary, login with the browser flow, and give agents a
+          clean task interface they can actually operate.
+        </p>
+        <div class="cta-row" style="justify-content: center">
+          <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">Get the source</a>
+          <a class="button" href="agent-usage.md">Agent guide</a>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -13,6 +13,7 @@
 </p>
 
 <p align="center">
+  <a href="https://deliciousbuding.github.io/dida-cli/">Website</a> ·
   <a href="#quick-start">Quick Start</a> ·
   <a href="#commands">Commands</a> ·
   <a href="#agent-workflows">Agent Workflows</a> ·
