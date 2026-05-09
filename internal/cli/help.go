@@ -18,6 +18,7 @@ Usage:
 Commands:
   doctor       Check local config and auth status
   official     Inspect the official dida365 MCP channel
+  openapi      Use the official OAuth-based OpenAPI channel
   agent        Agent-oriented context pack
   auth         Manage local cookie auth
   sync         Sync tasks/projects/tags
@@ -74,6 +75,22 @@ Usage:
   dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--json]
 
 These commands use the official dida365 MCP server and require DIDA365_TOKEN.
+`))
+}
+
+func printOpenAPIHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida openapi doctor [--json]
+  dida openapi status [--json]
+  dida openapi logout [--json]
+  dida openapi auth-url [--redirect-uri URL] [--scope SCOPES] [--state VALUE] [--json]
+  dida openapi listen-callback [--host HOST] [--port PORT] [--json]
+  dida openapi exchange-code --code CODE [--redirect-uri URL] [--scope SCOPES] [--json]
+  dida openapi project list [--json]
+
+These commands use the official OAuth-based OpenAPI channel.
+They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.
 `))
 }
 

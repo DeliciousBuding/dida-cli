@@ -54,6 +54,10 @@ dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
 dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
+dida openapi doctor --json
+dida openapi auth-url --json
+dida openapi exchange-code --code <code> --json
+dida openapi project list --json
 dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json

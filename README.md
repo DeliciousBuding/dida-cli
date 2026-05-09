@@ -39,6 +39,7 @@ The primary integration surface is the Dida365 Web API used by the official web 
 - Ergonomic writes: create, update, complete, move, and parent operations run directly; destructive actions still require explicit confirmation.
 - Browser login: visible Dida365 login captures only the `t` cookie into `~/.dida-cli/`.
 - Dual-channel direction: Web API for broad coverage, official MCP for a cleaner token-based integration surface.
+- Three-channel direction: Web API for breadth, official MCP for token-based tool access, and official OpenAPI for OAuth-based REST integration.
 - Safety guardrails: cookie arguments disabled by default, `--dry-run` previews, bounded list output, and no raw write tunnel.
 
 ## Quick Start
@@ -96,6 +97,8 @@ dida official doctor --json
 dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
+dida openapi doctor --json
+dida openapi auth-url --json
 dida schema list --json
 dida agent context --json
 dida auth status --verify --json
@@ -175,6 +178,7 @@ DidaCLI currently covers a broad slice of the observed Dida365 Web API, includin
 See [docs/web-api.md](docs/web-api.md), [docs/api-coverage.md](docs/api-coverage.md), and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for endpoint-level notes.
 
 For channel comparison and future direction, see [docs/research/official-mcp-vs-webapi.md](docs/research/official-mcp-vs-webapi.md).
+For the official OpenAPI OAuth channel, see [docs/research/official-openapi-guide.md](docs/research/official-openapi-guide.md).
 
 ## Project Layout
 

@@ -697,3 +697,23 @@ func TestOfficialCallFlagParsing(t *testing.T) {
 		t.Fatalf("payload = %#v", payload)
 	}
 }
+
+func TestOpenAPIAuthURLFlagParsing(t *testing.T) {
+	redirectURI, scope, state, err := parseOpenAPIAuthURLFlags([]string{"--redirect-uri", "http://127.0.0.1:17890/callback", "--scope", "tasks:read", "--state", "abc"})
+	if err != nil {
+		t.Fatalf("parseOpenAPIAuthURLFlags() error = %v", err)
+	}
+	if redirectURI == "" || scope != "tasks:read" || state != "abc" {
+		t.Fatalf("values = %q %q %q", redirectURI, scope, state)
+	}
+}
+
+func TestOpenAPIExchangeFlagParsing(t *testing.T) {
+	code, redirectURI, scope, err := parseOpenAPIExchangeFlags([]string{"--code", "xyz", "--redirect-uri", "http://127.0.0.1:17890/callback", "--scope", "tasks:read"})
+	if err != nil {
+		t.Fatalf("parseOpenAPIExchangeFlags() error = %v", err)
+	}
+	if code != "xyz" || redirectURI == "" || scope != "tasks:read" {
+		t.Fatalf("values = %q %q %q", code, redirectURI, scope)
+	}
+}

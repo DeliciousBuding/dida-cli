@@ -53,6 +53,7 @@ func rootCommands(version string) []rootCommand {
 			},
 		},
 		{Name: "official", Run: runOfficial},
+		{Name: "openapi", Run: runOpenAPI},
 		{Name: "agent", Run: runAgent},
 		{Name: "auth", Run: runAuth},
 		{Name: "sync", Run: runSync},
