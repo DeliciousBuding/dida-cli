@@ -107,8 +107,8 @@ Skipped or blocked verification:
   access token is present
 - Web API task activity detail: current account receives `need_pro`
 - Web API repeat comment attachment upload: current account reports
-  `underQuota=false`, so new upload smokes require quota to reset or another
-  disposable account with available quota
+  `underQuota=false` and `dailyLimit=0`, so new upload smokes require quota to
+  reset or another disposable account with available quota
 
 ## Completion Rule
 

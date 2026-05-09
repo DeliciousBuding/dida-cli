@@ -97,6 +97,8 @@ Known status:
 
 - quota reads are implemented
 - 2026-05-10 live `attachment quota` returned a valid quota envelope
+- later 2026-05-10 quota recheck returned `underQuota=false` and `dailyLimit=0`,
+  so additional upload smokes remain blocked on the observed account
 - comment attachment paths and create payload shape are mapped in
   [webapi-attachment-flow-notes.md](webapi-attachment-flow-notes.md)
 - 2026-05-10 reversible live probe confirmed comment attachment upload with
