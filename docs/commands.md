@@ -192,6 +192,7 @@ dida completed today --json
 dida completed yesterday --json
 dida completed week --json
 dida completed list --from 2026-05-01 --to 2026-05-09 --limit 100 --compact --json
+dida closed list --status 2 --from 2026-05-01 --to 2026-05-09 --limit 50 --json
 ```
 
 ## Pomodoro And Habits

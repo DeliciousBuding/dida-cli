@@ -57,6 +57,7 @@ func rootCommands(version string) []rootCommand {
 		{Name: "sync", Run: runSync},
 		{Name: "settings", Run: runSettings},
 		{Name: "completed", Run: runCompleted},
+		{Name: "closed", Run: runClosed},
 		{Name: "attachment", Run: runAttachment},
 		{Name: "reminder", Run: runReminder},
 		{Name: "share", Run: runShare},

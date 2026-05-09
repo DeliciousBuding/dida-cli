@@ -11,6 +11,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Incremental sync | `GET /batch/check/{checkpoint}` | `sync checkpoint` | Stable | Unit tests preserve add/update/delete/order/reminder deltas |
 | Settings | `GET /user/preferences/settings` | `settings get`, `settings get --include-web` | Stable | Unit query test and live read |
 | Completed tasks | `GET /project/all/completed` | `completed today/yesterday/week/list` | Stable | Unit query test and live read |
+| Closed history | `GET /project/{projectIds|all}/closed?...` | `closed list` | Stable read | Unit query test and live read |
 | Project task list | `GET /project/{projectId}/tasks` | `project tasks <project-id> --limit N` | Stable | Unit endpoint test and live read |
 | Project columns | `GET /column/project/{projectId}` | `project columns`, `column list` | Stable read | Unit endpoint test and live read |
 | Task CRUD | `POST /batch/task` | `task create/update/complete/delete` | Stable | Unit request tests and live reversible smoke |

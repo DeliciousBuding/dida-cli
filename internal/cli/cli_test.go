@@ -470,6 +470,26 @@ func TestSettingsGetIncludeWebJSON(t *testing.T) {
 	}
 }
 
+func TestParseClosedListFlags(t *testing.T) {
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.Local)
+	opts, err := parseClosedListFlags([]string{"--project", "p1", "--project", "p2", "--status", "2", "--from", "2026-05-01", "--to", "2026-05-09", "--completed-user", "u1", "--limit", "3"}, now)
+	if err != nil {
+		t.Fatalf("parseClosedListFlags() error = %v", err)
+	}
+	if len(opts.ProjectIDs) != 2 || opts.ProjectIDs[0] != "p1" || opts.ProjectIDs[1] != "p2" {
+		t.Fatalf("projectIds = %#v", opts.ProjectIDs)
+	}
+	if len(opts.Statuses) != 1 || opts.Statuses[0] != 2 {
+		t.Fatalf("statuses = %#v", opts.Statuses)
+	}
+	if opts.From != "2026-05-01 00:00:00" || opts.To != "2026-05-09 23:59:59" {
+		t.Fatalf("from/to = %q / %q", opts.From, opts.To)
+	}
+	if opts.CompletedUserID != "u1" || opts.Limit != 3 {
+		t.Fatalf("completedUserID/limit = %q / %d", opts.CompletedUserID, opts.Limit)
+	}
+}
+
 func TestBuildAgentContextCompact(t *testing.T) {
 	now := time.Unix(1893456000, 0) // 2030-01-01T00:00:00Z
 	view := model.SyncView{

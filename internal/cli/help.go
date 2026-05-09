@@ -22,6 +22,7 @@ Commands:
   sync         Sync tasks/projects/tags
   settings     Read user preferences
   completed    Read completed task history
+  closed       Read closed-history items from the Web API
   attachment   Read attachment quota and upload limits
   reminder     Read reminder preferences
   share        Read sharing and collaboration metadata
@@ -119,6 +120,13 @@ Usage:
   dida completed yesterday [--compact] [--json]
   dida completed week [--compact] [--json]
   dida completed list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--compact] [--json]
+`))
+}
+
+func printClosedHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida closed list [--project <project-id>] [--status N] [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--completed-user <user-id>] [--limit N] [--json]
 `))
 }
 

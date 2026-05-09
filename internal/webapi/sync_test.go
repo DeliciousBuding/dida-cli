@@ -112,3 +112,35 @@ func TestSettingsSupportsIncludeWebFlag(t *testing.T) {
 		t.Fatalf("locale = %v, want zh_CN", settings["locale"])
 	}
 }
+
+func TestClosedItemsBuildsExpectedQuery(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/project/p1,p2/closed" {
+			t.Fatalf("path = %s, want /project/p1,p2/closed", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("from"); got != "2026-05-01 00:00:00" {
+			t.Fatalf("from = %q", got)
+		}
+		if got := r.URL.Query().Get("to"); got != "2026-05-09 23:59:59" {
+			t.Fatalf("to = %q", got)
+		}
+		if got := r.URL.Query()["status"]; len(got) != 2 || got[0] != "0" || got[1] != "2" {
+			t.Fatalf("status = %#v, want [0 2]", got)
+		}
+		if got := r.URL.Query().Get("completedUserId"); got != "u1" {
+			t.Fatalf("completedUserId = %q, want u1", got)
+		}
+		_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "x1"}})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	items, err := client.ClosedItems(context.Background(), []string{"p1", "p2"}, []int{0, 2}, "2026-05-01 00:00:00", "2026-05-09 23:59:59", "u1")
+	if err != nil {
+		t.Fatalf("ClosedItems() error = %v", err)
+	}
+	if len(items) != 1 {
+		t.Fatalf("items len = %d, want 1", len(items))
+	}
+}

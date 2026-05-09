@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 )
 
 type SyncPayload struct {
@@ -87,6 +88,28 @@ func (c *Client) CompletedTasks(ctx context.Context, from string, to string, lim
 		path += "?" + encoded
 	}
 	var out []map[string]any
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) ClosedItems(ctx context.Context, projectIDs []string, statuses []int, from string, to string, completedUserID string) ([]map[string]any, error) {
+	project := "all"
+	if len(projectIDs) > 0 {
+		project = strings.Join(projectIDs, ",")
+	}
+	values := url.Values{}
+	values.Set("from", from)
+	values.Set("to", to)
+	for _, status := range statuses {
+		values.Add("status", strconv.Itoa(status))
+	}
+	if completedUserID != "" {
+		values.Set("completedUserId", completedUserID)
+	}
+	var out []map[string]any
+	path := "/project/" + project + "/closed?" + values.Encode()
 	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
 		return nil, err
 	}

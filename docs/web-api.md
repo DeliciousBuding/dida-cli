@@ -35,6 +35,7 @@ x-device: browser-like Dida device descriptor
 | `POST` | `/task/activity/count/all` | Due-date activity counts with body `{"action":"T_DUE"}` |
 | `GET` | `/column/project/{projectId}` | Kanban column list with names and sort order |
 | `GET` | `/project/all/completed?...` | Completed tasks |
+| `GET` | `/project/{projectIds|all}/closed?from={datetime}&to={datetime}&status={n}` | Closed-history items |
 | `GET` | `/user/preferences/pomodoro` | Pomodoro preferences |
 | `GET` | `/pomodoros?from={millis}&to={millis}` | Pomodoro records |
 | `GET` | `/pomodoros/timing?from={millis}&to={millis}` | Pomodoro timing records |
