@@ -257,6 +257,18 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 	}
 
 	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return failTyped("official project list", "validation", "usage: dida official project list", "run: dida official project --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "list_projects", map[string]any{})
+		if err != nil {
+			return failTyped("official project list", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official project list", Data: result})
+		}
+		return writeJSON(stdout, result)
 	case "get":
 		if len(args) != 2 {
 			return failTyped("official project get", "validation", "usage: dida official project get <project-id>", "run: dida official project --help", jsonOut, stdout, stderr)
@@ -288,6 +300,7 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 
 func printOfficialProjectHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
+	fmt.Fprintln(stdout, "  dida official project list [--json]")
 	fmt.Fprintln(stdout, "  dida official project get <project-id> [--json]")
 	fmt.Fprintln(stdout, "  dida official project data <project-id> [--json]")
 	fmt.Fprintln(stdout, "")

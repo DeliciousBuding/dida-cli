@@ -496,6 +496,7 @@ func TestSchemaShowTaskCreateJSON(t *testing.T) {
 func TestSchemaAuthMetadataForOfficialAndOpenAPI(t *testing.T) {
 	cases := map[string]bool{
 		"official.doctor":        true,
+		"official.project.list":  true,
 		"official.task.batchAdd": true,
 		"openapi.doctor":         false,
 		"openapi.clientSet":      false,

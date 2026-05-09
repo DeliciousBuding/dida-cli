@@ -8,7 +8,7 @@ first-class commands.
 
 | Official MCP tool | Current DidaCLI equivalent | Assessment |
 | --- | --- | --- |
-| `list_projects` | `project list` | Overlap; official is cleaner but not broader |
+| `list_projects` | `official project list` | Wrapped after live evidence because project discovery is a common official-channel first read |
 | `get_project_by_id` | `official project get` | Wrapped |
 | `get_project_with_undone_tasks` | `official project data` | Wrapped as a bundle read |
 | `create_project` | `project create` | Overlap |

@@ -25,6 +25,7 @@ They are intentionally not interchangeable.
 | Discovery | `tools/list` | `official tools` | live-verified | Compact output is default; `--full` preserves raw schemas. |
 | Schema | `tools/list` by name | `official show <tool>` | live-verified | Used to inspect tool contracts before wrapping. |
 | Generic call | `tools/call` | `official call <tool>` | live-verified | Works for read tools such as project list and time-query tasks. |
+| Project list | `list_projects` | `official project list` | live-verified | Live smoke succeeded on 2026-05-10; promoted after evidence because it is the official-channel project discovery read. |
 | Habit read | `get_habit` | `official habit get` | implemented | Needs a known habit id for live read smoke. |
 | Habit create | `create_habit` | `official habit create` | implemented | Needs a reversible live habit create/update/delete plan; no delete wrapper exists yet. |
 | Habit update | `update_habit` | `official habit update` | implemented | Requires a known test habit. |

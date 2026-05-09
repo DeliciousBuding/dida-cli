@@ -55,6 +55,7 @@ dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
 dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
+dida official project list --json
 dida official project get <project-id> --json
 dida official project data <project-id> --json
 dida official task search --query "today" --json
@@ -260,6 +261,7 @@ days and the default output limit is 50.
 ## Official MCP Project, Habit, And Focus
 
 ```bash
+dida official project list --json
 dida official project get <project-id> --json
 dida official project data <project-id> --json
 

@@ -188,22 +188,23 @@ Next step is selective promotion, not blind duplication.
 
 Priority list:
 
-1. `get_project_by_id`
-2. `get_project_with_undone_tasks`
-3. `complete_tasks_in_project` - implemented as `official task complete-project`
-4. `batch_add_tasks` - implemented as `official task batch-add`
-5. `batch_update_tasks` - implemented as `official task batch-update`
-6. `filter_tasks`
-7. `list_undone_tasks_by_date`
-8. `search_task`
-9. `list_undone_tasks_by_time_query` - implemented as `official task query`
-10. `get_habit`
-11. `create_habit`
-12. `update_habit`
-13. `upsert_habit_checkins`
-14. `get_focus`
-15. `get_focuses_by_time`
-16. `delete_focus`
+1. `list_projects` - implemented as `official project list`
+2. `get_project_by_id` - implemented as `official project get`
+3. `get_project_with_undone_tasks` - implemented as `official project data`
+4. `complete_tasks_in_project` - implemented as `official task complete-project`
+5. `batch_add_tasks` - implemented as `official task batch-add`
+6. `batch_update_tasks` - implemented as `official task batch-update`
+7. `filter_tasks`
+8. `list_undone_tasks_by_date`
+9. `search_task`
+10. `list_undone_tasks_by_time_query` - implemented as `official task query`
+11. `get_habit`
+12. `create_habit`
+13. `update_habit`
+14. `upsert_habit_checkins`
+15. `get_focus`
+16. `get_focuses_by_time`
+17. `delete_focus`
 
 Acceptance:
 
