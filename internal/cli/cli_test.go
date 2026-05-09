@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -482,6 +483,32 @@ func TestSchemaShowUnknownJSON(t *testing.T) {
 	errPayload := payload["error"].(map[string]any)
 	if errPayload["type"] != "not_found" {
 		t.Fatalf("error.type = %v, want not_found", errPayload["type"])
+	}
+}
+
+func TestRawAPIErrorEnvelopeIncludesProbeDetails(t *testing.T) {
+	err := &webapi.APIError{
+		Method:      "GET",
+		Path:        "/task/activity/t1",
+		StatusCode:  http.StatusInternalServerError,
+		BodySnippet: `{"error":"need_pro"}`,
+	}
+	var stdout bytes.Buffer
+	code := failRawAPIError(err, "v1", &stdout)
+	if code != 1 {
+		t.Fatalf("code = %d, want 1", code)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errorPayload := payload["error"].(map[string]any)
+	details := errorPayload["details"].(map[string]any)
+	if details["statusCode"] != float64(http.StatusInternalServerError) {
+		t.Fatalf("details = %#v", details)
+	}
+	if details["bodySnippet"] != `{"error":"need_pro"}` {
+		t.Fatalf("bodySnippet = %#v", details["bodySnippet"])
 	}
 }
 

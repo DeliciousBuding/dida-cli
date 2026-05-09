@@ -28,6 +28,25 @@ type Client struct {
 	MaxResponseBytes int64
 }
 
+type APIError struct {
+	Method      string
+	Path        string
+	StatusCode  int
+	BodySnippet string
+	IncludeBody bool
+}
+
+func (e *APIError) Error() string {
+	if e == nil {
+		return ""
+	}
+	message := fmt.Sprintf("dida web api %s %s returned %d", e.Method, e.Path, e.StatusCode)
+	if e.IncludeBody && e.BodySnippet != "" {
+		message += ": " + e.BodySnippet
+	}
+	return message
+}
+
 func NewClient(token string) *Client {
 	return &Client{
 		BaseURL:          DefaultBaseURL,
@@ -99,11 +118,14 @@ func (c *Client) doAtBaseURL(ctx context.Context, baseURL string, method string,
 		return fmt.Errorf("dida web api %s %s response exceeded %d bytes", method, path, limit)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		message := fmt.Sprintf("dida web api %s %s returned %d", method, path, resp.StatusCode)
-		if os.Getenv("DIDA_DEBUG_API_ERRORS") == "1" {
-			message += ": " + c.redactForError(string(data))
+		apiErr := &APIError{
+			Method:      method,
+			Path:        path,
+			StatusCode:  resp.StatusCode,
+			BodySnippet: c.redactForError(string(data)),
+			IncludeBody: os.Getenv("DIDA_DEBUG_API_ERRORS") == "1",
 		}
-		return fmt.Errorf("%s", message)
+		return apiErr
 	}
 	if out == nil || len(data) == 0 {
 		return nil

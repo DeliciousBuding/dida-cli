@@ -350,4 +350,7 @@ dida raw get /user/preferences/settings --json
 dida raw get /attachment/isUnderQuota --api-version v1 --json
 ```
 
-Raw calls are intentionally GET-only.
+Raw calls are intentionally GET-only. On JSON failures, `raw get` includes
+`error.details.statusCode`, `error.details.path`, and a short
+`error.details.bodySnippet` so private API probes can distinguish entitlement
+errors, path mistakes, and server failures without enabling raw writes.

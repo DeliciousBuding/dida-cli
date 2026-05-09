@@ -73,14 +73,16 @@ Known status:
   v2 base
 - v1 `/task/activity/{taskId}` reached the route but returned `need_pro` on the
   observed account
-- 2026-05-10 raw CLI probes against a real task returned HTTP 500 for the
-  no-query form, `skip=0`, and `skip=0&lastId=`
+- 2026-05-10 raw CLI probes against a real task returned HTTP 500 with
+  `errorCode=need_pro` in the body snippet for the no-query form, `skip=0`, and
+  `skip=0&lastId=`
 
 Current implication:
 
 - task activity remains a read-gap because response fields and cursor semantics
   are not verified
-- the current CLI error envelope does not expose a stable upstream error body
+- raw probe JSON now exposes a short `error.details.bodySnippet`, which is
+  enough to distinguish this entitlement failure from a path-shape failure
 - this should not be promoted into a first-class command until a successful
   Pro-account read or browser-traced request shape is captured
 
@@ -130,8 +132,8 @@ the same dead-end assumptions.
 - `GET /project/{id}/columns` returned 404
 - `GET /project/{id}` returned 405
 - `GET /api/v1/task/activity/{taskId}` returned 404 through the v2 base
-- `GET /task/activity/{taskId}` returned `need_pro` in earlier probing and HTTP
-  500 in 2026-05-10 raw CLI probes through the v1 base
+- `GET /task/activity/{taskId}` returned HTTP 500 with `need_pro` through the
+  v1 base on the observed account
 - `GET /project/all/trash/page?type=task` returned 500; use `from=<cursor>` for pagination
 - `POST /column` produced responses that looked successful but did not yet prove
   full semantic correctness of the write

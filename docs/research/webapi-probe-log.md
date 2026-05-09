@@ -28,7 +28,7 @@ payload dumps, or local browser exports here.
 
 | Surface | Endpoint | Observed result | Current interpretation | Next evidence needed |
 | --- | --- | --- | --- | --- |
-| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | Earlier probing observed `need_pro`; 2026-05-10 raw CLI probes against a real task returned HTTP 500 for no query, `skip=0`, and `skip=0&lastId=`; v2-style route returned 404 | Bundle evidence still points to the legacy v1 client, but current CLI probes do not expose a stable success or error body. This remains insufficient evidence for a command. | Pro account live read or browser trace that captures response fields, error body, and pagination semantics. |
+| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | 2026-05-10 raw CLI probes against a real task returned HTTP 500 with `errorCode=need_pro` in the raw probe body snippet for no query, `skip=0`, and `skip=0&lastId=`; v2-style route returned 404 | Bundle evidence still points to the legacy v1 client. The route is reachable, but the observed account lacks the entitlement required to learn the success shape. | Pro account live read or browser trace that captures response fields and pagination semantics. |
 | Project data by id | `GET /project/{id}/data` | HTTP 404 on observed CN Web API | Not the active private endpoint for current web app. | Recheck only if bundle or network trace changes. |
 | Project columns by id | `GET /project/{id}/columns` | HTTP 404 | Replaced by `/column/project/{projectId}`. | None unless webapp changes. |
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |

@@ -247,3 +247,7 @@ dida raw get /attachment/isUnderQuota --api-version v1 --json
 ```
 
 Raw writes are intentionally unavailable. Add a first-class command with tests instead of tunneling writes through raw calls.
+
+When `dida raw get ... --json` fails, inspect `error.details.statusCode`,
+`error.details.path`, and `error.details.bodySnippet`. Treat the snippet as API
+evidence only; do not paste it into public docs if it contains user data.

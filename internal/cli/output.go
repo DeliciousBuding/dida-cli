@@ -19,6 +19,7 @@ type cliError struct {
 	Type    string `json:"type,omitempty"`
 	Message string `json:"message"`
 	Hint    string `json:"hint,omitempty"`
+	Details any    `json:"details,omitempty"`
 }
 
 func fail(command string, message string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {

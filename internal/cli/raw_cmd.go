@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 
@@ -28,12 +29,42 @@ func runRaw(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int
 		return nil, client.Do(ctx, "GET", path, nil, &data)
 	})
 	if err != nil {
+		if jsonOut {
+			return failRawAPIError(err, version, stdout)
+		}
 		return fail("raw get", err.Error(), jsonOut, stdout, stderr)
 	}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "raw get", Meta: map[string]any{"apiVersion": version}, Data: data})
 	}
 	return writeJSON(stdout, data)
+}
+
+func failRawAPIError(err error, version string, stdout io.Writer) int {
+	var apiErr *webapi.APIError
+	if errors.As(err, &apiErr) {
+		details := map[string]any{
+			"apiVersion":  version,
+			"method":      apiErr.Method,
+			"path":        apiErr.Path,
+			"statusCode":  apiErr.StatusCode,
+			"bodySnippet": apiErr.BodySnippet,
+		}
+		_ = writeJSON(stdout, envelope{
+			OK:      false,
+			Command: "raw get",
+			Meta:    map[string]any{"apiVersion": version},
+			Error:   &cliError{Type: "api", Message: apiErr.Error(), Details: details},
+		})
+		return 1
+	}
+	_ = writeJSON(stdout, envelope{
+		OK:      false,
+		Command: "raw get",
+		Meta:    map[string]any{"apiVersion": version},
+		Error:   &cliError{Type: "api", Message: err.Error()},
+	})
+	return 1
 }
 
 func parseRawGetArgs(args []string) (string, string, error) {

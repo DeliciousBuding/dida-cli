@@ -2,6 +2,7 @@ package webapi
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -52,6 +53,16 @@ func TestClientHidesErrorBodyByDefault(t *testing.T) {
 	}
 	if !strings.Contains(text, "returned 400") {
 		t.Fatalf("error missing status: %s", text)
+	}
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("error type = %T, want *APIError", err)
+	}
+	if apiErr.StatusCode != http.StatusBadRequest || apiErr.Method != http.MethodGet || apiErr.Path != "/fail" {
+		t.Fatalf("api error = %#v", apiErr)
+	}
+	if !strings.Contains(apiErr.BodySnippet, "private task title") {
+		t.Fatalf("api error body snippet = %q", apiErr.BodySnippet)
 	}
 }
 
