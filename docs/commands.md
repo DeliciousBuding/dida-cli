@@ -267,6 +267,7 @@ dida official project list --json
 dida official project get <project-id> --json
 dida official project data <project-id> --json
 
+dida official task get <task-id> --project <project-id> --json
 dida official task search --query "today" --json
 dida official task query --query "today" --json
 dida official task undone --project <project-id> --start 2026-05-01T00:00:00+08:00 --end 2026-05-09T23:59:59+08:00 --json

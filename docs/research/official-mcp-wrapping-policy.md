@@ -36,6 +36,7 @@ and JSON every time.
 | `list_projects` | `official project list` | Common discovery read; avoids raw tool names when agents start from official auth. |
 | `get_project_by_id` | `official project get` | Official project detail read avoids private Web API endpoint ambiguity. |
 | `get_project_with_undone_tasks` | `official project data` | Bundles project, columns, and undone tasks for agent context. |
+| `get_task_by_id` / `get_task_in_project` | `official task get` | Official task detail read; `--project` selects the stricter project-scoped tool. |
 | `search_task` | `official task search` | Official search is a narrow read with a simple query contract. |
 | `list_undone_tasks_by_time_query` | `official task query` | Gives agents the official natural time-query read without raw tool JSON. |
 | `list_undone_tasks_by_date` | `official task undone` | Bounded task reads are useful for planning agents. |

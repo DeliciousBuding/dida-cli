@@ -167,6 +167,7 @@ dida official doctor --json
 dida official show get_focuses_by_time --json
 dida official project list --json
 dida official project data <project-id> --json
+dida official task get <task-id> --project <project-id> --json
 dida official task search --query "today" --json
 dida official task query --query "today" --json
 dida official task filter --project <project-id> --status 0 --json

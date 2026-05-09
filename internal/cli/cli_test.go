@@ -498,6 +498,7 @@ func TestSchemaAuthMetadataForOfficialAndOpenAPI(t *testing.T) {
 		"official.doctor":        true,
 		"official.project.list":  true,
 		"official.habit.list":    true,
+		"official.task.get":      true,
 		"official.task.batchAdd": true,
 		"openapi.doctor":         false,
 		"openapi.clientSet":      false,
@@ -942,6 +943,16 @@ func TestOfficialTaskQueryFlagParsing(t *testing.T) {
 	}
 	if query != "next 7 days" {
 		t.Fatalf("query = %q, want next 7 days", query)
+	}
+}
+
+func TestOfficialTaskGetFlagParsing(t *testing.T) {
+	taskID, projectID, err := parseOfficialTaskGetFlags([]string{"t1", "--project", "p1"})
+	if err != nil {
+		t.Fatalf("parseOfficialTaskGetFlags() error = %v", err)
+	}
+	if taskID != "t1" || projectID != "p1" {
+		t.Fatalf("taskID=%q projectID=%q", taskID, projectID)
 	}
 }
 

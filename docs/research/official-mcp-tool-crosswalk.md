@@ -11,6 +11,8 @@ first-class commands.
 | `list_projects` | `official project list` | Wrapped after live evidence because project discovery is a common official-channel first read |
 | `get_project_by_id` | `official project get` | Wrapped |
 | `get_project_with_undone_tasks` | `official project data` | Wrapped as a bundle read |
+| `get_task_by_id` | `official task get` | Wrapped; use when only task id is known |
+| `get_task_in_project` | `official task get --project <project-id>` | Wrapped; use when project id is known |
 | `create_project` | `project create` | Overlap |
 | `update_project` | `project update` | Overlap |
 

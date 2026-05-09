@@ -36,6 +36,7 @@ dida agent context --json
 # Official MCP: token from Dida365 account settings
 DIDA365_TOKEN=... dida official doctor --json
 dida official project list --json
+dida official task get <task-id> --project <project-id> --json
 dida official task query --query today --json
 dida official habit list --json
 dida official task batch-add --args-json '{"tasks":[{"title":"Agent task"}]}' --dry-run --json

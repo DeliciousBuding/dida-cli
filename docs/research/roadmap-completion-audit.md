@@ -50,7 +50,7 @@ Implemented and documented:
 Not complete:
 
 - Token-based health, tools, project list, project get/data, task
-  time-query/search/undone/filter, habit list/sections, and focus range reads
+  detail/time-query/search/undone/filter, habit list/sections, and focus range reads
   were live-smoked on 2026-05-10 without committing private payloads.
 - Destructive focus delete and task batch writes still need disposable live
   targets.

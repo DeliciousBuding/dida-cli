@@ -39,6 +39,7 @@ They are intentionally not interchangeable.
 | Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |
+| Task detail | `get_task_by_id`, `get_task_in_project` | `official task get` | live-verified | Project-scoped task detail smoke succeeded on 2026-05-10; private task payload was not committed. |
 | Batch task add | `batch_add_tasks` | `official task batch-add` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
 | Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
 | Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | implemented | Local `--dry-run` preview works without token; live write needs known disposable tasks. |

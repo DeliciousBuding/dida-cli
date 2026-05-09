@@ -328,6 +328,25 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	}
 
 	switch args[0] {
+	case "get":
+		taskID, projectID, err := parseOfficialTaskGetFlags(args[1:])
+		if err != nil {
+			return failTyped("official task get", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		tool := "get_task_by_id"
+		payload := map[string]any{"task_id": taskID}
+		if projectID != "" {
+			tool = "get_task_in_project"
+			payload["project_id"] = projectID
+		}
+		result, err := client.CallTool(ctx, tool, payload)
+		if err != nil {
+			return failTyped("official task get", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task get", Data: result})
+		}
+		return writeJSON(stdout, result)
 	case "search":
 		query, err := parseOfficialTaskSearchFlags(args[1:])
 		if err != nil {
@@ -426,6 +445,7 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 
 func printOfficialTaskHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
+	fmt.Fprintln(stdout, "  dida official task get <task-id> [--project <project-id>] [--json]")
 	fmt.Fprintln(stdout, "  dida official task search --query <text> [--json]")
 	fmt.Fprintln(stdout, "  dida official task query --query <time-query> [--json]")
 	fmt.Fprintln(stdout, "  dida official task undone [--project <project-id>] [--start <time>] [--end <time>] [--json]")
@@ -435,6 +455,27 @@ func printOfficialTaskHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "  dida official task complete-project --project <project-id> --task <task-id> [--dry-run] [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Read and filter tasks using the official MCP API.")
+}
+
+func parseOfficialTaskGetFlags(args []string) (string, string, error) {
+	if len(args) == 0 {
+		return "", "", fmt.Errorf("usage: dida official task get <task-id> [--project <project-id>]")
+	}
+	taskID := args[0]
+	projectID := ""
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "--project":
+			if i+1 >= len(args) {
+				return "", "", fmt.Errorf("--project requires a value")
+			}
+			projectID = args[i+1]
+			i++
+		default:
+			return "", "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return taskID, projectID, nil
 }
 
 func parseOfficialTaskSearchFlags(args []string) (string, error) {
