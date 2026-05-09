@@ -797,6 +797,18 @@ func TestOpenAPIExchangeFlagParsing(t *testing.T) {
 	}
 }
 
+func TestValidateOpenAPICallback(t *testing.T) {
+	if err := validateOpenAPICallback("state-1", "code-1", "state-1"); err != nil {
+		t.Fatalf("validateOpenAPICallback() error = %v", err)
+	}
+	if err := validateOpenAPICallback("state-1", "", "state-1"); err == nil {
+		t.Fatalf("validateOpenAPICallback() error = nil, want missing code error")
+	}
+	if err := validateOpenAPICallback("state-1", "code-1", "state-2"); err == nil {
+		t.Fatalf("validateOpenAPICallback() error = nil, want state mismatch")
+	}
+}
+
 func TestOpenAPITaskTargetWriteFlagsRequireConfirmation(t *testing.T) {
 	_, _, _, err := parseOpenAPITaskTargetWriteFlags([]string{"--project", "p1", "--task", "t1"}, true)
 	if err == nil {

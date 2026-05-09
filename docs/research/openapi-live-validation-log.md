@@ -21,7 +21,8 @@ not accept the OAuth client secret as a bearer token.
 | Generate authorization URL | passed | `openapi auth-url` builds the expected OAuth URL. | Complete browser approval. |
 | Developer client authentication | passed | Token endpoint returned an OAuth `invalid_grant` response for an intentionally invalid code, which confirms the client-auth path reaches the OAuth server. | Exchange a real callback code. |
 | Direct bearer with non-OAuth credential | failed as expected | `/open/v1/...` returned `401 invalid_token` and OAuth bearer challenge. | Do not use non-OAuth credentials as access tokens. |
-| Interactive login command | implemented, not fully live-verified | CLI has `openapi login` with callback listener and token exchange. | Run full browser authorization. |
+| Interactive login command | implemented, not fully live-verified | CLI has `openapi login` with callback listener, callback `code` validation, callback `state` validation, and token exchange. | Run full browser authorization. |
+| Current local OAuth state | blocked | `openapi status --json` reports no saved token; `openapi doctor --json` reports no client env in the current shell. | Provide env locally, then run browser authorization. |
 | Project list | implemented, not fully live-verified | `openapi project list` exists. | Run after token persistence succeeds. |
 | Project get/data | implemented, not fully live-verified | `openapi project get` and `openapi project data` exist. | Run after project list succeeds. |
 | Task endpoint family | implemented, not fully live-verified | `openapi task get/create/update/complete/delete/move/completed/filter` exist. | Run read smoke after project list succeeds; write smoke only with disposable task. |

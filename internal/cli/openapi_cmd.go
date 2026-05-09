@@ -131,6 +131,9 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	select {
 	case result := <-codeCh:
 		_ = server.Close()
+		if err := validateOpenAPICallback(state, result.code, result.state); err != nil {
+			return failTyped("openapi login", "auth", err.Error(), "", jsonOut, stdout, stderr)
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		token, err := openapi.ExchangeCode(ctx, clientID, clientSecret, result.code, redirectURI, scope)
@@ -150,6 +153,16 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		_ = server.Close()
 		return failTyped("openapi login", "timeout", "timed out waiting for OAuth callback", "", jsonOut, stdout, stderr)
 	}
+}
+
+func validateOpenAPICallback(expectedState string, code string, gotState string) error {
+	if code == "" {
+		return fmt.Errorf("oauth callback did not include code")
+	}
+	if expectedState != "" && gotState != expectedState {
+		return fmt.Errorf("oauth callback state mismatch")
+	}
+	return nil
 }
 
 func runOpenAPIAuthURL(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
