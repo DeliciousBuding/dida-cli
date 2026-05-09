@@ -35,6 +35,7 @@ dida agent context --json
 
 # Official MCP: token from Dida365 account settings
 DIDA365_TOKEN=... dida official doctor --json
+dida official token status --json
 dida official project list --json
 dida official task get <task-id> --project <project-id> --json
 dida official task query --query today --json
@@ -65,7 +66,8 @@ dida schema show task.delete --json
 ```
 
 Read `authRequired`, `dryRun`, and `confirmationRequired` before choosing a
-command. Commands under `official.*` need `DIDA365_TOKEN`; OpenAPI resource
+command. Most commands under `official.*` need `DIDA365_TOKEN` or a saved
+official token from `dida official token set --token-stdin`; OpenAPI resource
 commands need a saved OAuth access token. Do not treat Web API cookie auth as
 valid for either official channel.
 
@@ -108,6 +110,7 @@ dida task delete <task-id> --project <project-id> --yes --json
 - Do not ask the user to paste cookies or tokens into chat.
 - Do not use official MCP tokens as OpenAPI bearer tokens.
 - Do not use Web API cookies as official OpenAPI tokens.
+- If Official MCP auth is missing, ask the user to run `dida official token set --token-stdin --json` locally.
 - If OpenAPI client config is missing, ask the user to run `dida openapi client set --id <client-id> --secret-stdin --json` locally.
 - Do not run destructive commands without `--yes`.
 - Do not use raw probes for writes; DidaCLI intentionally supports only raw

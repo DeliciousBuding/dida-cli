@@ -71,6 +71,7 @@ func printOfficialHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida official doctor [--json]
+  dida official token <status|set|clear> [--json]
   dida official tools [--limit N] [--full] [--json]
   dida official show <tool-name> [--json]
   dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--json]
@@ -79,7 +80,20 @@ Usage:
   dida official habit <subcommand> [options] [--json]
   dida official focus <subcommand> [options] [--json]
 
-These commands use the official dida365 MCP server and require DIDA365_TOKEN.
+These commands use the official dida365 MCP server. DIDA365_TOKEN takes
+precedence over the saved token config.
+`))
+}
+
+func printOfficialTokenHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida official token status [--json]
+  dida official token set --token-stdin [--json]
+  dida official token clear [--json]
+
+The token is stored locally for the official MCP channel. Prefer --token-stdin
+so the token does not enter shell history. DIDA365_TOKEN still takes precedence.
 `))
 }
 

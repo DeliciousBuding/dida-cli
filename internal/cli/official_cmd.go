@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/officialmcp"
@@ -19,6 +20,8 @@ func runOfficial(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	switch args[0] {
 	case "doctor":
 		return runOfficialDoctor(jsonOut, stdout, stderr)
+	case "token":
+		return runOfficialToken(args[1:], jsonOut, stdout, stderr)
 	case "tools":
 		return runOfficialTools(args[1:], jsonOut, stdout, stderr)
 	case "show":
@@ -36,6 +39,80 @@ func runOfficial(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	default:
 		return fail("official", fmt.Sprintf("unknown official command %q", args[0]), jsonOut, stdout, stderr)
 	}
+}
+
+func runOfficialToken(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printOfficialTokenHelp(stdout)
+		return 0
+	}
+	switch args[0] {
+	case "status":
+		data := map[string]any{"token": officialmcp.TokenConfigStatus()}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official token status", Data: data})
+		}
+		fmt.Fprintf(stdout, "Official MCP token available: %v\n", data["token"].(map[string]any)["available"])
+		return 0
+	case "set":
+		token, err := parseOfficialTokenSetFlags(args[1:])
+		if err != nil {
+			return failTyped("official token set", "validation", err.Error(), "run: dida official token --help", jsonOut, stdout, stderr)
+		}
+		cfg, err := officialmcp.SaveTokenConfig(token)
+		if err != nil {
+			return failTyped("official token set", "auth", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		data := map[string]any{
+			"saved":         true,
+			"token_preview": officialmcp.RedactForStatus(cfg.Token),
+			"next":          "dida official doctor --json",
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official token set", Data: data})
+		}
+		fmt.Fprintln(stdout, "Official MCP token saved.")
+		fmt.Fprintln(stdout, "Next: dida official doctor --json")
+		return 0
+	case "clear":
+		if err := officialmcp.ClearTokenConfig(); err != nil {
+			return failTyped("official token clear", "auth", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official token clear", Data: map[string]any{"token_cleared": true}})
+		}
+		fmt.Fprintln(stdout, "Official MCP token cleared.")
+		return 0
+	default:
+		return fail("official token", fmt.Sprintf("unknown token subcommand %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+func parseOfficialTokenSetFlags(args []string) (string, error) {
+	tokenFromStdin := false
+	for _, arg := range args {
+		switch arg {
+		case "--token-stdin":
+			tokenFromStdin = true
+		default:
+			return "", fmt.Errorf("unknown flag %q", arg)
+		}
+	}
+	if !tokenFromStdin {
+		return "", fmt.Errorf("missing required --token-stdin")
+	}
+	data, err := io.ReadAll(io.LimitReader(os.Stdin, maxTokenStdinBytes+1))
+	if err != nil {
+		return "", fmt.Errorf("read token from stdin: %w", err)
+	}
+	if int64(len(data)) > maxTokenStdinBytes {
+		return "", fmt.Errorf("token stdin exceeded %d bytes", maxTokenStdinBytes)
+	}
+	token := strings.TrimSpace(string(data))
+	if token == "" {
+		return "", fmt.Errorf("empty official mcp token")
+	}
+	return token, nil
 }
 
 func runOfficialDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {

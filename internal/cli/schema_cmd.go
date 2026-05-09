@@ -76,6 +76,9 @@ func didaCommandSchemas() []commandSchema {
 		{ID: "auth.status", Title: "Check local auth", Resource: "auth", Operation: "read", Command: "dida auth status --verify --json", HTTP: []string{"GET /batch/check/0"}, Status: "stable", AuthRequired: false},
 		{ID: "doctor", Title: "Check CLI, config, auth, and optional endpoint health", Resource: "system", Operation: "read", Command: "dida doctor --verify --json", HTTP: []string{"GET /batch/check/0 when --verify is set"}, Status: "stable", AuthRequired: false, Notes: "Without --verify this command is local-only and reports network_check: not_run."},
 		{ID: "official.doctor", Title: "Check official dida365 MCP channel", Resource: "official", Operation: "read", Command: "dida official doctor --json", HTTP: []string{"POST https://mcp.dida365.com initialize", "POST https://mcp.dida365.com tools/list"}, Status: "stable", AuthRequired: false, Notes: "Requires DIDA365_TOKEN in the environment."},
+		{ID: "official.tokenStatus", Title: "Check saved official MCP token config", Resource: "official", Operation: "auth", Command: "dida official token status --json", Status: "stable", AuthRequired: false, Notes: "Reports whether DIDA365_TOKEN or saved local token config is available without printing the full token."},
+		{ID: "official.tokenSet", Title: "Save official MCP token config", Resource: "official", Operation: "auth", Command: "dida official token set --token-stdin --json", Status: "stable", AuthRequired: false, Notes: "Stores the official MCP token locally. DIDA365_TOKEN still takes precedence."},
+		{ID: "official.tokenClear", Title: "Clear saved official MCP token config", Resource: "official", Operation: "auth", Command: "dida official token clear --json", Status: "stable", AuthRequired: false},
 		{ID: "official.tools", Title: "List official dida365 MCP tools", Resource: "official", Operation: "read", Command: "dida official tools --limit 100 --json", HTTP: []string{"POST https://mcp.dida365.com tools/list"}, Status: "stable", AuthRequired: false, Compact: true, Notes: "Requires DIDA365_TOKEN in the environment. Default output is compact; use --full for raw schemas."},
 		{ID: "official.show", Title: "Show official dida365 MCP tool schema", Resource: "official", Operation: "read", Command: "dida official show <tool-name> --json", HTTP: []string{"POST https://mcp.dida365.com tools/list"}, Status: "stable", AuthRequired: false, Notes: "Requires DIDA365_TOKEN in the environment."},
 		{ID: "official.call", Title: "Call an official dida365 MCP tool", Resource: "official", Operation: "write", Command: "dida official call <tool-name> --args-json '{...}' --json", HTTP: []string{"POST https://mcp.dida365.com tools/call"}, Status: "stable", AuthRequired: false, Notes: "Requires DIDA365_TOKEN in the environment. This is the generic entrypoint for all 32 official MCP tools."},
@@ -203,6 +206,11 @@ func didaCommandSchemas() []commandSchema {
 }
 
 func applyChannelAuthMetadata(schemas []commandSchema) {
+	officialNoAuth := map[string]bool{
+		"official.tokenStatus": true,
+		"official.tokenSet":    true,
+		"official.tokenClear":  true,
+	}
 	openAPINoAuth := map[string]bool{
 		"openapi.doctor":       true,
 		"openapi.clientStatus": true,
@@ -211,7 +219,7 @@ func applyChannelAuthMetadata(schemas []commandSchema) {
 	}
 	for i := range schemas {
 		id := schemas[i].ID
-		if strings.HasPrefix(id, "official.") {
+		if strings.HasPrefix(id, "official.") && !officialNoAuth[id] {
 			schemas[i].AuthRequired = true
 		}
 		if strings.HasPrefix(id, "openapi.") && !openAPINoAuth[id] {

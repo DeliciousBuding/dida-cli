@@ -87,6 +87,8 @@ dida schema list --json
 
 ```bash
 DIDA365_TOKEN=... dida official doctor --json
+dida official token set --token-stdin --json
+dida official token status --json
 dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi doctor --json
 ```

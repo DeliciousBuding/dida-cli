@@ -51,6 +51,8 @@ task text, checklist, reminder, and raw fields are needed.
 ```bash
 dida project list --json
 dida official doctor --json
+dida official token status --json
+dida official token set --token-stdin --json
 dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
@@ -293,7 +295,8 @@ dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-
 dida official focus delete <focus-id> --yes --json
 ```
 
-These commands use the official MCP channel and require `DIDA365_TOKEN`.
+These commands use the official MCP channel. `DIDA365_TOKEN` takes precedence,
+or save the token locally with `dida official token set --token-stdin --json`.
 Use `dida official show <tool-name> --json` to inspect the exact upstream
 schema before passing larger `--args-json` payloads. Web API habit and Pomodoro
 commands remain separate under `dida habit` and `dida pomo`. Official task

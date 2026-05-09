@@ -9,7 +9,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
+
+	"github.com/DeliciousBuding/dida-cli/internal/config"
 )
 
 const DefaultURL = "https://mcp.dida365.com"
@@ -31,6 +35,11 @@ type Tool struct {
 	Annotations  map[string]any `json:"annotations,omitempty"`
 }
 
+type TokenConfig struct {
+	Token   string `json:"token"`
+	SavedAt int64  `json:"saved_at"`
+}
+
 type rpcResponse struct {
 	Result map[string]any `json:"result"`
 	Error  *rpcError      `json:"error"`
@@ -48,7 +57,85 @@ func ResolveToken(explicit string) (string, error) {
 	if value := strings.TrimSpace(os.Getenv("DIDA365_TOKEN")); value != "" {
 		return value, nil
 	}
-	return "", fmt.Errorf("missing DIDA365_TOKEN; set it to the official API token from dida365 account settings")
+	if cfg, err := LoadTokenConfig(); err == nil && strings.TrimSpace(cfg.Token) != "" {
+		return strings.TrimSpace(cfg.Token), nil
+	}
+	return "", fmt.Errorf("missing official mcp token; set DIDA365_TOKEN or run dida official token set --token-stdin")
+}
+
+func TokenConfigPath() string {
+	return filepath.Join(config.DefaultDir(), "official-mcp-token.json")
+}
+
+func SaveTokenConfig(token string) (*TokenConfig, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return nil, fmt.Errorf("empty official mcp token")
+	}
+	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
+		return nil, fmt.Errorf("create config dir: %w", err)
+	}
+	cfg := &TokenConfig{Token: token, SavedAt: time.Now().Unix()}
+	payload, err := json.MarshalIndent(cfg, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("encode official mcp token config: %w", err)
+	}
+	if err := os.WriteFile(TokenConfigPath(), append(payload, '\n'), 0o600); err != nil {
+		return nil, fmt.Errorf("write official mcp token config: %w", err)
+	}
+	return cfg, nil
+}
+
+func LoadTokenConfig() (*TokenConfig, error) {
+	data, err := os.ReadFile(TokenConfigPath())
+	if err != nil {
+		return nil, err
+	}
+	var cfg TokenConfig
+	if err := json.Unmarshal(data, &cfg); err != nil {
+		return nil, fmt.Errorf("decode official mcp token config: %w", err)
+	}
+	if strings.TrimSpace(cfg.Token) == "" {
+		return nil, fmt.Errorf("official mcp token config has no token")
+	}
+	return &cfg, nil
+}
+
+func ClearTokenConfig() error {
+	if err := os.Remove(TokenConfigPath()); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove official mcp token config: %w", err)
+	}
+	return nil
+}
+
+func TokenConfigStatus() map[string]any {
+	status := map[string]any{}
+	if strings.TrimSpace(os.Getenv("DIDA365_TOKEN")) != "" {
+		status["available"] = true
+		status["source"] = "env"
+		return status
+	}
+	cfg, err := LoadTokenConfig()
+	if err != nil {
+		status["available"] = false
+		status["source"] = "missing"
+		return status
+	}
+	status["available"] = true
+	status["source"] = "config"
+	status["token_preview"] = RedactForStatus(cfg.Token)
+	if cfg.SavedAt > 0 {
+		status["saved_at"] = time.Unix(cfg.SavedAt, 0).Format(time.RFC3339)
+	}
+	return status
+}
+
+func RedactForStatus(value string) string {
+	value = strings.TrimSpace(value)
+	if len(value) <= 8 {
+		return "***"
+	}
+	return value[:4] + "..." + value[len(value)-4:]
 }
 
 func NewClient(token string) *Client {

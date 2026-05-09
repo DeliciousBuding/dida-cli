@@ -77,6 +77,8 @@ dida schema show task.create --json
 
 ```bash
 DIDA365_TOKEN=... dida official doctor --json
+dida official token set --token-stdin --json
+dida official token status --json
 dida official tools --limit 20 --json
 dida official project list --json
 dida official project data <project-id> --json

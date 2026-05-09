@@ -871,6 +871,44 @@ func TestOfficialPayloadFlagParsing(t *testing.T) {
 	}
 }
 
+func TestOfficialTokenSetStatusJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_TOKEN", "")
+	oldStdin := os.Stdin
+	readFile, writeFile, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Pipe() error = %v", err)
+	}
+	defer func() { os.Stdin = oldStdin }()
+	os.Stdin = readFile
+	go func() {
+		_, _ = writeFile.Write([]byte("dp_test_secret_token"))
+		_ = writeFile.Close()
+	}()
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"official", "token", "set", "--token-stdin", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(set) code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if strings.Contains(stdout.String(), "dp_test_secret_token") {
+		t.Fatalf("token set leaked token: %s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"official", "token", "status", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(status) code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if strings.Contains(stdout.String(), "dp_test_secret_token") {
+		t.Fatalf("token status leaked token: %s", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"source": "config"`) {
+		t.Fatalf("status missing config source: %s", stdout.String())
+	}
+}
+
 func TestHabitCreateFlagParsingDoesNotRequireToolName(t *testing.T) {
 	payload, err := parseHabitCreateArgs([]string{"--args-json", "{\"name\":\"Read\"}"})
 	if err != nil {
