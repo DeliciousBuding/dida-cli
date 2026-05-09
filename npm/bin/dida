@@ -1,0 +1,20 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+const { spawnSync } = require("child_process");
+
+const exe = process.platform === "win32" ? "dida.exe" : "dida";
+const binary = path.join(__dirname, exe);
+
+if (!fs.existsSync(binary)) {
+  console.error("DidaCLI binary is missing. Try reinstalling the package.");
+  process.exit(1);
+}
+
+const result = spawnSync(binary, process.argv.slice(2), { stdio: "inherit" });
+if (result.error) {
+  console.error(result.error.message);
+  process.exit(1);
+}
+process.exit(result.status ?? 0);

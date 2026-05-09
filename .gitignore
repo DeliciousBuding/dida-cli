@@ -1,5 +1,5 @@
-bin/
-dist/
+/bin/
+/dist/
 coverage.out
 *.exe
 
