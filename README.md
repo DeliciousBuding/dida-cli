@@ -1,222 +1,262 @@
-# dida-cli
+<h1 align="center">DidaCLI</h1>
 
-Clean-room Go CLI for Dida365 / TickTick task operations.
+<p align="center">
+  <b>A clean, agent-friendly CLI for Dida365 / TickTick.</b><br/>
+  <b>面向 Agent 和自动化工作流的滴答清单命令行工具。</b>
+</p>
 
-This project is intended to replace the old `dida365-ai-tools` + OpenClaw glue with a maintainable CLI that Hermes and other agents can call safely.
+<p align="center">
+  <a href="https://github.com/DeliciousBuding/dida-cli/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/DeliciousBuding/dida-cli/ci.yml?branch=main&label=ci"></a>
+  <a href="https://github.com/DeliciousBuding/dida-cli/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/DeliciousBuding/dida-cli"></a>
+  <img alt="Go" src="https://img.shields.io/badge/Go-1.26+-00ADD8?logo=go&logoColor=white">
+  <img alt="JSON" src="https://img.shields.io/badge/JSON-agent--ready-2ea44f">
+</p>
 
-## Naming
+<p align="center">
+  <a href="#quick-start">Quick Start</a> ·
+  <a href="#commands">Commands</a> ·
+  <a href="#agent-workflows">Agent Workflows</a> ·
+  <a href="#中文说明">中文说明</a> ·
+  <a href="docs/commands.md">Docs</a>
+</p>
 
-- Repository: `DidaCLI`
-- Future repository/module name: `dida-cli`
-- Binary: `dida`
-- Config directory: `~/.dida-cli`
+---
 
-## Design Boundary
+## Why DidaCLI
 
-The CLI is Web API first. It will support two API surfaces:
+DidaCLI is a clean-room Go CLI for Dida365 / TickTick task operations. It is designed for humans, shell scripts, Hermes, Codex, and other agents that need a stable command surface, predictable JSON, and safe task automation.
 
-- Web private API: primary path, cookie-auth, broad account control for the operator's own account.
-- Official Open API: secondary compatibility path for stable supported operations.
+The primary integration surface is the Dida365 Web API used by the official web app. That gives broader control than the public Open API while keeping the tool explicit, inspectable, and easy to disable.
 
-Private API support must stay explicit and easy to disable. It should not bypass access controls, scrape other users, or hide risky write operations.
+| For operators | For agents | For developers |
+|---|---|---|
+| Browser cookie login, readable commands, no token printing | Stable JSON envelopes, bounded list commands, dry-run support | Small Go codebase, unit tests, CI, documented Web API assumptions |
+| 日常操作命令短、输出清晰 | 错误结构化，便于自动恢复 | 结构简单，方便扩展和审计 |
 
-## Architecture Target
+## Features
 
-The old Doris setup mixed API access, report rendering, cron, and OpenClaw delivery. This repo separates those layers:
+- Web API first: sync, settings, projects, tasks, completed history, and raw GET probes.
+- Full task CRUD: create, get, update, complete, delete.
+- Agent-safe JSON: every `--json` response uses a consistent envelope.
+- Ergonomic writes: create/update/complete run directly; `--dry-run` previews; destructive delete requires `--yes`.
+- Browser login: visible Dida365 login captures only the `t` cookie into `~/.dida-cli/`.
+- No secrets in output: tokens are redacted and never committed.
+- Raw escape hatch: `dida raw get /path --json` for read-only API exploration.
 
-- `internal/auth`: stores and redacts cookie/OAuth credentials.
-- `internal/webapi`: typed client for `https://api.dida365.com/api/v2`.
-- `internal/openapi`: typed client for official OAuth APIs.
-- `internal/model`: stable internal task/project/tag types.
-- `internal/report`: deterministic reports from normalized models.
-- `internal/cli`: command surface and JSON envelopes.
+## Quick Start
 
-The CLI design follows the useful parts of `larksuite/cli`:
-
-- three command layers: shortcuts, resource/API commands, and raw API;
-- machine-readable health checks and auth status;
-- dry-run previews for writes;
-- structured error envelopes that agents can act on;
-- companion agent skill docs after the CLI is usable.
-
-Web API operations are grouped by real Dida resources:
-
-- sync/settings
-- tasks
-- projects/folders/columns
-- tags
-- completed/history
-- batch operations
-- raw read-only endpoint probes
-
-Write commands must support `--dry-run` before live writes.
-
-## Command Layers
-
-### 1. Shortcuts
-
-Human and agent friendly workflows with strong defaults:
-
-```text
-dida +today [--json]
-dida +nightly-report [--json]
-dida +inbox-zero [--dry-run]
-```
-
-### 2. Resource Commands
-
-Stable commands mapped to Dida resources:
-
-```text
-dida task list --filter today --json
-dida task create --project <id> --title <title> --dry-run
-dida project list --json
-dida tag list --json
-```
-
-### 3. Raw Web API
-
-Read-first escape hatch for reverse-engineering and coverage gaps:
-
-```text
-dida raw get /batch/check/0 --json
-```
-
-Non-GET raw requests should stay disabled until a specific safe workflow needs them.
-
-## Safety Model
-
-- Read commands can run directly.
-- Write commands support `--dry-run`.
-- Destructive writes should require explicit `--yes` later.
-- Credentials are never printed.
-- Error JSON should include actionable `hint` fields where possible.
-
-## Planned Command Surface
-
-```text
-dida doctor [--json]
-dida auth login [--json]
-dida auth login --browser [--timeout 180] [--json]
-dida auth status [--json]
-dida auth status --verify [--json]
-dida auth cookie set
-dida auth logout
-dida auth oauth start
-dida sync all [--json]
-dida sync checkpoint <checkpoint> [--json]
-dida settings get [--json]
-dida project list [--json]
-dida project columns <project-id> [--json]
-dida project tasks <project-id> [--json]
-dida tag list [--json]
-dida completed today [--json]
-dida completed yesterday [--json]
-dida completed week [--json]
-dida completed list [--from YYYY-MM-DD --to YYYY-MM-DD] [--limit N] [--json]
-dida task today [--json]
-dida task get <task-id> [--json]
-dida task search --query <text> [--limit N] [--json]
-dida task upcoming --days N [--limit N] [--json]
-dida task create --project <id> --title <title> [--dry-run]
-dida task update <task-id> --project <id> [--title ...] [--due ...] [--dry-run]
-dida task complete <task-id> --project <id> [--dry-run]
-dida task move <task-id> --from-project <id> --to-project <id> [--dry-run]
-dida batch apply <file.json> [--dry-run]
-dida report nightly [--json]
-dida raw get <path> [--json]
-```
-
-## JSON Policy
-
-With `--json`, commands return stable JSON objects. Errors must also be JSON and must never contain full cookies, bearer tokens, or request headers.
-
-Initial success envelope:
-
-```json
-{
-  "ok": true,
-  "command": "doctor",
-  "data": {}
-}
-```
-
-Initial error envelope:
-
-```json
-{
-  "ok": false,
-  "command": "doctor",
-  "error": {
-    "message": "missing auth"
-  }
-}
-```
-
-## Current Status
-
-Implemented:
-
-- `dida doctor [--json]`
-- `dida auth login [--json]`
-- `dida auth status [--verify] [--json]`
-- `dida auth cookie set --token-stdin`
-- `dida auth logout`
-- `dida sync all [--json]`
-- `dida sync checkpoint <checkpoint> [--json]`
-- `dida settings get [--json]`
-- `dida project list [--json]`
-- `dida project tasks <project-id> [--json]`
-- `dida project columns <project-id> [--json]`
-- `dida completed today|yesterday|week [--json]`
-- `dida completed list [--from YYYY-MM-DD --to YYYY-MM-DD --limit N] [--json]`
-- `dida task list --filter today|all [--limit N] [--json]`
-- `dida task get <task-id> [--json]`
-- `dida task search --query <text> [--limit N] [--json]`
-- `dida task upcoming --days N [--limit N] [--json]`
-- `dida task today [--limit N] [--json]`
-- `dida +today [--limit N] [--json]`
-- `dida raw get <path> [--json]`
-
-Credentials are stored only under `~/.dida-cli/`, not in this repository.
-
-## Agent Workflow
-
-Recommended read-only flow:
+### Install From Source
 
 ```bash
-dida doctor --json
-dida auth status --verify --json
-dida settings get --json
-dida project list --json
-dida project tasks <project-id> --json
-dida +today --json
-dida task upcoming --days 14 --json
-dida completed today --json
-dida task list --filter all --limit 50 --json
+git clone https://github.com/DeliciousBuding/dida-cli.git
+cd dida-cli
+go test ./...
+go build -o bin/dida ./cmd/dida
 ```
 
-Login flow:
+Install locally on Unix-like systems:
+
+```bash
+make install-local
+dida doctor --json
+```
+
+On Windows PowerShell:
+
+```powershell
+go build -o bin\dida.exe .\cmd\dida
+Copy-Item .\bin\dida.exe $env:USERPROFILE\.local\bin\dida.exe -Force
+dida doctor --json
+```
+
+### Login
+
+Recommended:
 
 ```bash
 dida auth login --browser --json
 dida auth status --verify --json
 ```
 
-Fallback login flow:
+Fallback:
 
 ```bash
 dida auth login --json
-# User completes browser / WeChat / QR login and copies only cookie "t".
+# Complete Dida365 / WeChat / QR login in your browser.
+# Import only the cookie named "t" through stdin. Do not paste cookies into chat.
 dida auth cookie set --token-stdin
 dida auth status --verify --json
 ```
 
-Agents must not ask the user to paste cookies into chat. Tokens should go to stdin, a browser capture flow, or a local secret manager only.
+## Commands
 
-## Build
+### Read Commands
+
+```bash
+dida doctor --json
+dida auth status --verify --json
+dida sync all --json
+dida sync checkpoint <checkpoint> --json
+dida settings get --json
+dida project list --json
+dida project tasks <project-id> --json
+dida project columns <project-id> --json
+dida task today --json
+dida task list --filter all --limit 50 --json
+dida task search --query "exam" --limit 10 --json
+dida task upcoming --days 14 --json
+dida completed today --json
+dida completed list --from 2026-05-01 --to 2026-05-09 --json
+dida raw get /batch/check/0 --json
+```
+
+### Write Commands
+
+```bash
+# Preview a create request.
+dida task create --project <project-id> --title "Read paper" --dry-run --json
+
+# Create directly.
+dida task create --project <project-id> --title "Read paper" --priority 3 --json
+
+# Update directly.
+dida task update <task-id> --project <project-id> --title "Read paper carefully" --json
+
+# Complete directly.
+dida task complete <task-id> --project <project-id> --json
+
+# Delete is destructive and requires --yes.
+dida task delete <task-id> --project <project-id> --dry-run --json
+dida task delete <task-id> --project <project-id> --yes --json
+```
+
+See [docs/commands.md](docs/commands.md) for the full command reference.
+
+## JSON Contract
+
+Success:
+
+```json
+{
+  "ok": true,
+  "command": "task today",
+  "meta": {
+    "count": 1,
+    "total": 1
+  },
+  "data": {
+    "tasks": []
+  }
+}
+```
+
+Error:
+
+```json
+{
+  "ok": false,
+  "command": "task delete",
+  "error": {
+    "type": "confirmation_required",
+    "message": "task delete requires --yes",
+    "hint": "preview first with: dida task delete <task-id> --project <project-id> --dry-run"
+  }
+}
+```
+
+## Agent Workflows
+
+Recommended read-only context pack:
+
+```bash
+dida doctor --json
+dida auth status --verify --json
+dida project list --json
+dida +today --json
+dida task upcoming --days 14 --limit 50 --json
+dida completed today --json
+```
+
+Safe write flow:
+
+```bash
+dida task create --project <project-id> --title "Agent-created task" --dry-run --json
+dida task create --project <project-id> --title "Agent-created task" --json
+```
+
+Agent rules:
+
+- Do not ask users to paste cookies into chat.
+- Use `--json` for automation.
+- Use `--dry-run` before broad or generated writes.
+- Use `--yes` only for explicit destructive actions.
+- Prefer high-level commands before `raw get`.
+
+## Web API Scope
+
+DidaCLI currently uses:
+
+- `GET /batch/check/0`
+- `GET /batch/check/{checkpoint}`
+- `GET /user/preferences/settings`
+- `GET /project/{projectId}/tasks`
+- `GET /project/all/completed?...`
+- `POST /batch/task`
+
+Private Web API behavior can change. See [docs/web-api.md](docs/web-api.md) and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for implementation notes.
+
+## Project Layout
+
+```text
+cmd/dida/          CLI entrypoint
+internal/auth/     Cookie capture, storage, redaction
+internal/cli/      Command dispatch and JSON envelopes
+internal/model/    Normalized task/project models
+internal/webapi/   Dida365 Web API client
+docs/              User and API documentation
+```
+
+## Development
 
 ```bash
 go test ./...
 go build -o bin/dida ./cmd/dida
 ```
+
+CI runs `go test ./...` on every push and pull request.
+
+Repository constraints:
+
+- Do not commit cookies, tokens, response dumps, or private fixtures.
+- Put private research notes under ignored `data/private/`.
+- Keep raw Web API probes read-only unless a command is explicitly designed and documented.
+- Add tests for request builders before adding live write behavior.
+
+## 中文说明
+
+DidaCLI 是一个用 Go 编写的滴答清单 / TickTick 命令行工具，目标是替代零散脚本和旧 OpenClaw glue，让 Hermes、Codex 这类 Agent 可以稳定、安全地操作任务。
+
+核心设计：
+
+- Web API 优先，覆盖比官方 Open API 更完整的个人账号操作面。
+- 命令输出稳定 JSON，适合 Agent 自动解析。
+- 登录只保存本地浏览器 cookie `t`，不会把 token 打印出来。
+- 创建、更新、完成任务直接执行；删除任务必须显式 `--yes`。
+- 所有写操作支持 `--dry-run` 预览。
+- 研究和私密材料不进入仓库，统一放到被忽略的 `data/private/`。
+
+常用命令：
+
+```bash
+dida auth login --browser --json
+dida auth status --verify --json
+dida project list --json
+dida +today --json
+dida task upcoming --days 14 --json
+dida completed today --json
+dida task create --project <project-id> --title "新任务" --json
+```
+
+## License
+
+MIT. See [LICENSE](LICENSE).
