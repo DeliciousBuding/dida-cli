@@ -41,9 +41,9 @@ They are intentionally not interchangeable.
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |
 | Task detail | `get_task_by_id`, `get_task_in_project` | `official task get` | live-verified | Project-scoped task detail smoke succeeded on 2026-05-10; private task payload was not committed. |
-| Batch task add | `batch_add_tasks` | `official task batch-add` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
-| Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
-| Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | implemented | Local `--dry-run` preview works without token; live write needs known disposable tasks. |
+| Batch task add | `batch_add_tasks` | `official task batch-add` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke created a disposable task and cleaned it up after verification. |
+| Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live update still needs a disposable task update scenario. |
+| Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke completed the disposable task created through `official task batch-add`. |
 | Task search | `search_task` | `official task search` | live-verified | No-result query smoke succeeded on 2026-05-10. |
 | Task undone by date | `list_undone_tasks_by_date` | `official task undone` | live-verified | Same-day bounded range smoke succeeded on 2026-05-10. |
 | Task filtering | `filter_tasks` | `official task filter` | live-verified | `--status 0` smoke succeeded on 2026-05-10; output was summarized by count only. |
@@ -69,6 +69,6 @@ They are intentionally not interchangeable.
 1. Live-verify `openapi login` with a real authorization code.
 2. Create or identify disposable MCP habit/focus records before known-id read
    or destructive smoke tests.
-3. Live-smoke MCP writes only after disposable project/task/habit targets exist.
+3. Live-smoke remaining MCP habit/focus writes only after disposable targets exist.
 4. Live-smoke OpenAPI project/task/focus/habit wrappers once OAuth token
    persistence is proven on the current account.

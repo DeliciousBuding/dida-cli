@@ -23,9 +23,9 @@ first-class commands.
 | `create_task` | `task create` | Overlap |
 | `update_task` | `task update` | Overlap |
 | `complete_task` | `task complete` | Overlap |
-| `complete_tasks_in_project` | `official task complete-project` | Wrapped with local dry-run preview |
+| `complete_tasks_in_project` | `official task complete-project` | Wrapped with local dry-run preview; live-smoked with a disposable task on 2026-05-10 |
 | `move_task` | `task move` | Overlap |
-| `batch_add_tasks` | `official task batch-add` | Wrapped with `--args-json` / `--args-file` and dry-run preview |
+| `batch_add_tasks` | `official task batch-add` | Wrapped with `--args-json` / `--args-file` and dry-run preview; live-smoked with cleanup on 2026-05-10 |
 | `batch_update_tasks` | `official task batch-update` | Wrapped with `--args-json` / `--args-file` and dry-run preview |
 
 ## Task Read / Query Tools

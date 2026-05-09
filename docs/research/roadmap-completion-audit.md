@@ -60,10 +60,13 @@ Not complete:
 - Token-based health, tools, project list, project get/data, task
   detail/time-query/search/undone/filter, habit list/sections, and focus range reads
   were live-smoked on 2026-05-10 without committing private payloads.
+- Official MCP task `batch-add`, project-scoped `task get`, and
+  `complete-project` were live-smoked on 2026-05-10 with a disposable task, then
+  cleaned up through the verified Web API task delete path.
 - Known-id habit/focus reads are blocked on the current account because live
   token smokes found no habits and no focus records, including a 365-day focus
   range.
-- Destructive focus delete and task batch writes still need disposable live
+- Destructive focus delete and habit write smokes still need disposable live
   targets.
 
 ### Official OpenAPI
@@ -128,7 +131,7 @@ Remaining:
 2. Successful OpenAPI OAuth approval to save an access token.
 3. Pro account or trace for task activity detail.
 4. Disposable files/tasks/projects for task-level attachment and write-flow smoke tests.
-5. Disposable targets for Official MCP known-id habit/focus reads and write smoke.
+5. Disposable targets for Official MCP known-id habit/focus reads and habit/focus write smoke.
 
 ## Next Best Actions
 
