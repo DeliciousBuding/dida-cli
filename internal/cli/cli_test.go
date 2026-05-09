@@ -454,6 +454,22 @@ func TestSchemaShowUnknownJSON(t *testing.T) {
 	}
 }
 
+func TestSettingsGetIncludeWebJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"settings", "get", "--include-web", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1 because auth is missing", code)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "settings get" {
+		t.Fatalf("command = %v, want settings get", payload["command"])
+	}
+}
+
 func TestBuildAgentContextCompact(t *testing.T) {
 	now := time.Unix(1893456000, 0) // 2030-01-01T00:00:00Z
 	view := model.SyncView{

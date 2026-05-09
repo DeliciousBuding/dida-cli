@@ -108,7 +108,7 @@ Usage:
 func printSettingsHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida settings get [--json]
+  dida settings get [--include-web] [--json]
 `))
 }
 

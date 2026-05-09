@@ -85,8 +85,12 @@ func runSettings(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	if args[0] != "get" {
 		return fail("settings", fmt.Sprintf("unknown settings command %q", args[0]), jsonOut, stdout, stderr)
 	}
+	includeWeb, err := parseSettingsGetFlags(args[1:])
+	if err != nil {
+		return failTyped("settings get", "validation", err.Error(), "run: dida settings --help", jsonOut, stdout, stderr)
+	}
 	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
-		return client.Settings(ctx)
+		return client.Settings(ctx, includeWeb)
 	})
 	if err != nil {
 		return fail("settings get", err.Error(), jsonOut, stdout, stderr)
@@ -96,9 +100,10 @@ func runSettings(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 		"settings": settings,
 	}
 	meta := map[string]any{
-		"count":    len(settings),
-		"timeZone": settings["timeZone"],
-		"locale":   settings["locale"],
+		"includeWeb": includeWeb,
+		"count":      len(settings),
+		"timeZone":   settings["timeZone"],
+		"locale":     settings["locale"],
 	}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "settings get", Meta: meta, Data: data})
@@ -107,6 +112,18 @@ func runSettings(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	fmt.Fprintf(stdout, "Timezone: %v\n", settings["timeZone"])
 	fmt.Fprintf(stdout, "Locale: %v\n", settings["locale"])
 	return 0
+}
+
+func parseSettingsGetFlags(args []string) (bool, error) {
+	includeWeb := false
+	for _, arg := range args {
+		if arg == "--include-web" {
+			includeWeb = true
+			continue
+		}
+		return false, fmt.Errorf("unknown flag %q", arg)
+	}
+	return includeWeb, nil
 }
 
 func loadSyncView() (model.SyncView, error) {

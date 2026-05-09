@@ -30,6 +30,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/batch/check/0` | Full sync |
 | `GET` | `/batch/check/{checkpoint}` | Incremental sync |
 | `GET` | `/user/preferences/settings` | User settings |
+| `GET` | `/user/preferences/settings?includeWeb=true` | User settings including Web-side preferences |
 | `GET` | `/project/{projectId}/tasks` | Project task list |
 | `POST` | `/task/activity/count/all` | Due-date activity counts with body `{"action":"T_DUE"}` |
 | `GET` | `/column/project/{projectId}` | Kanban column list with names and sort order |

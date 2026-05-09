@@ -89,3 +89,26 @@ func TestCompletedTasksBuildsWebQuery(t *testing.T) {
 		t.Fatalf("tasks len = %d, want 1", len(tasks))
 	}
 }
+
+func TestSettingsSupportsIncludeWebFlag(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/user/preferences/settings" {
+			t.Fatalf("path = %s, want /user/preferences/settings", r.URL.Path)
+		}
+		if got := r.URL.Query().Get("includeWeb"); got != "true" {
+			t.Fatalf("includeWeb = %q, want true", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"locale": "zh_CN", "smartProjects": []any{}})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	settings, err := client.Settings(context.Background(), true)
+	if err != nil {
+		t.Fatalf("Settings() error = %v", err)
+	}
+	if settings["locale"] != "zh_CN" {
+		t.Fatalf("locale = %v, want zh_CN", settings["locale"])
+	}
+}

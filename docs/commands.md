@@ -57,6 +57,7 @@ dida filter list --json
 dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
 dida settings get --json
+dida settings get --include-web --json
 dida attachment quota --json
 dida reminder daily --json
 dida share contacts --json

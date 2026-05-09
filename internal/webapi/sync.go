@@ -59,9 +59,13 @@ func (c *Client) SyncSince(ctx context.Context, checkpoint int64) (*SyncPayload,
 	return payload, nil
 }
 
-func (c *Client) Settings(ctx context.Context) (map[string]any, error) {
+func (c *Client) Settings(ctx context.Context, includeWeb bool) (map[string]any, error) {
 	var out map[string]any
-	if err := c.Do(ctx, http.MethodGet, "/user/preferences/settings", nil, &out); err != nil {
+	path := "/user/preferences/settings"
+	if includeWeb {
+		path += "?includeWeb=true"
+	}
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
