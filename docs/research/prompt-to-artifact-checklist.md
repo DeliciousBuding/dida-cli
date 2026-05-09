@@ -40,23 +40,23 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Explicit request | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Tag-push GitHub Release workflow | `.github/workflows/release.yml` | done | None for current workflow. |
-| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.10` assets | done | None. |
-| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.10` assets | done | None. |
-| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.10` assets | done | Native macOS install smoke is still unavailable. |
-| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.10` assets | done | None. |
-| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.10` | done | None. |
+| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.11` assets | done | None. |
+| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.11` assets | done | None. |
+| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.11` assets | done | Native macOS install smoke is still unavailable. |
+| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.11` assets | done | None. |
+| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.11` | done | None. |
 | Release notes include install methods | `.github/workflows/release.yml` release-notes step | done | None. |
-| `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed against `v0.1.10`; macOS native smoke pending. |
-| `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed against `v0.1.10`. |
+| `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed against `v0.1.11`; macOS native smoke pending. |
+| `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed against `v0.1.11`. |
 | `DIDA_VERSION`, `DIDA_INSTALL_DIR`, `DIDA_REPO` | `install.sh`, `install.ps1`, `npm/scripts/install.js` | done | npm uses `DIDA_INSTALL_DIR` only for local smoke isolation when invoked directly; package installs into package `bin/`. |
 | Install runs `dida version` and `dida doctor --json` | `install.sh`, `install.ps1` | done | npm postinstall intentionally only downloads; wrapper commands are tested separately. |
 | README English Quickstart | `README.md`, `docs/quickstart.md` | done | Keep examples synchronized with command changes. |
 | README Chinese Quickstart | `README.zh-CN.md`, `docs/quickstart.zh-CN.md` | done | Keep examples synchronized with command changes. |
 | LLM/Agent quickstart | `docs/llm-quickstart.md` | done | Keep short and command-first. |
 | Agent warning not to paste cookies/tokens | `README.md`, `README.zh-CN.md`, `docs/quickstart*.md`, `docs/llm-quickstart.md` | done | None. |
-| npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows against `v0.1.10` and WSL Linux against `v0.1.4`; package is not published. |
-| Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.1.10`; no external tap or native install smoke yet. |
-| Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.1.10`; no external bucket or Scoop install smoke on this machine. |
+| npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows against `v0.1.11` and WSL Linux against `v0.1.4`; package is not published. |
+| Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.1.11`; no external tap or native install smoke yet. |
+| Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.1.11`; no external bucket or Scoop install smoke on this machine. |
 | winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final. |
 
 ## Verification Evidence
@@ -71,9 +71,9 @@ Recently run successfully:
 - Official MCP local dry-run smokes without `DIDA365_TOKEN`:
   `official habit create`, `official habit update`, `official habit checkin`,
   and `official focus delete`
-- Windows `install.ps1` latest smoke against `v0.1.10`
-- WSL Linux `install.sh` latest smoke against `v0.1.10`
-- Windows npm installer smoke against `v0.1.10`
+- Windows `install.ps1` latest smoke against `v0.1.11`
+- WSL Linux `install.sh` latest smoke against `v0.1.11`
+- Windows npm installer smoke against `v0.1.11`
 - WSL Linux npm installer smoke against `v0.1.4`
 - WSL Linux `install.sh` smoke against `v0.1.4`
 - Web API `auth status --verify`, `agent context`, `attachment quota`, and
@@ -87,8 +87,8 @@ Recently run successfully:
   blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
 - Homebrew/Scoop template URL and checksum static validation against
-  `v0.1.10/checksums.txt`
-- release checksum comparison against `v0.1.10/checksums.txt`
+  `v0.1.11/checksums.txt`
+- release checksum comparison against `v0.1.11/checksums.txt`
 
 Skipped or blocked verification:
 
