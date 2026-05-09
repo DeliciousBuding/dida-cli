@@ -70,7 +70,7 @@ dida official task complete-project --project <project-id> --task <task-id> --dr
 dida official habit list --json
 dida official habit sections --json
 dida official habit get <habit-id> --json
-dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
+dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --dry-run --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 dida openapi doctor --json
 dida openapi client status --json
@@ -291,14 +291,14 @@ dida official task complete-project --project <project-id> --task <task-id> --dr
 dida official habit list --json
 dida official habit sections --json
 dida official habit get <habit-id> --json
-dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --json
-dida official habit update <habit-id> --args-json "{\"name\":\"Read more\"}" --json
-dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
+dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --dry-run --json
+dida official habit update <habit-id> --args-json "{\"name\":\"Read more\"}" --dry-run --json
+dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --dry-run --json
 dida official habit checkins --habit-ids <habit-id> --from 20260501 --to 20260510 --json
 
 dida official focus get <focus-id> --type 0 --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
-dida official focus delete <focus-id> --type 0 --yes --json
+dida official focus delete <focus-id> --type 0 --dry-run --json
 ```
 
 These commands use the official MCP channel. `DIDA365_TOKEN` takes precedence,

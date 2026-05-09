@@ -1068,12 +1068,12 @@ func TestOfficialFocusFlagParsing(t *testing.T) {
 		t.Fatalf("list payload = %#v", listPayload)
 	}
 
-	deletePayload, confirmed, err := parseOfficialFocusDeleteArgs([]string{"f1", "--type", "1", "--yes"})
+	deletePayload, confirmed, dryRun, err := parseOfficialFocusDeleteArgs([]string{"f1", "--type", "1", "--yes", "--dry-run"})
 	if err != nil {
 		t.Fatalf("parseOfficialFocusDeleteArgs() error = %v", err)
 	}
-	if !confirmed || deletePayload["focus_id"] != "f1" || deletePayload["type"] != 1 {
-		t.Fatalf("delete payload = %#v confirmed = %v", deletePayload, confirmed)
+	if !confirmed || !dryRun || deletePayload["focus_id"] != "f1" || deletePayload["type"] != 1 {
+		t.Fatalf("delete payload = %#v confirmed = %v dryRun = %v", deletePayload, confirmed, dryRun)
 	}
 }
 
@@ -1107,6 +1107,26 @@ func TestOfficialTaskCompleteProjectDryRunDoesNotRequireToken(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "complete_tasks_in_project") {
 		t.Fatalf("stdout missing tool name: %s", stdout.String())
+	}
+}
+
+func TestOfficialHabitDryRunDoesNotRequireToken(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	cases := [][]string{
+		{"official", "habit", "create", "--args-json", "{\"name\":\"Read\",\"type\":\"Boolean\"}", "--dry-run", "--json"},
+		{"official", "habit", "update", "h1", "--args-json", "{\"name\":\"Read more\"}", "--dry-run", "--json"},
+		{"official", "habit", "checkin", "h1", "--date", "2026-05-10", "--value", "1", "--dry-run", "--json"},
+		{"official", "focus", "delete", "f1", "--type", "0", "--dry-run", "--json"},
+	}
+	for _, args := range cases {
+		var stdout, stderr bytes.Buffer
+		code := Run(args, "test-version", &stdout, &stderr)
+		if code != 0 {
+			t.Fatalf("Run(%v) code = %d stderr = %s stdout = %s", args, code, stderr.String(), stdout.String())
+		}
+		if !strings.Contains(stdout.String(), `"dry_run": true`) {
+			t.Fatalf("stdout missing dry_run for %v: %s", args, stdout.String())
+		}
 	}
 }
 

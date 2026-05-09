@@ -183,7 +183,7 @@ dida official task complete-project --project <project-id> --task <task-id> --dr
 dida official habit list --json
 dida official habit sections --json
 dida official habit get <habit-id> --json
-dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
+dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --dry-run --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
 
@@ -206,9 +206,10 @@ If OpenAPI client config is missing, ask the operator to run this locally:
 dida openapi client set --id <client-id> --secret-stdin --json
 ```
 
-Do not delete focus records unless the operator has identified a disposable
-record; both `dida official focus delete` and `dida openapi focus delete`
-require `--yes`.
+Preview official habit writes and focus deletes with `--dry-run` first. Do not
+delete focus records unless the operator has identified a disposable record;
+live `dida official focus delete` and `dida openapi focus delete` require
+`--yes`.
 
 ## Account Metadata
 

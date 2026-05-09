@@ -30,13 +30,13 @@ They are intentionally not interchangeable.
 | Habit list | `list_habits` | `official habit list` | live-verified | Live smoke succeeded on 2026-05-10; current account returned an empty list. |
 | Habit sections | `list_habit_sections` | `official habit sections` | live-verified | Live smoke succeeded on 2026-05-10; output was summarized by count only. |
 | Habit read | `get_habit` | `official habit get` | blocked | Command exists, but the 2026-05-10 token smoke found zero habits on the current account, so no safe known habit id is available for live read smoke. |
-| Habit create | `create_habit` | `official habit create` | implemented | Needs a reversible live habit create/update/delete plan; no delete wrapper exists yet. |
-| Habit update | `update_habit` | `official habit update` | implemented | Requires a known test habit. Current account has no habits. |
-| Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented | Requires a known test habit and reversible check-in date. Current account has no habits. |
+| Habit create | `create_habit` | `official habit create` | implemented with dry-run | Local dry-run works without a token. Live smoke needs a reversible live habit create/update plan; no delete wrapper exists yet. |
+| Habit update | `update_habit` | `official habit update` | implemented with dry-run | Local dry-run works without a token. Live update requires a known test habit. Current account has no habits. |
+| Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented with dry-run | Local dry-run works without a token. Live write requires a known test habit and reversible check-in date. Current account has no habits. |
 | Habit check-ins | `get_habit_checkins` | `official habit checkins` | implemented | Requires known habit ids and a bounded date stamp range. Current account has no habits. |
 | Focus read | `get_focus` | `official focus get --type 0|1` | blocked | Command exists, but 2026-05-10 token smokes found no type 0 or type 1 focus records in the current account, including a 365-day range. |
 | Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10; repeat 365-day smokes also succeeded and returned empty lists. |
-| Focus delete | `delete_focus` | `official focus delete --type 0|1 --yes` | implemented | Destructive; only test on a disposable focus record. |
+| Focus delete | `delete_focus` | `official focus delete --type 0|1 --yes` | implemented with dry-run | Local dry-run works without a token. Destructive live delete requires `--yes` and a disposable focus record. |
 | Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |

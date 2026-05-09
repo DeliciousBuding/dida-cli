@@ -239,6 +239,9 @@ Live evidence:
   `official task query --query today`, `official task search`, `official task
   undone`, `official task filter`, and bounded `official focus list` for both
   focus types.
+- Local dry-run previews exist for official MCP task batch writes,
+  `official habit create/update/checkin`, and `official focus delete`; these
+  do not require a saved official token.
 - Known-id habit/focus read smokes are currently blocked by account state:
   2026-05-10 token smokes found zero habits and zero focus records, including a
   365-day focus range.

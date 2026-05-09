@@ -50,6 +50,8 @@ Implemented and documented:
   tokens still take precedence over saved config.
 - First-class project reads, task search/query/filter/undone reads, batch task
   dry-run wrappers, habit wrappers, and focus wrappers.
+- Local dry-run previews exist for official MCP task batch writes, habit
+  create/update/checkin, and focus delete without requiring a saved token.
 - Promotion policy: `docs/research/official-mcp-wrapping-policy.md`.
 - Crosswalk: `docs/research/official-mcp-tool-crosswalk.md`.
 

@@ -302,6 +302,23 @@ func parseOfficialPayloadFlags(args []string) (map[string]any, error) {
 	return payload, nil
 }
 
+func parseOfficialPayloadWriteFlags(args []string) (map[string]any, bool, error) {
+	dryRun := false
+	payloadArgs := make([]string, 0, len(args))
+	for _, arg := range args {
+		if arg == "--dry-run" {
+			dryRun = true
+			continue
+		}
+		payloadArgs = append(payloadArgs, arg)
+	}
+	payload, err := parseOfficialPayloadFlags(payloadArgs)
+	if err != nil {
+		return nil, false, err
+	}
+	return payload, dryRun, nil
+}
+
 func compactOfficialTools(tools []officialmcp.Tool) []officialmcp.Tool {
 	out := make([]officialmcp.Tool, 0, len(tools))
 	for _, tool := range tools {
@@ -796,6 +813,9 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		printOfficialHabitHelp(stdout)
 		return 0
 	}
+	if handled, code := runOfficialHabitDryRun(args, jsonOut, stdout, stderr); handled {
+		return code
+	}
 
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
@@ -850,7 +870,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		return writeJSON(stdout, result)
 
 	case "create":
-		payload, err := parseHabitCreateArgs(args[1:])
+		payload, _, err := parseHabitCreateWriteArgs(args[1:])
 		if err != nil {
 			return failTyped("official habit create", "validation", err.Error(), "run: dida official habit --help", jsonOut, stdout, stderr)
 		}
@@ -868,7 +888,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return failTyped("official habit update", "validation", "usage: dida official habit update <habit-id> [--args-json <json>]", "run: dida official habit --help", jsonOut, stdout, stderr)
 		}
 		habitID := args[1]
-		payload, err := parseOfficialPayloadFlags(args[2:])
+		payload, _, err := parseOfficialPayloadWriteFlags(args[2:])
 		if err != nil {
 			return failTyped("official habit update", "validation", err.Error(), "", jsonOut, stdout, stderr)
 		}
@@ -887,7 +907,7 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 			return failTyped("official habit checkin", "validation", "usage: dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number>", "run: dida official habit --help", jsonOut, stdout, stderr)
 		}
 		habitID := args[1]
-		payload, err := parseHabitCheckinArgs(args[2:])
+		payload, _, err := parseHabitCheckinWriteArgs(args[2:])
 		if err != nil {
 			return failTyped("official habit checkin", "validation", err.Error(), "", jsonOut, stdout, stderr)
 		}
@@ -927,9 +947,9 @@ func printOfficialHabitHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "  dida official habit list [--json]")
 	fmt.Fprintln(stdout, "  dida official habit sections [--json]")
 	fmt.Fprintln(stdout, "  dida official habit get <habit-id> [--json]")
-	fmt.Fprintln(stdout, "  dida official habit create [--args-json <json>] [--json]")
-	fmt.Fprintln(stdout, "  dida official habit update <habit-id> [--args-json <json>] [--json]")
-	fmt.Fprintln(stdout, "  dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number> [--json]")
+	fmt.Fprintln(stdout, "  dida official habit create [--args-json <json>] [--dry-run] [--json]")
+	fmt.Fprintln(stdout, "  dida official habit update <habit-id> [--args-json <json>] [--dry-run] [--json]")
+	fmt.Fprintln(stdout, "  dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number> [--dry-run] [--json]")
 	fmt.Fprintln(stdout, "  dida official habit checkins --habit-ids <ids> --from YYYYMMDD --to YYYYMMDD [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Manage habits using the official MCP API.")
@@ -939,37 +959,93 @@ func parseHabitCreateArgs(args []string) (map[string]any, error) {
 	return parseOfficialPayloadFlags(args)
 }
 
+func parseHabitCreateWriteArgs(args []string) (map[string]any, bool, error) {
+	payload, dryRun, err := parseOfficialPayloadWriteFlags(args)
+	if err != nil {
+		return nil, false, err
+	}
+	if len(payload) == 0 {
+		return nil, false, fmt.Errorf("missing --args-json or --args-file")
+	}
+	return payload, dryRun, nil
+}
+
 func parseHabitCheckinArgs(args []string) (map[string]any, error) {
+	payload, _, err := parseHabitCheckinWriteArgs(args)
+	return payload, err
+}
+
+func parseHabitCheckinWriteArgs(args []string) (map[string]any, bool, error) {
 	payload := map[string]any{}
+	dryRun := false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--date":
 			if i+1 >= len(args) {
-				return nil, fmt.Errorf("--date requires a value in YYYY-MM-DD format")
+				return nil, false, fmt.Errorf("--date requires a value in YYYY-MM-DD format")
 			}
 			payload["date"] = args[i+1]
 			i++
 		case "--value":
 			if i+1 >= len(args) {
-				return nil, fmt.Errorf("--value requires a numeric value")
+				return nil, false, fmt.Errorf("--value requires a numeric value")
 			}
 			var value float64
 			if _, err := fmt.Sscanf(args[i+1], "%f", &value); err != nil {
-				return nil, fmt.Errorf("--value must be a number")
+				return nil, false, fmt.Errorf("--value must be a number")
 			}
 			payload["value"] = value
 			i++
+		case "--dry-run":
+			dryRun = true
 		default:
-			return nil, fmt.Errorf("unknown flag %q", args[i])
+			return nil, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
 	if payload["date"] == nil {
-		return nil, fmt.Errorf("missing required --date flag")
+		return nil, false, fmt.Errorf("missing required --date flag")
 	}
 	if payload["value"] == nil {
-		return nil, fmt.Errorf("missing required --value flag")
+		return nil, false, fmt.Errorf("missing required --value flag")
 	}
-	return payload, nil
+	return payload, dryRun, nil
+}
+
+func runOfficialHabitDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
+	if len(args) == 0 || !officialHasFlag(args[1:], "--dry-run") {
+		return false, 0
+	}
+	switch args[0] {
+	case "create":
+		payload, _, err := parseHabitCreateWriteArgs(args[1:])
+		if err != nil {
+			return true, failTyped("official habit create", "validation", err.Error(), "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "official habit create", Data: map[string]any{"dry_run": true, "tool": "create_habit", "arguments": payload}})
+	case "update":
+		if len(args) < 2 {
+			return true, failTyped("official habit update", "validation", "usage: dida official habit update <habit-id> [--args-json <json>] [--dry-run]", "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		payload, _, err := parseOfficialPayloadWriteFlags(args[2:])
+		if err != nil {
+			return true, failTyped("official habit update", "validation", err.Error(), "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		payload["habitId"] = args[1]
+		return true, writeJSON(stdout, envelope{OK: true, Command: "official habit update", Data: map[string]any{"dry_run": true, "tool": "update_habit", "arguments": payload}})
+	case "checkin":
+		if len(args) < 2 {
+			return true, failTyped("official habit checkin", "validation", "usage: dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number> [--dry-run]", "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		payload, _, err := parseHabitCheckinWriteArgs(args[2:])
+		if err != nil {
+			return true, failTyped("official habit checkin", "validation", err.Error(), "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		payload["habitId"] = args[1]
+		arguments := map[string]any{"checkins": []any{payload}}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "official habit checkin", Data: map[string]any{"dry_run": true, "tool": "upsert_habit_checkins", "arguments": arguments}})
+	default:
+		return true, failTyped("official habit", "validation", "--dry-run is only supported for habit create, update, and checkin", "run: dida official habit --help", jsonOut, stdout, stderr)
+	}
 }
 
 func parseOfficialHabitCheckinsArgs(args []string) (map[string]any, error) {
@@ -1036,6 +1112,9 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		printOfficialFocusHelp(stdout)
 		return 0
 	}
+	if handled, code := runOfficialFocusDryRun(args, jsonOut, stdout, stderr); handled {
+		return code
+	}
 
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
@@ -1078,7 +1157,7 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		return writeJSON(stdout, result)
 
 	case "delete":
-		payload, confirmed, err := parseOfficialFocusDeleteArgs(args[1:])
+		payload, confirmed, _, err := parseOfficialFocusDeleteArgs(args[1:])
 		if err != nil {
 			return failTyped("official focus delete", "validation", err.Error(), "", jsonOut, stdout, stderr)
 		}
@@ -1103,7 +1182,7 @@ func printOfficialFocusHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
 	fmt.Fprintln(stdout, "  dida official focus get <focus-id> --type 0|1 [--json]")
 	fmt.Fprintln(stdout, "  dida official focus list --from-time RFC3339 --to-time RFC3339 --type 0|1 [--json]")
-	fmt.Fprintln(stdout, "  dida official focus delete <focus-id> --type 0|1 --yes [--json]")
+	fmt.Fprintln(stdout, "  dida official focus delete <focus-id> --type 0|1 --yes [--dry-run] [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Manage focus sessions using the official MCP API. Type 0 is Pomodoro; type 1 is timing.")
 }
@@ -1136,37 +1215,54 @@ func parseOfficialFocusIDTypeArgs(args []string) (map[string]any, error) {
 	return map[string]any{"focus_id": focusID, "type": focusType}, nil
 }
 
-func parseOfficialFocusDeleteArgs(args []string) (map[string]any, bool, error) {
+func runOfficialFocusDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
+	if len(args) == 0 || !officialHasFlag(args[1:], "--dry-run") {
+		return false, 0
+	}
+	if args[0] != "delete" {
+		return true, failTyped("official focus", "validation", "--dry-run is only supported for focus delete", "run: dida official focus --help", jsonOut, stdout, stderr)
+	}
+	payload, _, _, err := parseOfficialFocusDeleteArgs(args[1:])
+	if err != nil {
+		return true, failTyped("official focus delete", "validation", err.Error(), "run: dida official focus --help", jsonOut, stdout, stderr)
+	}
+	return true, writeJSON(stdout, envelope{OK: true, Command: "official focus delete", Data: map[string]any{"dry_run": true, "tool": "delete_focus", "arguments": payload}})
+}
+
+func parseOfficialFocusDeleteArgs(args []string) (map[string]any, bool, bool, error) {
 	if len(args) == 0 {
-		return nil, false, fmt.Errorf("focus id is required")
+		return nil, false, false, fmt.Errorf("focus id is required")
 	}
 	focusID := args[0]
 	confirmed := false
+	dryRun := false
 	focusType := 0
 	hasType := false
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--yes":
 			confirmed = true
+		case "--dry-run":
+			dryRun = true
 		case "--type":
 			if i+1 >= len(args) {
-				return nil, false, fmt.Errorf("--type requires 0 or 1")
+				return nil, false, false, fmt.Errorf("--type requires 0 or 1")
 			}
 			parsed, err := parseFocusType(args[i+1])
 			if err != nil {
-				return nil, false, err
+				return nil, false, false, err
 			}
 			focusType = parsed
 			hasType = true
 			i++
 		default:
-			return nil, false, fmt.Errorf("unknown flag %q", args[i])
+			return nil, false, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
 	if !hasType {
-		return nil, false, fmt.Errorf("--type 0|1 is required")
+		return nil, false, false, fmt.Errorf("--type 0|1 is required")
 	}
-	return map[string]any{"focus_id": focusID, "type": focusType}, confirmed, nil
+	return map[string]any{"focus_id": focusID, "type": focusType}, confirmed, dryRun, nil
 }
 
 func parseFocusListArgs(args []string) (map[string]any, error) {
