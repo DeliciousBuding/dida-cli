@@ -30,15 +30,15 @@ They are intentionally not interchangeable.
 | Habit update | `update_habit` | `official habit update` | implemented | Requires a known test habit. |
 | Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented | Requires a known test habit and reversible check-in date. |
 | Focus read | `get_focus` | `official focus get` | implemented | Needs a known focus id. |
-| Focus range | `get_focuses_by_time` | `official focus list` | implemented | Safe read; should be live-smoked with a bounded range. |
+| Focus range | `get_focuses_by_time` | `official focus list` | live-verified | Bounded range smoke succeeded on 2026-05-10; output was treated as summary-only. |
 | Focus delete | `delete_focus` | `official focus delete --yes` | implemented | Destructive; only test on a disposable focus record. |
-| Project detail | `get_project_by_id` | `official project get` | implemented | Needs a known project id for live read smoke. |
-| Project data | `get_project_with_undone_tasks` | `official project data` | implemented | Needs a known project id for live read smoke. |
-| Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | implemented | Safe read; live-smoke after MCP token is available. |
+| Project detail | `get_project_by_id` | `official project get` | implemented | `official project data` was live-smoked with a known project; run `project get` when exact metadata-only verification is needed. |
+| Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
+| Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |
 | Batch task add | `batch_add_tasks` | `official task batch-add` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
 | Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
 | Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | implemented | Local `--dry-run` preview works without token; live write needs known disposable tasks. |
-| Task search | `search_task` | `official task search` | implemented | Safe read; live-smoke after MCP token is available. |
+| Task search | `search_task` | `official task search` | implemented | Safe read; still needs a query-specific live smoke. |
 | Task undone by date | `list_undone_tasks_by_date` | `official task undone` | implemented | Safe read; live-smoke with bounded date range. |
 | Task filtering | `filter_tasks` | `official task filter` | implemented | Safe read; live-smoke with narrow status/project filters. |
 
@@ -61,8 +61,8 @@ They are intentionally not interchangeable.
 ## Current Priority
 
 1. Live-verify `openapi login` with a real authorization code.
-2. Live-smoke `official focus list` because it is a bounded read.
-3. Live-smoke MCP project and task wrappers because they improve agent context without
-   private Web API risk.
+2. Live-smoke `official task search`, `official task undone`, and
+   `official task filter` with narrow queries.
+3. Live-smoke MCP writes only after disposable project/task/habit targets exist.
 4. Live-smoke OpenAPI project/task/focus/habit wrappers once OAuth token
    persistence is proven on the current account.

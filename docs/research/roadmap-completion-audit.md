@@ -49,8 +49,11 @@ Implemented and documented:
 
 Not complete:
 
-- Live reads and writes need `DIDA365_TOKEN` in the runtime environment.
-- Destructive focus delete and task batch writes need disposable live targets.
+- Token-based health, tools, project list, project data, task time-query, and
+  focus range reads were live-smoked on 2026-05-10 without committing private
+  payloads.
+- Destructive focus delete and task batch writes still need disposable live
+  targets.
 
 ### Official OpenAPI
 
@@ -101,18 +104,19 @@ Remaining:
 
 ## Current Blocking Preconditions
 
-1. `DIDA365_TOKEN` for official MCP live smoke.
-2. OpenAPI developer app redirect URL configured to match local callback.
-3. Successful OpenAPI OAuth approval to save an access token.
-4. Pro account or trace for task activity detail.
-5. Disposable files/tasks/projects for attachment and write-flow smoke tests.
+1. OpenAPI developer app redirect URL configured to match local callback.
+2. Successful OpenAPI OAuth approval to save an access token.
+3. Pro account or trace for task activity detail.
+4. Disposable files/tasks/projects for attachment and write-flow smoke tests.
+5. Disposable targets for Official MCP write smoke.
 
 ## Next Best Actions
 
 1. Run `dida openapi client set --id <client-id> --secret-stdin --json`
    locally, then complete `dida openapi login --json`.
 2. Live-smoke `dida openapi project list --json` after OAuth token persistence.
-3. Set `DIDA365_TOKEN` locally and live-smoke official MCP read commands.
+3. Live-smoke remaining Official MCP read filters with narrow queries, then
+   writes only with disposable targets.
 4. Capture or test the Web API attachment upload flow with disposable data.
 5. Keep `docs/api-coverage.md`, `docs/research/*`, schema, skill, and README
    synchronized with every new command.

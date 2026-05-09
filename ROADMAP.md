@@ -212,6 +212,17 @@ Acceptance:
 - broad official task writes must support local `--dry-run` previews before
   requiring `DIDA365_TOKEN`
 
+Live evidence:
+
+- 2026-05-10 token-based smoke succeeded for `official doctor`,
+  `official tools`, generic `list_projects`, `official project data`,
+  `official task query --query today`, and bounded `official focus list`.
+- Remaining read smokes: `official project get`, `official task search`,
+  `official task undone`, `official task filter`, and known-id habit/focus
+  reads.
+- Write smokes remain blocked until disposable project/task/habit/focus targets
+  exist.
+
 ### B2. MCP Contract Layer
 
 - keep `official call` generic
@@ -426,7 +437,7 @@ Before claiming an API surface is done:
 If another agent takes over, the best sequence is:
 
 1. Finish OpenAPI live OAuth verification
-2. Live-smoke promoted official MCP tools, especially task query and batch dry-run surfaces
+2. Live-smoke remaining promoted official MCP read filters and safe write dry-run surfaces
 3. Close Web API read gaps
 4. Map Web API write gaps with evidence
 5. Polish docs and command ergonomics
@@ -436,7 +447,7 @@ If another agent takes over, the best sequence is:
 Top five next tasks:
 
 1. Finish and live-verify `openapi login`
-2. Live-smoke official MCP project, task, habit, and focus wrappers where a safe target exists
+2. Live-smoke remaining official MCP task filters and known-id habit/focus reads where safe targets exist
 3. Capture a successful Web API task activity request with a Pro account or trace
 4. Map attachment metadata and download/upload flows from real Web API evidence
 5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available
