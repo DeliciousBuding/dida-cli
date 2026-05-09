@@ -436,6 +436,36 @@ func TestSchemaShowTaskCreateJSON(t *testing.T) {
 	}
 }
 
+func TestSchemaAuthMetadataForOfficialAndOpenAPI(t *testing.T) {
+	cases := map[string]bool{
+		"official.doctor":        true,
+		"official.task.batchAdd": true,
+		"openapi.doctor":         false,
+		"openapi.clientSet":      false,
+		"openapi.authUrl":        true,
+		"openapi.projectList":    true,
+		"openapi.taskCreate":     true,
+	}
+	for id, want := range cases {
+		t.Run(id, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run([]string{"schema", "show", id, "--json"}, "test-version", &stdout, &stderr)
+			if code != 0 {
+				t.Fatalf("Run() code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			data := payload["data"].(map[string]any)
+			schema := data["schema"].(map[string]any)
+			if schema["authRequired"] != want {
+				t.Fatalf("authRequired = %v, want %v", schema["authRequired"], want)
+			}
+		})
+	}
+}
+
 func TestSchemaShowUnknownJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"schema", "show", "missing.id", "--json"}, "test-version", &stdout, &stderr)

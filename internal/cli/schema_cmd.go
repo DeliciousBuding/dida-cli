@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io"
+	"strings"
 )
 
 type commandSchema struct {
@@ -70,7 +71,7 @@ func runSchemaShow(id string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 }
 
 func didaCommandSchemas() []commandSchema {
-	return []commandSchema{
+	schemas := []commandSchema{
 		{ID: "auth.login", Title: "Browser or manual cookie login", Resource: "auth", Operation: "auth", Command: "dida auth login --browser --json", Status: "stable", AuthRequired: false, Notes: "Stores only the Dida365 t cookie under the local config directory."},
 		{ID: "auth.status", Title: "Check local auth", Resource: "auth", Operation: "read", Command: "dida auth status --verify --json", HTTP: []string{"GET /batch/check/0"}, Status: "stable", AuthRequired: false},
 		{ID: "doctor", Title: "Check CLI, config, auth, and endpoint health", Resource: "system", Operation: "read", Command: "dida doctor --json", Status: "stable", AuthRequired: false},
@@ -188,5 +189,25 @@ func didaCommandSchemas() []commandSchema {
 		{ID: "habit.checkins", Title: "Read habit check-ins", Resource: "habit", Operation: "read", Command: "dida habit checkins --habit <habit-id> --after-stamp <millis> --json", HTTP: []string{"POST /habitCheckins/query"}, Status: "stable", AuthRequired: true, Notes: "POST read; accepts repeated --habit and optional afterStamp cursor."},
 		{ID: "quadrant.list", Title: "Group active tasks into Eisenhower quadrants", Resource: "quadrant", Operation: "read", Command: "dida quadrant list --json", HTTP: []string{"GET /batch/check/0"}, Status: "stable", AuthRequired: true},
 		{ID: "raw.get", Title: "Read-only raw Web API probe", Resource: "raw", Operation: "read", Command: "dida raw get /path --api-version v1|v2 --json", HTTP: []string{"GET <path>"}, Status: "stable", AuthRequired: true, Notes: "Raw writes are intentionally unavailable."},
+	}
+	applyChannelAuthMetadata(schemas)
+	return schemas
+}
+
+func applyChannelAuthMetadata(schemas []commandSchema) {
+	openAPINoAuth := map[string]bool{
+		"openapi.doctor":       true,
+		"openapi.clientStatus": true,
+		"openapi.clientSet":    true,
+		"openapi.clientClear":  true,
+	}
+	for i := range schemas {
+		id := schemas[i].ID
+		if strings.HasPrefix(id, "official.") {
+			schemas[i].AuthRequired = true
+		}
+		if strings.HasPrefix(id, "openapi.") && !openAPINoAuth[id] {
+			schemas[i].AuthRequired = true
+		}
 	}
 }
