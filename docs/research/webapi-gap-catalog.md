@@ -90,8 +90,10 @@ Current implication:
 Known status:
 
 - quota reads are implemented
-- upload and attach chains are not mapped
-- multipart and file-transfer behavior still need evidence
+- comment attachment paths and create payload shape are partially mapped in
+  [webapi-attachment-flow-notes.md](webapi-attachment-flow-notes.md)
+- upload multipart field names, response shape, task-level association, and
+  cleanup behavior still need evidence
 
 ### Collaboration Writes
 

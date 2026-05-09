@@ -133,6 +133,13 @@ Acceptance:
 - attach to comment
 - download / reference model
 
+Current evidence:
+
+- comment attachment upload/display paths and comment create payload shape are
+  documented in `docs/research/webapi-attachment-flow-notes.md`
+- multipart field names, upload response shape, task-level attachment
+  association, and cleanup behavior remain unverified
+
 Acceptance:
 
 - multipart flow fully mapped
