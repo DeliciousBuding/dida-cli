@@ -1,0 +1,125 @@
+---
+name: dida-cli
+description: Use DidaCLI to operate Dida365/TickTick from agents. Trigger whenever the user asks to read, create, update, complete, delete, move, organize, or audit Dida365 tasks, projects, folders, tags, completed history, or kanban columns. Prefer this skill over browser automation because DidaCLI provides stable JSON, auth checks, dry-run writes, and explicit destructive confirmations.
+---
+
+# DidaCLI Agent Skill
+
+Use the `dida` command for Dida365/TickTick operations. It is built for agents: every `--json` response has a stable envelope, writes support `--dry-run`, and destructive actions require `--yes`.
+
+## First Checks
+
+Run these before doing useful work:
+
+```bash
+dida doctor --json
+dida auth status --verify --json
+```
+
+If auth is missing or expired, ask the operator to run:
+
+```bash
+dida auth login --browser --json
+```
+
+Never ask the user to paste cookies, browser tokens, or raw `t=` values into chat. If manual cookie import is unavoidable, tell the operator to run `dida auth cookie set --token-stdin` locally.
+
+## Read Context
+
+Build context with bounded JSON commands:
+
+```bash
+dida project list --json
+dida folder list --json
+dida tag list --json
+dida +today --json
+dida task upcoming --days 14 --limit 50 --json
+dida completed today --json
+```
+
+Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
+
+## Task Writes
+
+Preview generated task writes first:
+
+```bash
+dida task create --project <project-id> --title "Example" --dry-run --json
+dida task update <task-id> --project <project-id> --title "New title" --dry-run --json
+dida task move <task-id> --from <project-id> --to <project-id> --dry-run --json
+dida task parent <task-id> --parent <parent-task-id> --project <project-id> --dry-run --json
+```
+
+Execute narrow writes only after the preview matches intent:
+
+```bash
+dida task create --project <project-id> --title "Example" --json
+dida task update <task-id> --project <project-id> --title "New title" --json
+dida task complete <task-id> --project <project-id> --json
+```
+
+Deletes require explicit confirmation:
+
+```bash
+dida task delete <task-id> --project <project-id> --dry-run --json
+dida task delete <task-id> --project <project-id> --yes --json
+```
+
+## Resource Writes
+
+Use high-level resource commands before raw API probes:
+
+```bash
+dida project create --name "Inbox review" --dry-run --json
+dida project update <project-id> --name "New name" --dry-run --json
+dida project delete <project-id> --yes --json
+
+dida folder create --name "Work" --dry-run --json
+dida folder update <folder-id> --name "Work archive" --dry-run --json
+dida folder delete <folder-id> --yes --json
+
+dida tag create planning --color "#147d4f" --dry-run --json
+dida tag rename planning planning-next --dry-run --json
+dida tag merge old-tag new-tag --yes --json
+dida tag delete old-tag --yes --json
+```
+
+After `tag merge`, list tags again if the goal is to retire the source tag. The observed private endpoint can leave the source tag object present, so explicit `tag delete` may still be needed.
+
+Column support is intentionally conservative:
+
+```bash
+dida column list <project-id> --json
+dida column create --project <project-id> --name "Doing" --dry-run --json
+```
+
+Do not claim column update/delete support unless the CLI exposes those commands.
+
+## Error Handling
+
+If a JSON command returns `ok: false`, surface `error.message` and `error.hint` to the operator. Do not retry destructive operations automatically.
+
+Example error shape:
+
+```json
+{
+  "ok": false,
+  "command": "task delete",
+  "error": {
+    "type": "confirmation_required",
+    "message": "task delete requires --yes",
+    "hint": "preview first with: dida task delete <task-id> --project <project-id> --dry-run"
+  }
+}
+```
+
+## Raw Escape Hatch
+
+Use raw reads only when a high-level command is missing:
+
+```bash
+dida raw get /batch/check/0 --json
+dida raw get /user/preferences/settings --json
+```
+
+Raw writes are intentionally unavailable. Add a first-class command with tests instead of tunneling writes through raw calls.

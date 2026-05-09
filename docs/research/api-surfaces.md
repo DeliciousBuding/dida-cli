@@ -37,12 +37,12 @@ Important existing endpoints:
 ### Client Layers
 
 - `webapi.Client`: HTTP transport, auth headers, endpoint path construction, error decoding.
-- `webapi.SyncService`: full sync and settings.
-- `webapi.CompletedService`: completed task queries.
-- `webapi.TaskService`: create/update/complete/delete/move/subtask.
-- `webapi.ProjectService`: project/folder/column operations.
-- `webapi.TagService`: tag list/create/rename/merge/delete.
-- `webapi.RawService`: GET-only endpoint probe.
+- `internal/webapi/sync.go`: full sync, settings, and completed task queries.
+- `internal/webapi/tasks.go`: task create/update/complete/delete.
+- `internal/webapi/resources.go`: task move/subtask, project CRUD, folder CRUD, tag CRUD, and experimental column create.
+- `internal/cli/*.go`: stable command envelope, dry-run previews, and destructive confirmation gates.
+
+The old Doris/OpenClaw TypeScript implementation may be kept locally under ignored `data/private/reference/dida365-ai-tools/` for comparison. Do not commit that reference tree or copied live payloads.
 
 ### Header Compatibility
 

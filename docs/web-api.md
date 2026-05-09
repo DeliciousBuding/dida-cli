@@ -54,6 +54,15 @@ Date-only `from/to` values have produced HTTP 500 on the observed CN Web API.
 | Method | Path | Purpose |
 |---|---|---|
 | `POST` | `/batch/task` | Create, update, complete, delete tasks |
+| `POST` | `/batch/taskProject` | Move tasks between projects |
+| `POST` | `/batch/taskParent` | Set task parent/subtask relationship |
+| `POST` | `/batch/project` | Create, update, delete projects |
+| `POST` | `/batch/projectGroup` | Create, update, delete project folders |
+| `POST` | `/batch/tag` | Create and update tags |
+| `PUT` | `/tag/rename` | Rename a tag |
+| `PUT` | `/tag/merge` | Merge one tag into another |
+| `DELETE` | `/tag?name=...` | Delete a tag |
+| `POST` | `/column` | Create a kanban column; experimental |
 
 Task operation shapes:
 
@@ -63,6 +72,29 @@ Task operation shapes:
 {"update":[{"id":"...","projectId":"...","status":2}]}
 {"delete":[{"taskId":"...","projectId":"..."}]}
 ```
+
+Resource operation shapes:
+
+```json
+{"add":[{"id":"...","name":"...","viewMode":"list","kind":"TASK"}]}
+{"update":[{"id":"...","name":"..."}]}
+{"delete":["project-or-folder-id"]}
+{"add":[{"name":"tag-name","color":"#147d4f"}]}
+{"name":"old-tag","newName":"new-tag"}
+{"from":"old-tag","to":"new-tag"}
+{"projectId":"...","name":"Doing"}
+```
+
+Task relationship shapes:
+
+```json
+[{"taskId":"...","fromProjectId":"...","toProjectId":"..."}]
+[{"taskId":"...","parentId":"...","projectId":"..."}]
+```
+
+Column update/delete endpoints are not yet documented in this CLI. Do not add first-class commands until request shapes are observed and covered by tests.
+
+Observed tag merge behavior: the endpoint can return success while the source tag remains listed. Treat merge and delete as separate operations.
 
 ## Compatibility Rules
 

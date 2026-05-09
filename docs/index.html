@@ -393,7 +393,7 @@
           <h1>DidaCLI</h1>
           <p class="subtitle">
             A command line client built for agents: stable JSON, browser login,
-            full task CRUD, and a private Web API layer that stays explicit.
+            task and resource CRUD, and a private Web API layer that stays explicit.
           </p>
           <div class="cta-row">
             <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">View on GitHub</a>
@@ -433,7 +433,7 @@
           </div>
           <div class="feature">
             <b>Web API coverage</b>
-            <p>Reads sync, settings, project tasks, completed history, and writes through `/batch/task`.</p>
+            <p>Reads sync, settings, projects, folders, tags, completed history, and writes through explicit resource endpoints.</p>
           </div>
           <div class="feature">
             <b>Practical safety</b>
@@ -463,7 +463,7 @@
               <span>02</span>
               <div>
                 <b>Build context</b>
-                <p>Use `project list`, `+today`, `upcoming`, and `completed today` before writing.</p>
+                <p>Use `project list`, `folder list`, `tag list`, `+today`, `upcoming`, and `completed today` before writing.</p>
               </div>
             </div>
             <div class="step">
@@ -489,9 +489,12 @@
           <div class="code-panel">
             <pre>dida auth status --verify --json
 dida project list --json
+dida folder list --json
+dida tag list --json
 dida task upcoming --days 14 --json
 dida completed list --from 2026-05-01 --to 2026-05-09 --json
 dida task create --project &lt;id&gt; --title "Plan review" --json
+dida project create --name "Agent staging" --dry-run --json
 dida task delete &lt;task-id&gt; --project &lt;id&gt; --yes --json</pre>
           </div>
         </div>
@@ -506,6 +509,7 @@ dida task delete &lt;task-id&gt; --project &lt;id&gt; --yes --json</pre>
         <div class="cta-row" style="justify-content: center">
           <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">Get the source</a>
           <a class="button" href="agent-usage.md">Agent guide</a>
+          <a class="button" href="skill-installation.md">Install skill</a>
         </div>
       </section>
     </main>

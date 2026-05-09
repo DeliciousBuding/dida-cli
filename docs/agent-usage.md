@@ -21,6 +21,8 @@ Do not ask the user to paste cookies into chat.
 
 ```bash
 dida project list --json
+dida folder list --json
+dida tag list --json
 dida +today --json
 dida task upcoming --days 14 --limit 50 --json
 dida completed today --json
@@ -46,6 +48,23 @@ Delete requires explicit confirmation:
 dida task delete <task-id> --project <project-id> --dry-run --json
 dida task delete <task-id> --project <project-id> --yes --json
 ```
+
+The same pattern applies to resources:
+
+```bash
+dida project create --name "Agent staging" --dry-run --json
+dida folder create --name "Agent staging" --dry-run --json
+dida tag create agent-staging --dry-run --json
+dida project delete <project-id> --yes --json
+dida folder delete <folder-id> --yes --json
+dida tag delete agent-staging --yes --json
+```
+
+Use `dida column create` only when the operator accepts that column support is based on an experimental private endpoint. The CLI does not expose column update/delete yet.
+
+## Repo Skill
+
+This repository includes `skills/dida-cli/SKILL.md` for Codex, Claude Code, OpenClaw, and Hermes Agent. Install instructions are in [skill-installation.md](skill-installation.md).
 
 ## Error Handling
 
