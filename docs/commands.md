@@ -2,6 +2,8 @@
 
 This page documents the stable command surface. Prefer `--json` when calling DidaCLI from agents or scripts.
 
+Use `--compact` or `--brief` on task-heavy reads when an agent only needs IDs, titles, dates, priority, status, column, and tags. Compact output omits large text, checklist, reminder, and raw fields.
+
 ## Auth
 
 ```bash
@@ -18,11 +20,12 @@ Credentials are stored in `~/.dida-cli/`. Full cookie values are never printed.
 
 ```bash
 dida project list --json
-dida project tasks <project-id> --json
+dida project tasks <project-id> --compact --json
 dida project columns <project-id> --json
 dida folder list --json
 dida tag list --json
 dida column list <project-id> --json
+dida comment list --project <project-id> --task <task-id> --json
 dida settings get --json
 ```
 
@@ -30,12 +33,12 @@ dida settings get --json
 
 ```bash
 dida +today --json
-dida task today --json
-dida task list --filter today --limit 20 --json
-dida task list --filter all --limit 50 --json
+dida task today --compact --json
+dida task list --filter today --limit 20 --compact --json
+dida task list --filter all --limit 50 --compact --json
 dida task get <task-id> --json
-dida task search --query <text> --limit 20 --json
-dida task upcoming --days 14 --limit 50 --json
+dida task search --query <text> --limit 20 --compact --json
+dida task upcoming --days 14 --limit 50 --compact --json
 dida quadrant list --json
 dida quadrant view Q2 --json
 ```
@@ -108,7 +111,20 @@ dida column create --project <project-id> --name "Doing" --dry-run --json
 dida column create --project <project-id> --name "Doing" --json
 ```
 
-Column create is backed by an observed private Web API endpoint. Column update/delete commands are intentionally not exposed until those endpoints are verified.
+Column list is backed by `GET /column/project/{projectId}`. Column create is backed by an observed private Web API endpoint. Column update/delete/order commands are intentionally not exposed until payloads are verified.
+
+## Comments
+
+```bash
+dida comment list --project <project-id> --task <task-id> --json
+dida comment create --project <project-id> --task <task-id> --text "Looks good" --dry-run --json
+dida comment create --project <project-id> --task <task-id> --text "Looks good" --json
+dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text "Updated" --dry-run --json
+dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --dry-run --json
+dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
+```
+
+Comment attachments are intentionally not exposed until the multipart upload and attach flow is verified.
 
 Observed merge behavior: `tag merge` moves associations through the private endpoint but may leave the source tag object present. Delete the source tag explicitly when the intended outcome is full retirement.
 
@@ -118,7 +134,7 @@ Observed merge behavior: `tag merge` moves associations through the private endp
 dida completed today --json
 dida completed yesterday --json
 dida completed week --json
-dida completed list --from 2026-05-01 --to 2026-05-09 --limit 100 --json
+dida completed list --from 2026-05-01 --to 2026-05-09 --limit 100 --compact --json
 ```
 
 ## Sync

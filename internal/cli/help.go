@@ -26,6 +26,7 @@ Commands:
   folder       Project folder CRUD
   tag          Tag discovery and CRUD
   column       Kanban column discovery and experimental create
+  comment      Task comment reads and writes
   task         Task reads and writes
   raw          Raw read-only API escape hatch
   version      Print version
@@ -91,10 +92,10 @@ Usage:
 func printCompletedHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida completed today [--json]
-  dida completed yesterday [--json]
-  dida completed week [--json]
-  dida completed list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
+  dida completed today [--compact] [--json]
+  dida completed yesterday [--compact] [--json]
+  dida completed week [--compact] [--json]
+  dida completed list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--compact] [--json]
 `))
 }
 
@@ -105,7 +106,7 @@ Usage:
   dida project create --name <name> [--group <folder-id>] [--dry-run] [--json]
   dida project update <project-id> [--name <name>] [--group <folder-id>] [--dry-run] [--json]
   dida project delete <project-id> --yes [--dry-run] [--json]
-  dida project tasks <project-id> [--json]
+  dida project tasks <project-id> [--compact] [--json]
   dida project columns <project-id> [--json]
 `))
 }
@@ -113,10 +114,10 @@ Usage:
 func printTaskHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida task today [--json] [--limit N]
-  dida task list [--json] [--filter today|all] [--limit N]
-  dida task search --query <text> [--limit N] [--json]
-  dida task upcoming [--days N] [--limit N] [--json]
+  dida task today [--json] [--limit N] [--compact]
+  dida task list [--json] [--filter today|all] [--limit N] [--compact]
+  dida task search --query <text> [--limit N] [--compact] [--json]
+  dida task upcoming [--days N] [--limit N] [--compact] [--json]
   dida task get <task-id> [--json]
   dida task create --project <project-id> --title <title> [task fields...] [--dry-run] [--json]
   dida task update <task-id> --project <project-id> [task fields...] [--dry-run] [--json]
@@ -124,7 +125,10 @@ Usage:
   dida task delete <task-id> --project <project-id> --yes [--dry-run] [--json]
   dida task move <task-id> --from <project-id> --to <project-id> [--dry-run] [--json]
   dida task parent <task-id> --parent <task-id> --project <project-id> [--dry-run] [--json]
-  dida +today [--json] [--limit N]
+  dida +today [--json] [--limit N] [--compact]
+
+Use --compact (or --brief) for agent reads that should omit large text, checklist,
+reminder, and raw fields.
 
 Task fields:
   --content <text>        Task content
@@ -175,6 +179,18 @@ Usage:
   dida column create --project <project-id> --name <name> [--dry-run] [--json]
 
 Column create uses an experimental private Web API endpoint. Update/delete are not exposed until verified.
+`))
+}
+
+func printCommentHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida comment list --project <project-id> --task <task-id> [--json]
+  dida comment create --project <project-id> --task <task-id> --text <text> [--dry-run] [--json]
+  dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text <text> [--dry-run] [--json]
+  dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes [--dry-run] [--json]
+
+Comment attachments are not exposed until the multipart upload flow is verified.
 `))
 }
 

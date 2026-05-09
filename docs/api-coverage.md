@@ -12,7 +12,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Settings | `GET /user/preferences/settings` | `settings get` | Stable | Live read |
 | Completed tasks | `GET /project/all/completed` | `completed today/yesterday/week/list` | Stable | Unit query test and live read |
 | Project task list | `GET /project/{projectId}/tasks` | `project tasks <project-id>` | Stable | Unit endpoint test and live read |
-| Project columns | inferred from task `columnId` | `project columns`, `column list` | Stable read | Live read; names unavailable from observed sync |
+| Project columns | `GET /column/project/{projectId}` | `project columns`, `column list` | Stable read | Unit endpoint test and live read |
 | Task CRUD | `POST /batch/task` | `task create/update/complete/delete` | Stable | Unit request tests and live reversible smoke |
 | Task advanced fields | `/batch/task` fields | `--content`, `--desc`, `--start`, `--due`, `--timezone`, `--tag`, `--tags`, `--item`, `--column`, `--reminder`, `--repeat*`, `--all-day`, `--floating`, `--priority 0` | Stable | Unit request tests and live reversible smoke |
 | Task move | `POST /batch/taskProject` | `task move` | Stable | Unit request tests and live reversible smoke |
@@ -24,6 +24,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Tag merge | `PUT /tag/merge` | `tag merge --yes` | Stable with caveat | Unit request tests and live smoke; source tag may remain |
 | Tag delete | `DELETE /tag?name=...` | `tag delete --yes` | Stable | Unit URL escaping test and live reversible smoke |
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
+| Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke |
 | Raw read | any GET path under base URL | `raw get` | Stable read-only | Live reads |
 | Quadrant view | derived from sync | `quadrant list/view` | Stable derived command | Unit classifier test and live read |
 
@@ -31,10 +32,10 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 
 These surfaces are visible in payloads or product behavior but do not yet have verified command coverage:
 
-- Column update/delete: endpoint and rollback behavior not verified.
-- Named column list: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API; current column read is inferred from task `columnId`.
+- Column update/delete/order: exact `/batch/columnProject` endpoint is visible in the webapp bundle, but add/update/delete/order body shapes and rollback behavior are not verified.
+- Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API. Use `GET /column/project/{projectId}` instead.
 - Attachments/media upload: payloads expose attachment metadata, but upload and attach flow has not been mapped.
-- Comments: payloads expose `commentCount`, but comment endpoints are not mapped.
+- Comment attachments: comment CRUD is mapped, but multipart upload and attachment body flow are not exposed yet.
 - Collaboration/team permissions: project payloads expose team and permission fields, but multi-user behavior is not mapped.
 - Arbitrary raw writes: intentionally unavailable for safety. Add a first-class command and tests instead.
 

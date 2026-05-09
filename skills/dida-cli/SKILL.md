@@ -32,13 +32,17 @@ Build context with bounded JSON commands:
 dida project list --json
 dida folder list --json
 dida tag list --json
-dida +today --json
-dida task upcoming --days 14 --limit 50 --json
+dida column list <project-id> --json
+dida comment list --project <project-id> --task <task-id> --json
+dida +today --compact --json
+dida task upcoming --days 14 --limit 50 --compact --json
 dida quadrant list --json
-dida completed today --json
+dida completed today --compact --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
+
+Use `--compact` or `--brief` on broad task reads to reduce agent context. Compact task output keeps operational fields and drops large text, checklist, reminder, and raw fields. Fetch full task JSON only when those larger fields are needed.
 
 ## Task Writes
 
@@ -97,6 +101,25 @@ dida column create --project <project-id> --name "Doing" --dry-run --json
 ```
 
 Do not claim column update/delete support unless the CLI exposes those commands.
+
+## Comments
+
+Use comment commands for task discussion. Preview writes before execution:
+
+```bash
+dida comment list --project <project-id> --task <task-id> --json
+dida comment create --project <project-id> --task <task-id> --text "Example" --dry-run --json
+dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text "Updated" --dry-run --json
+dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --dry-run --json
+```
+
+Deletes require explicit confirmation:
+
+```bash
+dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
+```
+
+Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
 
 ## Error Handling
 

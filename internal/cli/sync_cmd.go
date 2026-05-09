@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/model"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
@@ -29,13 +28,7 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	if args[0] != "all" {
 		return fail("sync", fmt.Sprintf("unknown sync command %q", args[0]), jsonOut, stdout, stderr)
 	}
-	token, err := auth.LoadCookieToken()
-	if err != nil {
-		return missingAuth("sync all", jsonOut, stdout, stderr)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	payload, err := webapi.NewClient(token.Token).FullSync(ctx)
+	payload, err := loadFullSyncPayload()
 	if err != nil {
 		return fail("sync all", err.Error(), jsonOut, stdout, stderr)
 	}
@@ -53,16 +46,13 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 }
 
 func runSyncCheckpoint(checkpoint int64, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	token, err := auth.LoadCookieToken()
-	if err != nil {
-		return missingAuth("sync checkpoint", jsonOut, stdout, stderr)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	payload, err := webapi.NewClient(token.Token).SyncSince(ctx, checkpoint)
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.SyncSince(ctx, checkpoint)
+	})
 	if err != nil {
 		return fail("sync checkpoint", err.Error(), jsonOut, stdout, stderr)
 	}
+	payload := syncPayloadValue(result)
 	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now())
 	meta := map[string]any{
 		"requestedCheckpoint": checkpoint,
@@ -95,16 +85,13 @@ func runSettings(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	if args[0] != "get" {
 		return fail("settings", fmt.Sprintf("unknown settings command %q", args[0]), jsonOut, stdout, stderr)
 	}
-	token, err := auth.LoadCookieToken()
-	if err != nil {
-		return missingAuth("settings get", jsonOut, stdout, stderr)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	settings, err := webapi.NewClient(token.Token).Settings(ctx)
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.Settings(ctx)
+	})
 	if err != nil {
 		return fail("settings get", err.Error(), jsonOut, stdout, stderr)
 	}
+	settings := result.(map[string]any)
 	data := map[string]any{
 		"settings": settings,
 	}
@@ -123,15 +110,31 @@ func runSettings(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 }
 
 func loadSyncView() (model.SyncView, error) {
-	token, err := auth.LoadCookieToken()
+	payload, err := loadFullSyncPayload()
 	if err != nil {
-		return model.SyncView{}, fmt.Errorf("missing cookie auth; run: dida auth cookie set --token-stdin")
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	payload, err := webapi.NewClient(token.Token).FullSync(ctx)
-	if err != nil {
-		return model.SyncView{}, err
+		return model.SyncView{}, fmt.Errorf("%w", err)
 	}
 	return model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now()), nil
+}
+
+func loadFullSyncPayload() (webapi.SyncPayload, error) {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.FullSync(ctx)
+	})
+	if err != nil {
+		return webapi.SyncPayload{}, err
+	}
+	return syncPayloadValue(result), nil
+}
+
+func syncPayloadValue(value any) webapi.SyncPayload {
+	switch payload := value.(type) {
+	case webapi.SyncPayload:
+		return payload
+	case *webapi.SyncPayload:
+		if payload != nil {
+			return *payload
+		}
+	}
+	return webapi.SyncPayload{}
 }

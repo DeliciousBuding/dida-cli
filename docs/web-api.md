@@ -26,6 +26,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/batch/check/{checkpoint}` | Incremental sync |
 | `GET` | `/user/preferences/settings` | User settings |
 | `GET` | `/project/{projectId}/tasks` | Project task list |
+| `GET` | `/column/project/{projectId}` | Kanban column list with names and sort order |
 | `GET` | `/project/all/completed?...` | Completed tasks |
 
 Observed CN full sync shape:
@@ -65,6 +66,9 @@ Date-only `from/to` values have produced HTTP 500 on the observed CN Web API.
 | `PUT` | `/tag/merge` | Merge one tag into another |
 | `DELETE` | `/tag?name=...` | Delete a tag |
 | `POST` | `/column` | Create a kanban column; experimental |
+| `POST` | `/project/{projectId}/task/{taskId}/comment` | Create task comment |
+| `PUT` | `/project/{projectId}/task/{taskId}/comment/{commentId}` | Update task comment |
+| `DELETE` | `/project/{projectId}/task/{taskId}/comment/{commentId}` | Delete task comment |
 
 Task operation shapes:
 
@@ -93,6 +97,14 @@ Resource operation shapes:
 {"projectId":"...","name":"Doing"}
 ```
 
+Comment operation shape:
+
+```json
+{"id":"...","createdTime":"YYYY-MM-DDTHH:mm:ss.000+0000","taskId":"...","projectId":"...","title":"comment text","userProfile":{"isMyself":true},"mentions":[],"isNew":true}
+```
+
+The webapp client generates `id`, `createdTime`, `taskId`, `projectId`, `userProfile`, empty `mentions`, and `isNew` before sending a create request. The bundle also shows optional reply and attachment fields, but DidaCLI only exposes plain text comments until the attachment upload flow is verified.
+
 Task relationship shapes:
 
 ```json
@@ -100,7 +112,7 @@ Task relationship shapes:
 [{"taskId":"...","parentId":"...","projectId":"..."}]
 ```
 
-Column update/delete endpoints are not yet documented in this CLI. Do not add first-class commands until request shapes are observed and covered by tests.
+Column update/delete/order endpoints are not yet documented in this CLI. The webapp bundle references `POST /batch/columnProject`, but DidaCLI should not expose first-class update/delete/order commands until payload shapes are observed and covered by tests.
 
 Observed tag merge behavior: the endpoint can return success while the source tag remains listed. Treat merge and delete as separate operations.
 

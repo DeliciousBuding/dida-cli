@@ -55,6 +55,7 @@ func rootCommands(version string) []rootCommand {
 		{Name: "folder", Run: runFolder},
 		{Name: "tag", Run: runTag},
 		{Name: "column", Run: runColumn},
+		{Name: "comment", Run: runComment},
 		{Name: "task", Run: runTask},
 	}
 }

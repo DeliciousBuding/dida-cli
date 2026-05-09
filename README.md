@@ -36,8 +36,8 @@ The primary integration surface is the Dida365 Web API used by the official web 
 
 ## Features
 
-- Web API first: sync, settings, projects, folders, tags, tasks, completed history, and raw GET probes.
-- Full task CRUD plus project/folder/tag CRUD, task move/subtask operations, and experimental kanban column create.
+- Web API first: sync, settings, projects, folders, tags, columns, comments, tasks, completed history, and raw GET probes.
+- Full task CRUD plus comment CRUD, project/folder/tag CRUD, task move/subtask operations, and conservative kanban column support.
 - Agent-safe JSON: every `--json` response uses a consistent envelope.
 - Ergonomic writes: create/update/complete run directly; `--dry-run` previews; destructive delete requires `--yes`.
 - Browser login: visible Dida365 login captures only the `t` cookie into `~/.dida-cli/`.
@@ -100,18 +100,19 @@ dida sync all --json
 dida sync checkpoint <checkpoint> --json
 dida settings get --json
 dida project list --json
-dida project tasks <project-id> --json
+dida project tasks <project-id> --compact --json
 dida project columns <project-id> --json
 dida folder list --json
 dida tag list --json
 dida column list <project-id> --json
+dida comment list --project <project-id> --task <task-id> --json
 dida task today --json
-dida task list --filter all --limit 50 --json
+dida task list --filter all --limit 50 --compact --json
 dida task search --query "exam" --limit 10 --json
 dida task upcoming --days 14 --json
 dida quadrant list --json
 dida completed today --json
-dida completed list --from 2026-05-01 --to 2026-05-09 --json
+dida completed list --from 2026-05-01 --to 2026-05-09 --compact --json
 dida raw get /batch/check/0 --json
 ```
 
@@ -126,6 +127,9 @@ dida task create --project <project-id> --title "Read paper" --priority 3 --json
 
 # Update directly.
 dida task update <task-id> --project <project-id> --title "Read paper carefully" --json
+
+# Comment on a task.
+dida comment create --project <project-id> --task <task-id> --text "Looks good" --dry-run --json
 
 # Complete directly.
 dida task complete <task-id> --project <project-id> --json
@@ -234,10 +238,14 @@ DidaCLI currently uses:
 - `PUT /tag/merge`
 - `DELETE /tag?name=...`
 - `POST /column`
+- `GET /column/project/{projectId}`
+- `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)`
 
 Private Web API behavior can change. See [docs/web-api.md](docs/web-api.md), [docs/api-coverage.md](docs/api-coverage.md), and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for implementation notes.
 
 `sync checkpoint` exposes both normalized view data and raw-compatible delta sections so agents can see task deletes, order changes, and reminder changes.
+
+For token-sensitive agent reads, add `--compact` or `--brief` to task-heavy commands such as `task list`, `task upcoming`, `task search`, `project tasks`, and `completed list`. Compact output preserves IDs, titles, dates, priority, status, column, and tags while omitting large text/checklist/reminder/raw fields.
 
 ## Project Layout
 

@@ -145,6 +145,15 @@ func (c *Client) CreateColumn(ctx context.Context, projectID string, name string
 	return out, nil
 }
 
+func (c *Client) ProjectColumns(ctx context.Context, projectID string) ([]map[string]any, error) {
+	var out []map[string]any
+	path := "/column/project/" + url.PathEscape(projectID)
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *Client) MoveTask(ctx context.Context, taskID string, fromProjectID string, toProjectID string) (map[string]any, error) {
 	var out map[string]any
 	payload := []TaskMovePayload{{TaskID: taskID, FromProjectID: fromProjectID, ToProjectID: toProjectID}}

@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/model"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
@@ -49,7 +48,7 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 }
 
 func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	filter, limit, err := parseTaskListFlags(args[1:])
+	filter, limit, compact, err := parseTaskListFlags(args[1:])
 	if err != nil {
 		return failTyped("task list", "validation", err.Error(), "run: dida task list --help", jsonOut, stdout, stderr)
 	}
@@ -72,8 +71,9 @@ func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 		tasks = tasks[:limit]
 	}
 	data := map[string]any{
-		"filter": filter,
-		"tasks":  stripTaskRaw(tasks),
+		"filter":  filter,
+		"compact": compact,
+		"tasks":   taskOutput(tasks, compact),
 	}
 	meta := map[string]any{"count": len(tasks), "total": total}
 	command := "task list"
@@ -88,7 +88,7 @@ func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 }
 
 func runTaskSearch(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	query, limit, err := parseSearchFlags(args)
+	query, limit, compact, err := parseSearchFlags(args)
 	if err != nil {
 		return failTyped("task search", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
@@ -101,7 +101,7 @@ func runTaskSearch(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if limit > 0 && len(tasks) > limit {
 		tasks = tasks[:limit]
 	}
-	data := map[string]any{"query": query, "tasks": stripTaskRaw(tasks)}
+	data := map[string]any{"query": query, "compact": compact, "tasks": taskOutput(tasks, compact)}
 	meta := map[string]any{"count": len(tasks), "total": total}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "task search", Meta: meta, Data: data})
@@ -111,7 +111,7 @@ func runTaskSearch(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 }
 
 func runTaskUpcoming(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	days, limit, err := parseUpcomingFlags(args)
+	days, limit, compact, err := parseUpcomingFlags(args)
 	if err != nil {
 		return failTyped("task upcoming", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
@@ -124,7 +124,7 @@ func runTaskUpcoming(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if limit > 0 && len(tasks) > limit {
 		tasks = tasks[:limit]
 	}
-	data := map[string]any{"days": days, "tasks": stripTaskRaw(tasks)}
+	data := map[string]any{"days": days, "compact": compact, "tasks": taskOutput(tasks, compact)}
 	meta := map[string]any{"count": len(tasks), "total": total}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "task upcoming", Meta: meta, Data: data})
@@ -181,7 +181,7 @@ func runTaskCreate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if opts.DryRun {
 		return writeMutationPreview("task create", payload, opts.Yes, jsonOut, stdout, stderr)
 	}
-	result, err := executeTaskMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
+	result, err := executeMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
 		return client.CreateTask(ctx, task)
 	})
 	if err != nil {
@@ -224,7 +224,7 @@ func runTaskUpdate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if opts.DryRun {
 		return writeMutationPreview("task update", payload, opts.Yes, jsonOut, stdout, stderr)
 	}
-	result, err := executeTaskMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
+	result, err := executeMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
 		return client.UpdateTask(ctx, task)
 	})
 	if err != nil {
@@ -248,7 +248,7 @@ func runTaskComplete(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if opts.DryRun {
 		return writeMutationPreview("task complete", payload, opts.Yes, jsonOut, stdout, stderr)
 	}
-	result, err := executeTaskMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
+	result, err := executeMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
 		return client.CompleteTask(ctx, opts.TaskID, opts.ProjectID)
 	})
 	if err != nil {
@@ -274,7 +274,7 @@ func runTaskDelete(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if !opts.Yes {
 		return failTyped("task delete", "confirmation_required", "task delete requires --yes", "preview first with: dida task delete <task-id> --project <project-id> --dry-run", jsonOut, stdout, stderr)
 	}
-	result, err := executeTaskMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
+	result, err := executeMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
 		return client.DeleteTask(ctx, opts.TaskID, opts.ProjectID)
 	})
 	if err != nil {
@@ -288,93 +288,102 @@ func runTaskDelete(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	return 0
 }
 
-func parseTaskListFlags(args []string) (string, int, error) {
+func parseTaskListFlags(args []string) (string, int, bool, error) {
 	filter := "all"
 	limit := 50
+	compact := false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--filter":
 			if i+1 >= len(args) {
-				return "", 0, fmt.Errorf("--filter requires a value")
+				return "", 0, false, fmt.Errorf("--filter requires a value")
 			}
 			filter = args[i+1]
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
-				return "", 0, fmt.Errorf("--limit requires a value")
+				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
 			var parsed int
 			if _, err := fmt.Sscanf(args[i+1], "%d", &parsed); err != nil {
-				return "", 0, fmt.Errorf("--limit must be an integer")
+				return "", 0, false, fmt.Errorf("--limit must be an integer")
 			}
 			limit = parsed
 			i++
+		case "--compact", "--brief":
+			compact = true
 		default:
-			return "", 0, fmt.Errorf("unknown flag %q", args[i])
+			return "", 0, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
-	return filter, limit, nil
+	return filter, limit, compact, nil
 }
 
-func parseSearchFlags(args []string) (string, int, error) {
+func parseSearchFlags(args []string) (string, int, bool, error) {
 	query := ""
 	limit := 50
+	compact := false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--query", "-q":
 			if i+1 >= len(args) {
-				return "", 0, fmt.Errorf("%s requires a value", args[i])
+				return "", 0, false, fmt.Errorf("%s requires a value", args[i])
 			}
 			query = args[i+1]
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
-				return "", 0, fmt.Errorf("--limit requires a value")
+				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
 			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
-				return "", 0, fmt.Errorf("--limit must be a non-negative integer")
+				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
 			i++
+		case "--compact", "--brief":
+			compact = true
 		default:
 			if query == "" {
 				query = args[i]
 				continue
 			}
-			return "", 0, fmt.Errorf("unknown flag %q", args[i])
+			return "", 0, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
 	if strings.TrimSpace(query) == "" {
-		return "", 0, fmt.Errorf("missing query; use: dida task search --query <text>")
+		return "", 0, false, fmt.Errorf("missing query; use: dida task search --query <text>")
 	}
-	return query, limit, nil
+	return query, limit, compact, nil
 }
 
-func parseUpcomingFlags(args []string) (int, int, error) {
+func parseUpcomingFlags(args []string) (int, int, bool, error) {
 	days := 7
 	limit := 50
+	compact := false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--days":
 			if i+1 >= len(args) {
-				return 0, 0, fmt.Errorf("--days requires a value")
+				return 0, 0, false, fmt.Errorf("--days requires a value")
 			}
 			if _, err := fmt.Sscanf(args[i+1], "%d", &days); err != nil || days <= 0 {
-				return 0, 0, fmt.Errorf("--days must be a positive integer")
+				return 0, 0, false, fmt.Errorf("--days must be a positive integer")
 			}
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
-				return 0, 0, fmt.Errorf("--limit requires a value")
+				return 0, 0, false, fmt.Errorf("--limit requires a value")
 			}
 			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
-				return 0, 0, fmt.Errorf("--limit must be a non-negative integer")
+				return 0, 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
 			i++
+		case "--compact", "--brief":
+			compact = true
 		default:
-			return 0, 0, fmt.Errorf("unknown flag %q", args[i])
+			return 0, 0, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
-	return days, limit, nil
+	return days, limit, compact, nil
 }
 
 type taskCreateOptions struct {
@@ -787,16 +796,6 @@ func writeMutationPreview(command string, payload any, yes bool, jsonOut bool, s
 	}
 	fmt.Fprintf(stdout, "%s dry run. Add --yes to execute.\n", command)
 	return writeJSON(stdout, payload)
-}
-
-func executeTaskMutation(fn func(context.Context, *webapi.Client) (map[string]any, error)) (map[string]any, error) {
-	token, err := auth.LoadCookieToken()
-	if err != nil {
-		return nil, fmt.Errorf("missing cookie auth; run: dida auth login")
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	return fn(ctx, webapi.NewClient(token.Token))
 }
 
 func hasFlag(args []string, flag string) bool {

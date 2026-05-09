@@ -25,6 +25,7 @@ Important existing endpoints:
 - `GET /batch/check/{checkpoint}` for incremental sync. When no changes exist, most top-level resource arrays are `null` and counts should normalize to zero.
 - `GET /user/preferences/settings` for settings. The CN response currently includes both `nlpEnabled` and `nlpenabled`; parse with a normal JSON object in Go and avoid case-insensitive key assumptions in shell tooling.
 - `GET /project/{projectId}/tasks` for project task lists.
+- `GET /column/project/{projectId}` for named kanban columns with `id`, `name`, `sortOrder`, `etag`, and timestamps.
 - `GET /project/all/completed?from=YYYY-MM-DD%20HH%3Amm%3Ass&to=YYYY-MM-DD%20HH%3Amm%3Ass&limit=N` for completed task queries. Date-only `from/to` produced server 500 in the observed CN Web API; full timestamp format worked.
 - `POST /batch/task` for task operations.
 - `POST /batch/taskParent` for subtask operations.
@@ -33,6 +34,11 @@ Important existing endpoints:
 - `POST /batch/projectGroup` for folder/group operations.
 - `POST /batch/tag` and tag-specific endpoints for tag operations.
 - `POST /column` for column creation experiments.
+- `GET /project/{projectId}/task/{taskId}/comments` for task comments.
+- `POST /project/{projectId}/task/{taskId}/comment` with `{"title":"..."}` for comment create.
+- `PUT /project/{projectId}/task/{taskId}/comment/{commentId}` with `{"title":"..."}` for comment update.
+- `DELETE /project/{projectId}/task/{taskId}/comment/{commentId}` for comment delete.
+- `POST /batch/columnProject` is present in the webapp bundle, but exact update/delete/order payload shapes are not yet verified.
 
 Observed negative probes on the CN Web API:
 
@@ -47,7 +53,8 @@ The working project task read endpoint remains `GET /project/{projectId}/tasks`.
 - `webapi.Client`: HTTP transport, auth headers, endpoint path construction, error decoding.
 - `internal/webapi/sync.go`: full sync, settings, and completed task queries.
 - `internal/webapi/tasks.go`: task create/update/complete/delete.
-- `internal/webapi/resources.go`: task move/subtask, project CRUD, folder CRUD, tag CRUD, and experimental column create.
+- `internal/webapi/resources.go`: task move/subtask, project CRUD, folder CRUD, tag CRUD, column list, and experimental column create.
+- `internal/webapi/comments.go`: task comment list/create/update/delete without attachments.
 - `internal/cli/*.go`: stable command envelope, dry-run previews, and destructive confirmation gates.
 
 The old Doris/OpenClaw TypeScript implementation may be kept locally under ignored `data/private/reference/dida365-ai-tools/` for comparison. Do not commit that reference tree or copied live payloads.

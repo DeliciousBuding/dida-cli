@@ -6,7 +6,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/model"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
@@ -26,10 +25,11 @@ func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	case "delete":
 		return runProjectDelete(args[1:], jsonOut, stdout, stderr)
 	case "tasks":
-		if len(args) != 2 {
-			return failTyped("project tasks", "validation", "usage: dida project tasks <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
+		projectID, compact, err := parseProjectTasksArgs(args[1:])
+		if err != nil {
+			return failTyped("project tasks", "validation", err.Error(), "run: dida project --help", jsonOut, stdout, stderr)
 		}
-		return runProjectTasks(args[1], jsonOut, stdout, stderr)
+		return runProjectTasks(projectID, compact, jsonOut, stdout, stderr)
 	case "columns":
 		if len(args) != 2 {
 			return failTyped("project columns", "validation", "usage: dida project columns <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
@@ -55,17 +55,14 @@ func runProjectList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	return 0
 }
 
-func runProjectTasks(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	token, err := auth.LoadCookieToken()
-	if err != nil {
-		return missingAuth("project tasks", jsonOut, stdout, stderr)
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	rawTasks, err := webapi.NewClient(token.Token).ProjectTasks(ctx, projectID)
+func runProjectTasks(projectID string, compact bool, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.ProjectTasks(ctx, projectID)
+	})
 	if err != nil {
 		return failTyped("project tasks", "api", err.Error(), "", jsonOut, stdout, stderr)
 	}
+	rawTasks := result.([]map[string]any)
 	projectNames := map[string]string{}
 	if view, err := loadSyncView(); err == nil {
 		for _, project := range view.Projects {
@@ -74,7 +71,7 @@ func runProjectTasks(projectID string, jsonOut bool, stdout io.Writer, stderr io
 	}
 	tasks := model.NormalizeTasks(rawTasks, projectNames, time.Now())
 	tasks = model.ActiveTasks(tasks)
-	data := map[string]any{"projectId": projectID, "tasks": stripTaskRaw(tasks)}
+	data := map[string]any{"projectId": projectID, "compact": compact, "tasks": taskOutput(tasks, compact)}
 	meta := map[string]any{"count": len(tasks), "source": "project_tasks_endpoint"}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "project tasks", Meta: meta, Data: data})
@@ -83,14 +80,38 @@ func runProjectTasks(projectID string, jsonOut bool, stdout io.Writer, stderr io
 	return 0
 }
 
-func runProjectColumns(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	view, err := loadSyncView()
-	if err != nil {
-		return failTyped("project columns", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+func parseProjectTasksArgs(args []string) (string, bool, error) {
+	projectID := ""
+	compact := false
+	for _, arg := range args {
+		switch arg {
+		case "--compact", "--brief":
+			compact = true
+		default:
+			if projectID == "" {
+				projectID = arg
+				continue
+			}
+			return "", false, fmt.Errorf("unknown flag %q", arg)
+		}
 	}
-	columns := model.InferColumns(projectID, view.Tasks)
-	data := map[string]any{"projectId": projectID, "columns": columns}
-	meta := map[string]any{"count": len(columns), "source": "inferred_from_tasks"}
+	if projectID == "" {
+		return "", false, fmt.Errorf("usage: dida project tasks <project-id> [--compact]")
+	}
+	return projectID, compact, nil
+}
+
+func runProjectColumns(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		columns, err := client.ProjectColumns(ctx, projectID)
+		return map[string]any{"projectId": projectID, "columns": columns}, err
+	})
+	if err != nil {
+		return failTyped("project columns", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	data := result.(map[string]any)
+	columns := data["columns"].([]map[string]any)
+	meta := map[string]any{"count": len(columns), "source": "column_project_endpoint"}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "project columns", Meta: meta, Data: data})
 	}
@@ -98,9 +119,9 @@ func runProjectColumns(projectID string, jsonOut bool, stdout io.Writer, stderr 
 		fmt.Fprintln(stdout, "No columns found.")
 		return 0
 	}
-	fmt.Fprintf(stdout, "%-28s  %-8s\n", "ID", "TASKS")
+	fmt.Fprintf(stdout, "%-28s  %-12s  %s\n", "ID", "SORT", "NAME")
 	for _, column := range columns {
-		fmt.Fprintf(stdout, "%-28s  %-8d\n", column.ID, column.TaskCount)
+		fmt.Fprintf(stdout, "%-28v  %-12v  %v\n", column["id"], column["sortOrder"], column["name"])
 	}
 	return 0
 }

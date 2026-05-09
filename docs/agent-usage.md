@@ -23,11 +23,15 @@ Do not ask the user to paste cookies into chat.
 dida project list --json
 dida folder list --json
 dida tag list --json
-dida +today --json
-dida task upcoming --days 14 --limit 50 --json
+dida column list <project-id> --json
+dida comment list --project <project-id> --task <task-id> --json
+dida +today --compact --json
+dida task upcoming --days 14 --limit 50 --compact --json
 dida quadrant list --json
-dida completed today --json
+dida completed today --compact --json
 ```
+
+Prefer `--compact` for broad task reads. It keeps IDs, titles, dates, priority, status, columns, and tags while omitting large descriptions, checklist items, reminders, and raw payloads. Use full JSON only when you need those fields for a specific task.
 
 ## Safe Writes
 
@@ -62,6 +66,16 @@ dida tag delete agent-staging --yes --json
 ```
 
 Use `dida column create` only when the operator accepts that column support is based on an experimental private endpoint. The CLI does not expose column update/delete yet.
+
+Use comment commands for task discussion. Preview comment writes, and require `--yes` for deletes:
+
+```bash
+dida comment create --project <project-id> --task <task-id> --text "Example" --dry-run --json
+dida comment update --project <project-id> --task <task-id> --comment <comment-id> --text "Updated" --dry-run --json
+dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
+```
+
+Do not use comment attachments yet; the CLI intentionally does not expose the multipart upload flow.
 
 Use `dida sync checkpoint <checkpoint> --json` when an agent needs deletions, order deltas, or reminder deltas; those live under `data.deltas`.
 

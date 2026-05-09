@@ -191,16 +191,13 @@ func parseTokenInput(args []string) (string, error) {
 }
 
 func verifyCookieAuth() map[string]any {
-	token, err := auth.LoadCookieToken()
-	if err != nil {
-		return map[string]any{"ok": false, "message": "missing cookie auth", "hint": "run: dida auth login"}
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	payload, err := webapi.NewClient(token.Token).FullSync(ctx)
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.FullSync(ctx)
+	})
 	if err != nil {
 		return map[string]any{"ok": false, "message": err.Error(), "hint": "refresh the Dida365 't' cookie with: dida auth login"}
 	}
+	payload := syncPayloadValue(result)
 	return map[string]any{
 		"ok":       true,
 		"projects": len(payload.Projects),

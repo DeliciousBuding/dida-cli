@@ -19,6 +19,10 @@ func TestResourceMutationsUseExpectedEndpoints(t *testing.T) {
 				t.Fatalf("decode request for %s: %v", r.URL.Path, err)
 			}
 		}
+		if r.Method == http.MethodGet && strings.HasPrefix(r.URL.Path, "/column/project/") {
+			_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "c1", "name": "Doing"}})
+			return
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true})
 	}))
 	defer server.Close()
@@ -46,6 +50,7 @@ func TestResourceMutationsUseExpectedEndpoints(t *testing.T) {
 		func() error { _, err := client.MergeTags(ctx, "tag-a", "tag-b"); return err },
 		func() error { _, err := client.DeleteTag(ctx, "tag-a"); return err },
 		func() error { _, err := client.CreateColumn(ctx, "p1", "Doing"); return err },
+		func() error { _, err := client.ProjectColumns(ctx, "p1"); return err },
 		func() error { _, err := client.MoveTask(ctx, "t1", "p1", "p2"); return err },
 		func() error { _, err := client.SetTaskParent(ctx, "child", "parent", "p1"); return err },
 	}
@@ -68,6 +73,7 @@ func TestResourceMutationsUseExpectedEndpoints(t *testing.T) {
 		"PUT /tag/merge",
 		"DELETE /tag?name=tag-a",
 		"POST /column",
+		"GET /column/project/p1",
 		"POST /batch/taskProject",
 		"POST /batch/taskParent",
 	}

@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/DeliciousBuding/dida-cli/internal/model"
+	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
 
 func TestDoctorJSON(t *testing.T) {
@@ -71,6 +74,42 @@ func TestShortcutTodayPreservesFlags(t *testing.T) {
 	}
 }
 
+func TestTaskOutputCompactOmitsLargeFields(t *testing.T) {
+	out := taskOutput([]model.Task{{
+		ID:        "t1",
+		ProjectID: "p1",
+		Title:     "Compact me",
+		Content:   strings.Repeat("large ", 20),
+		Desc:      strings.Repeat("markdown ", 20),
+		Items:     []map[string]any{{"title": "step"}},
+		Reminders: []any{"TRIGGER:P0DT9H0M0S"},
+		Raw:       map[string]any{"huge": true},
+	}}, true)
+	data, err := json.Marshal(out)
+	if err != nil {
+		t.Fatalf("marshal compact output: %v", err)
+	}
+	text := string(data)
+	for _, forbidden := range []string{"content", "desc", "items", "reminders", "raw", "large", "markdown"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("compact output leaked %q: %s", forbidden, text)
+		}
+	}
+	if !strings.Contains(text, `"title":"Compact me"`) {
+		t.Fatalf("compact output missing title: %s", text)
+	}
+}
+
+func TestSyncPayloadValueAcceptsPointer(t *testing.T) {
+	payload := syncPayloadValue(&webapi.SyncPayload{
+		CheckPoint: 42,
+		Tasks:      []map[string]any{{"id": "t1"}},
+	})
+	if payload.CheckPoint != 42 || len(payload.Tasks) != 1 {
+		t.Fatalf("payload = %#v", payload)
+	}
+}
+
 func TestUnknownCommandText(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"nope"}, "test-version", &stdout, &stderr)
@@ -122,6 +161,49 @@ func TestTaskCreateDryRunJSON(t *testing.T) {
 func TestTaskDeleteRequiresYesJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"task", "delete", "t1", "--project", "p1", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "confirmation_required" {
+		t.Fatalf("error.type = %v, want confirmation_required", errPayload["type"])
+	}
+}
+
+func TestCommentCreateDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"comment", "create", "--project", "p1", "--task", "t1", "--text", "Looks good", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "comment create" {
+		t.Fatalf("command = %v, want comment create", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	comment := requestPayload["comment"].(map[string]any)
+	if comment["title"] != "Looks good" {
+		t.Fatalf("comment title = %v, want Looks good", comment["title"])
+	}
+}
+
+func TestCommentDeleteRequiresYesJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"comment", "delete", "--project", "p1", "--task", "t1", "--comment", "c1", "--json"}, "test-version", &stdout, &stderr)
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
