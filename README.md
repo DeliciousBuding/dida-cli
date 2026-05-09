@@ -30,6 +30,14 @@ The old Doris setup mixed API access, report rendering, cron, and OpenClaw deliv
 - `internal/report`: deterministic reports from normalized models.
 - `internal/cli`: command surface and JSON envelopes.
 
+The CLI design follows the useful parts of `larksuite/cli`:
+
+- three command layers: shortcuts, resource/API commands, and raw API;
+- machine-readable health checks and auth status;
+- dry-run previews for writes;
+- structured error envelopes that agents can act on;
+- companion agent skill docs after the CLI is usable.
+
 Web API operations are grouped by real Dida resources:
 
 - sync/settings
@@ -41,6 +49,47 @@ Web API operations are grouped by real Dida resources:
 - raw read-only endpoint probes
 
 Write commands must support `--dry-run` before live writes.
+
+## Command Layers
+
+### 1. Shortcuts
+
+Human and agent friendly workflows with strong defaults:
+
+```text
+dida +today [--json]
+dida +nightly-report [--json]
+dida +inbox-zero [--dry-run]
+```
+
+### 2. Resource Commands
+
+Stable commands mapped to Dida resources:
+
+```text
+dida task list --filter today --json
+dida task create --project <id> --title <title> --dry-run
+dida project list --json
+dida tag list --json
+```
+
+### 3. Raw Web API
+
+Read-first escape hatch for reverse-engineering and coverage gaps:
+
+```text
+dida raw get /batch/check/0 --json
+```
+
+Non-GET raw requests should stay disabled until a specific safe workflow needs them.
+
+## Safety Model
+
+- Read commands can run directly.
+- Write commands support `--dry-run`.
+- Destructive writes should require explicit `--yes` later.
+- Credentials are never printed.
+- Error JSON should include actionable `hint` fields where possible.
 
 ## Planned Command Surface
 
