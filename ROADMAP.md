@@ -62,6 +62,7 @@ As of the current main branch:
   - `v0.1.4` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
   - `install.ps1` has been smoke-tested against the `v0.1.4` release asset on Windows
+  - installed `v0.1.4` binary has smoke-tested `openapi client set/status/clear`
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
 
 ## Non-Negotiable Rules
@@ -349,7 +350,8 @@ Status: implemented and smoke-tested through `v0.1.4`; release workflow uses Nod
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; Windows installer smoke passed against `v0.1.4`.
+Status: implemented; Windows installer smoke passed against `v0.1.4`, including
+the installed-binary OpenAPI client config smoke.
 
 ### F3. npm Installer
 
