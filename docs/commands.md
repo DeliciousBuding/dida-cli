@@ -114,6 +114,10 @@ dida user profile --json
 dida user sessions --limit 10 --json
 ```
 
+For OpenAPI OAuth setup, read `default_redirect_uri`, `default_scope`, and
+`next` from `dida openapi doctor --json`. Configure the developer app redirect
+URL to that exact URI before running `dida openapi login --json`.
+
 ## Tasks
 
 ```bash

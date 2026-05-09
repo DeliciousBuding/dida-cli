@@ -41,10 +41,16 @@ dida official task batch-add --args-json '{"tasks":[{"title":"Agent task"}]}' --
 # Official OpenAPI: OAuth REST
 dida openapi doctor --json
 dida openapi client status --json
+dida openapi login --json
 dida openapi project list --json
 dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
+
+For OpenAPI, read `default_redirect_uri` and `next` from `dida openapi doctor
+--json`. Ask the user to configure that exact redirect URL in the Dida365
+developer app before OAuth login. Do not treat the MCP `DIDA365_TOKEN` as an
+OpenAPI bearer token.
 
 ## Discover Before Writing
 

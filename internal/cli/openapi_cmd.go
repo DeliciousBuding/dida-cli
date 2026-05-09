@@ -16,6 +16,11 @@ import (
 	"github.com/DeliciousBuding/dida-cli/internal/openapi"
 )
 
+const (
+	defaultOpenAPICallbackHost = "127.0.0.1"
+	defaultOpenAPICallbackPort = 17890
+)
+
 func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
 		printOpenAPIHelp(stdout)
@@ -140,13 +145,19 @@ func runOpenAPIDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	clientID, err := openapi.ResolveClientID("")
 	clientSecret, err2 := openapi.ResolveClientSecret("")
 	tokenStatus := openapi.TokenStatus()
+	clientIDAvailable := err == nil && clientID != ""
+	clientSecretAvailable := err2 == nil && clientSecret != ""
+	tokenAvailable := tokenStatus["available"] == true
 	data := map[string]any{
-		"client_id_available":     err == nil && clientID != "",
-		"client_secret_available": err2 == nil && clientSecret != "",
+		"client_id_available":     clientIDAvailable,
+		"client_secret_available": clientSecretAvailable,
 		"client_config":           openapi.ClientConfigStatus(),
 		"token":                   tokenStatus,
 		"base_url":                openapi.DefaultAPIBaseURL,
 		"auth_url":                openapi.DefaultAuthBaseURL + "/oauth/authorize",
+		"default_redirect_uri":    defaultOpenAPIRedirectURI(),
+		"default_scope":           openapi.DefaultScopes,
+		"next":                    openAPIDoctorNextActions(clientIDAvailable, clientSecretAvailable, tokenAvailable),
 	}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "openapi doctor", Data: data})
@@ -154,7 +165,23 @@ func runOpenAPIDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "OpenAPI client id: %v\n", data["client_id_available"])
 	fmt.Fprintf(stdout, "OpenAPI client secret: %v\n", data["client_secret_available"])
 	fmt.Fprintf(stdout, "OpenAPI token: %v\n", tokenStatus["available"])
+	fmt.Fprintf(stdout, "Default redirect URI: %s\n", data["default_redirect_uri"])
 	return 0
+}
+
+func openAPIDoctorNextActions(clientIDAvailable bool, clientSecretAvailable bool, tokenAvailable bool) []string {
+	actions := []string{}
+	if !clientIDAvailable || !clientSecretAvailable {
+		actions = append(actions, "dida openapi client set --id <client-id> --secret-stdin --json")
+	}
+	if !tokenAvailable {
+		actions = append(actions, "configure the developer app OAuth redirect URL as "+defaultOpenAPIRedirectURI())
+		actions = append(actions, "dida openapi login --json")
+	}
+	if tokenAvailable {
+		actions = append(actions, "dida openapi project list --json")
+	}
+	return actions
 }
 
 func runOpenAPIStatus(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -738,7 +765,7 @@ func runOpenAPIHabitDryRun(args []string, jsonOut bool, stdout io.Writer, stderr
 }
 
 func parseOpenAPIAuthURLFlags(args []string) (string, string, string, error) {
-	redirectURI := "http://127.0.0.1:17890/callback"
+	redirectURI := defaultOpenAPIRedirectURI()
 	scope := openapi.DefaultScopes
 	state := fmt.Sprintf("dida-%d-%d", time.Now().Unix(), rand.Intn(100000))
 	for i := 0; i < len(args); i++ {
@@ -1051,7 +1078,7 @@ func decodeJSONArg(value string, out any) error {
 
 func parseOpenAPIExchangeFlags(args []string) (string, string, string, error) {
 	code := ""
-	redirectURI := "http://127.0.0.1:17890/callback"
+	redirectURI := defaultOpenAPIRedirectURI()
 	scope := openapi.DefaultScopes
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
@@ -1084,8 +1111,8 @@ func parseOpenAPIExchangeFlags(args []string) (string, string, string, error) {
 }
 
 func parseOpenAPIListenFlags(args []string) (string, int, error) {
-	host := "127.0.0.1"
-	port := 17890
+	host := defaultOpenAPICallbackHost
+	port := defaultOpenAPICallbackPort
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "--host":
@@ -1113,8 +1140,8 @@ func parseOpenAPILoginFlags(args []string) (string, string, string, string, int,
 	redirectURI := ""
 	scope := openapi.DefaultScopes
 	state := fmt.Sprintf("dida-%d-%d", time.Now().Unix(), rand.Intn(100000))
-	host := "127.0.0.1"
-	port := 17890
+	host := defaultOpenAPICallbackHost
+	port := defaultOpenAPICallbackPort
 	timeout := 10 * time.Minute
 	noOpen := false
 	for i := 0; i < len(args); i++ {
@@ -1168,6 +1195,10 @@ func parseOpenAPILoginFlags(args []string) (string, string, string, string, int,
 		}
 	}
 	return redirectURI, scope, state, host, port, timeout, noOpen, nil
+}
+
+func defaultOpenAPIRedirectURI() string {
+	return fmt.Sprintf("http://%s:%d/callback", defaultOpenAPICallbackHost, defaultOpenAPICallbackPort)
 }
 
 func openBrowserURL(target string) error {

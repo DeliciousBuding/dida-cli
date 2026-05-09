@@ -107,6 +107,32 @@ func TestAuthStatusVerifyMissingAuthFailsJSON(t *testing.T) {
 	}
 }
 
+func TestOpenAPIDoctorIncludesRedirectAndNextActions(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "")
+	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "doctor", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	if data["default_redirect_uri"] != "http://127.0.0.1:17890/callback" {
+		t.Fatalf("default_redirect_uri = %v", data["default_redirect_uri"])
+	}
+	next := data["next"].([]any)
+	if len(next) < 2 {
+		t.Fatalf("next actions too short: %v", next)
+	}
+	if !strings.Contains(next[0].(string), "openapi client set") {
+		t.Fatalf("first next action = %v", next[0])
+	}
+}
+
 func TestSyncMissingAuthJSON(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer

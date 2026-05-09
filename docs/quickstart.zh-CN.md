@@ -98,6 +98,9 @@ dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
 
+运行 `dida openapi login --json` 前，先在开发者后台把 OAuth redirect URL
+配置成 `dida openapi doctor --json` 输出的 `default_redirect_uri`。
+
 `dida openapi login --json` 会打开浏览器，并在 OAuth 回调完成后只输出一个
 最终 JSON envelope。无浏览器的手动流程请用 `dida openapi auth-url --json`
 和 `dida openapi listen-callback --json`。
