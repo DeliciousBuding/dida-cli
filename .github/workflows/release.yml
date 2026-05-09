@@ -1,0 +1,116 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build release assets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Test
+        run: go test ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Vulnerability check
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+
+      - name: Build archives
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME}"
+          mkdir -p dist
+
+          build_one() {
+            local os="$1"
+            local arch="$2"
+            local ext=""
+            local bin="dida"
+            if [[ "$os" == "windows" ]]; then
+              ext=".exe"
+              bin="dida.exe"
+            fi
+
+            local work="dist/dida_${version}_${os}_${arch}"
+            mkdir -p "$work"
+            GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags "-s -w -X main.version=${version}" -o "$work/$bin" ./cmd/dida
+
+            if [[ "$os" == "windows" ]]; then
+              (cd dist && zip -qr "dida_${version}_${os}_${arch}.zip" "dida_${version}_${os}_${arch}")
+            else
+              (cd dist && tar -czf "dida_${version}_${os}_${arch}.tar.gz" "dida_${version}_${os}_${arch}")
+            fi
+            rm -rf "$work"
+          }
+
+          build_one windows amd64
+          build_one windows arm64
+          build_one linux amd64
+          build_one linux arm64
+          build_one darwin amd64
+          build_one darwin arm64
+
+          (cd dist && sha256sum *.zip *.tar.gz > checksums.txt)
+
+      - name: Write release notes
+        shell: bash
+        run: |
+          cat > release-notes.md <<'EOF'
+          ## Install
+
+          Unix-like systems:
+
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+          ```
+
+          Windows PowerShell:
+
+          ```powershell
+          iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+          ```
+
+          Pin this release:
+
+          ```bash
+          DIDA_VERSION=${{ github.ref_name }} curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+          ```
+
+          ```powershell
+          $env:DIDA_VERSION="${{ github.ref_name }}"; iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+          ```
+
+          Verify after install:
+
+          ```bash
+          dida version
+          dida doctor --json
+          ```
+
+          Checksums are attached as `checksums.txt`.
+          EOF
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* \
+            --title "DidaCLI ${GITHUB_REF_NAME}" \
+            --notes-file release-notes.md
