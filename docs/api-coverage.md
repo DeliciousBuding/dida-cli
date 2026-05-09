@@ -23,6 +23,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Tag rename | `PUT /tag/rename` | `tag rename` | Stable | Unit request tests and live reversible smoke |
 | Tag merge | `PUT /tag/merge` | `tag merge --yes` | Stable with caveat | Unit request tests and live smoke; source tag may remain |
 | Tag delete | `DELETE /tag?name=...` | `tag delete --yes` | Stable | Unit URL escaping test and live reversible smoke |
+| Filters | sync payload `filters` | `filter list` | Stable read | Unit sync-view test and live read |
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
 | Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke |
 | Raw read | any GET path under base URL | `raw get` | Stable read-only | Live reads |
@@ -37,6 +38,7 @@ These surfaces are visible in payloads or product behavior but do not yet have v
 - Attachments/media upload: payloads expose attachment metadata, but upload and attach flow has not been mapped.
 - Comment attachments: comment CRUD is mapped, but multipart upload and attachment body flow are not exposed yet.
 - Collaboration/team permissions: project payloads expose team and permission fields, but multi-user behavior is not mapped.
+- Filter writes: `/batch/filter` is visible in the webapp bundle, but create/update/delete payloads are not mapped.
 - Arbitrary raw writes: intentionally unavailable for safety. Add a first-class command and tests instead.
 
 ## Safety Policy

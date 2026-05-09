@@ -23,6 +23,7 @@ Do not ask the user to paste cookies into chat.
 dida project list --json
 dida folder list --json
 dida tag list --json
+dida filter list --json
 dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
 dida +today --compact --json

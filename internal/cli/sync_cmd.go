@@ -32,7 +32,7 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	if err != nil {
 		return fail("sync all", err.Error(), jsonOut, stdout, stderr)
 	}
-	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now())
+	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, payload.Filters, time.Now())
 	meta := map[string]any{"checkpoint": payload.CheckPoint}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "sync all", Meta: meta, Data: data})
@@ -53,7 +53,7 @@ func runSyncCheckpoint(checkpoint int64, jsonOut bool, stdout io.Writer, stderr 
 		return fail("sync checkpoint", err.Error(), jsonOut, stdout, stderr)
 	}
 	payload := syncPayloadValue(result)
-	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now())
+	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, payload.Filters, time.Now())
 	meta := map[string]any{
 		"requestedCheckpoint": checkpoint,
 		"checkpoint":          payload.CheckPoint,
@@ -114,7 +114,7 @@ func loadSyncView() (model.SyncView, error) {
 	if err != nil {
 		return model.SyncView{}, fmt.Errorf("%w", err)
 	}
-	return model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now()), nil
+	return model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, payload.Filters, time.Now()), nil
 }
 
 func loadFullSyncPayload() (webapi.SyncPayload, error) {

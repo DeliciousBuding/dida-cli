@@ -25,6 +25,7 @@ Commands:
   project      Project discovery and CRUD
   folder       Project folder CRUD
   tag          Tag discovery and CRUD
+  filter       Filter discovery
   column       Kanban column discovery and experimental create
   comment      Task comment reads and writes
   task         Task reads and writes
@@ -169,6 +170,16 @@ Usage:
   dida tag rename <old-name> <new-name> [--dry-run] [--json]
   dida tag merge <from-name> <to-name> --yes [--dry-run] [--json]
   dida tag delete <name> --yes [--dry-run] [--json]
+`))
+}
+
+func printFilterHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida filter list [--json]
+
+Filters are read from the sync payload. Filter writes are not exposed until the
+private /batch/filter payload shape is verified.
 `))
 }
 

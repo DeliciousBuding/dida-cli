@@ -24,6 +24,7 @@ dida project tasks <project-id> --compact --json
 dida project columns <project-id> --json
 dida folder list --json
 dida tag list --json
+dida filter list --json
 dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
 dida settings get --json
@@ -125,6 +126,14 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 ```
 
 Comment attachments are intentionally not exposed until the multipart upload and attach flow is verified.
+
+## Filters
+
+```bash
+dida filter list --json
+```
+
+Filters are read from the sync payload. Filter writes are intentionally not exposed until `/batch/filter` payloads are verified from a real webapp trace.
 
 Observed merge behavior: `tag merge` moves associations through the private endpoint but may leave the source tag object present. Delete the source tag explicitly when the intended outcome is full retirement.
 

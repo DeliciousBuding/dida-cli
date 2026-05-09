@@ -33,12 +33,20 @@ Important existing endpoints:
 - `POST /batch/project` for project operations.
 - `POST /batch/projectGroup` for folder/group operations.
 - `POST /batch/tag` and tag-specific endpoints for tag operations.
+- Sync payload `filters` for read-only custom filter discovery.
 - `POST /column` for column creation experiments.
 - `GET /project/{projectId}/task/{taskId}/comments` for task comments.
 - `POST /project/{projectId}/task/{taskId}/comment` with `{"title":"..."}` for comment create.
 - `PUT /project/{projectId}/task/{taskId}/comment/{commentId}` with `{"title":"..."}` for comment update.
 - `DELETE /project/{projectId}/task/{taskId}/comment/{commentId}` for comment delete.
 - `POST /batch/columnProject` is present in the webapp bundle, but exact update/delete/order payload shapes are not yet verified.
+- `POST /batch/filter` is present in the webapp bundle, but create/update/delete payload shapes are not yet verified.
+
+Column probe notes:
+
+- `POST /column` with `{projectId,name}` returned `{"id2error":{},"id2etag":{}}` for temporary projects, but `GET /column/project/{projectId}` still returned an empty list after a short delay.
+- The same result occurred for a temporary project created with `viewMode:"kanban"`.
+- Because the create response did not expose a column id and no column appeared in the read endpoint, column update/delete/order must stay unimplemented until a real webapp network trace shows the full project/column preconditions and payload.
 
 Observed negative probes on the CN Web API:
 

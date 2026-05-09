@@ -36,7 +36,7 @@ The primary integration surface is the Dida365 Web API used by the official web 
 
 ## Features
 
-- Web API first: sync, settings, projects, folders, tags, columns, comments, tasks, completed history, and raw GET probes.
+- Web API first: sync, settings, projects, folders, tags, filters, columns, comments, tasks, completed history, and raw GET probes.
 - Full task CRUD plus comment CRUD, project/folder/tag CRUD, task move/subtask operations, and conservative kanban column support.
 - Agent-safe JSON: every `--json` response uses a consistent envelope.
 - Ergonomic writes: create/update/complete run directly; `--dry-run` previews; destructive delete requires `--yes`.
@@ -104,6 +104,7 @@ dida project tasks <project-id> --compact --json
 dida project columns <project-id> --json
 dida folder list --json
 dida tag list --json
+dida filter list --json
 dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
 dida task today --json
@@ -237,6 +238,7 @@ DidaCLI currently uses:
 - `PUT /tag/rename`
 - `PUT /tag/merge`
 - `DELETE /tag?name=...`
+- sync-returned `filters`
 - `POST /column`
 - `GET /column/project/{projectId}`
 - `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)`

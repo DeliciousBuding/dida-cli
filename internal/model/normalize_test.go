@@ -17,10 +17,14 @@ func TestBuildSyncViewAndTodayTasks(t *testing.T) {
 		},
 		nil,
 		nil,
+		[]map[string]any{{"id": "f1", "name": "Focus"}},
 		now,
 	)
 	if view.Counts["tasks"] != 3 {
 		t.Fatalf("task count = %d, want 3", view.Counts["tasks"])
+	}
+	if view.Counts["filters"] != 1 || len(view.Filters) != 1 {
+		t.Fatalf("filter count = %d len=%d, want 1", view.Counts["filters"], len(view.Filters))
 	}
 	today := TodayTasks(view.Tasks, now)
 	if len(today) != 1 {
@@ -44,6 +48,7 @@ func TestSearchAndUpcomingTasks(t *testing.T) {
 			{"id": "t2", "projectId": "p1", "title": "Far Future", "dueDate": "2026-06-10T09:00:00+08:00", "status": 0},
 			{"id": "t3", "projectId": "p1", "title": "Done Computer", "dueDate": "2026-05-10T09:00:00+08:00", "status": 2},
 		},
+		nil,
 		nil,
 		nil,
 		now,

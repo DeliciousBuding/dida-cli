@@ -60,10 +60,11 @@ type SyncView struct {
 	Tasks         []Task           `json:"tasks"`
 	ProjectGroups []map[string]any `json:"projectGroups,omitempty"`
 	Tags          []map[string]any `json:"tags,omitempty"`
+	Filters       []map[string]any `json:"filters,omitempty"`
 	Counts        map[string]int   `json:"counts"`
 }
 
-func BuildSyncView(inboxID string, rawProjects []map[string]any, rawTasks []map[string]any, rawProjectGroups []map[string]any, rawTags []map[string]any, now time.Time) SyncView {
+func BuildSyncView(inboxID string, rawProjects []map[string]any, rawTasks []map[string]any, rawProjectGroups []map[string]any, rawTags []map[string]any, rawFilters []map[string]any, now time.Time) SyncView {
 	projects := NormalizeProjects(rawProjects)
 	projectNames := make(map[string]string, len(projects))
 	for _, project := range projects {
@@ -76,11 +77,13 @@ func BuildSyncView(inboxID string, rawProjects []map[string]any, rawTasks []map[
 		Tasks:         tasks,
 		ProjectGroups: rawProjectGroups,
 		Tags:          rawTags,
+		Filters:       rawFilters,
 		Counts: map[string]int{
 			"projects":      len(projects),
 			"tasks":         len(tasks),
 			"projectGroups": len(rawProjectGroups),
 			"tags":          len(rawTags),
+			"filters":       len(rawFilters),
 		},
 	}
 }
