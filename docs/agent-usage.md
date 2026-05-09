@@ -47,7 +47,7 @@ dida completed today --compact --json
 dida pomo list --limit 10 --json
 dida habit list --json
 dida official doctor --json
-dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
 
 Prefer `--compact` for broad task reads. It keeps IDs, titles, dates, priority, status, columns, and tags while omitting large descriptions, checklist items, reminders, and raw payloads. Use full JSON only when you need those fields for a specific task.
@@ -111,7 +111,7 @@ dida official task filter --project <project-id> --status 0 --json
 dida official show get_focuses_by_time --json
 dida official habit get <habit-id> --json
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
-dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
 
 Use `dida openapi ...` only for the official OAuth OpenAPI channel. It requires

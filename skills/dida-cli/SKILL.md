@@ -160,7 +160,8 @@ Do not use comment attachments yet; the CLI intentionally does not expose the mu
 
 Keep official channels separate from browser-cookie Web API commands.
 
-Use official MCP when the operator has configured `DIDA365_TOKEN`:
+Use official MCP when the operator has configured `DIDA365_TOKEN` or saved a
+local official token:
 
 ```bash
 dida official doctor --json
@@ -178,7 +179,7 @@ dida official habit list --json
 dida official habit sections --json
 dida official habit get <habit-id> --json
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
-dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
 
 Use official OpenAPI only through `dida openapi ...`. It is OAuth-based and

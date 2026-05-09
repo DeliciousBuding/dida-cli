@@ -2,7 +2,8 @@
 
 This matrix separates the two official channels:
 
-- `official mcp`: token-based MCP server accessed with `DIDA365_TOKEN`.
+- `official mcp`: token-based MCP server accessed with `DIDA365_TOKEN` or
+  saved local official token config.
 - `official openapi`: OAuth REST API under `/open/v1`.
 
 They are intentionally not interchangeable.
@@ -33,9 +34,9 @@ They are intentionally not interchangeable.
 | Habit update | `update_habit` | `official habit update` | implemented | Requires a known test habit. |
 | Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented | Requires a known test habit and reversible check-in date. |
 | Habit check-ins | `get_habit_checkins` | `official habit checkins` | implemented | Requires known habit ids and a bounded date stamp range. |
-| Focus read | `get_focus` | `official focus get` | implemented | Needs a known focus id. |
-| Focus range | `get_focuses_by_time` | `official focus list` | live-verified | Bounded range smoke succeeded on 2026-05-10; output was treated as summary-only. |
-| Focus delete | `delete_focus` | `official focus delete --yes` | implemented | Destructive; only test on a disposable focus record. |
+| Focus read | `get_focus` | `official focus get --type 0|1` | implemented | Needs a known focus id and focus type. |
+| Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10; output was treated as summary-only. |
+| Focus delete | `delete_focus` | `official focus delete --type 0|1 --yes` | implemented | Destructive; only test on a disposable focus record. |
 | Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |

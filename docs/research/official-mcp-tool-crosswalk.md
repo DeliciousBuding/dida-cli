@@ -58,9 +58,9 @@ first-class commands.
 
 | Official MCP tool | Current DidaCLI equivalent | Assessment |
 | --- | --- | --- |
-| `get_focus` | `official focus get` | Wrapped |
-| `get_focuses_by_time` | `official focus list` | Wrapped |
-| `delete_focus` | `official focus delete` | Wrapped |
+| `get_focus` | `official focus get --type 0|1` | Wrapped; upstream requires focus id and type |
+| `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | Wrapped; upstream requires `from_time`, `to_time`, and type |
+| `delete_focus` | `official focus delete --type 0|1 --yes` | Wrapped; upstream requires focus id and type |
 
 ## Preference Tool
 

@@ -1026,6 +1026,39 @@ func TestOfficialTaskCompleteProjectFlagParsing(t *testing.T) {
 	}
 }
 
+func TestOfficialFocusFlagParsing(t *testing.T) {
+	getPayload, err := parseOfficialFocusIDTypeArgs([]string{"f1", "--type", "1"})
+	if err != nil {
+		t.Fatalf("parseOfficialFocusIDTypeArgs() error = %v", err)
+	}
+	if getPayload["focus_id"] != "f1" || getPayload["type"] != 1 {
+		t.Fatalf("get payload = %#v", getPayload)
+	}
+
+	listPayload, err := parseFocusListArgs([]string{"--from-time", "2026-05-01T00:00:00+08:00", "--to-time", "2026-05-09T23:59:59+08:00", "--type", "0"})
+	if err != nil {
+		t.Fatalf("parseFocusListArgs() error = %v", err)
+	}
+	if listPayload["from_time"] != "2026-05-01T00:00:00+08:00" || listPayload["to_time"] != "2026-05-09T23:59:59+08:00" || listPayload["type"] != 0 {
+		t.Fatalf("list payload = %#v", listPayload)
+	}
+
+	deletePayload, confirmed, err := parseOfficialFocusDeleteArgs([]string{"f1", "--type", "1", "--yes"})
+	if err != nil {
+		t.Fatalf("parseOfficialFocusDeleteArgs() error = %v", err)
+	}
+	if !confirmed || deletePayload["focus_id"] != "f1" || deletePayload["type"] != 1 {
+		t.Fatalf("delete payload = %#v confirmed = %v", deletePayload, confirmed)
+	}
+}
+
+func TestOfficialFocusListRequiresType(t *testing.T) {
+	_, err := parseFocusListArgs([]string{"--from-time", "2026-05-01T00:00:00+08:00", "--to-time", "2026-05-09T23:59:59+08:00"})
+	if err == nil {
+		t.Fatalf("parseFocusListArgs() error = nil, want missing type")
+	}
+}
+
 func TestOfficialHabitCheckinsFlagParsing(t *testing.T) {
 	payload, err := parseOfficialHabitCheckinsArgs([]string{"--habit-ids", "h1,h2", "--from", "20260501", "--to", "20260510"})
 	if err != nil {

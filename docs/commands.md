@@ -71,7 +71,7 @@ dida official habit list --json
 dida official habit sections --json
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
-dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
+dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 dida openapi doctor --json
 dida openapi client status --json
 dida openapi client set --id <client-id> --secret-stdin --json
@@ -290,9 +290,9 @@ dida official habit update <habit-id> --args-json "{\"name\":\"Read more\"}" --j
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
 dida official habit checkins --habit-ids <habit-id> --from 20260501 --to 20260510 --json
 
-dida official focus get <focus-id> --json
-dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
-dida official focus delete <focus-id> --yes --json
+dida official focus get <focus-id> --type 0 --json
+dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
+dida official focus delete <focus-id> --type 0 --yes --json
 ```
 
 These commands use the official MCP channel. `DIDA365_TOKEN` takes precedence,

@@ -225,7 +225,8 @@ Live evidence:
   `official tools`, generic `list_projects`, `official project get`,
   `official project data`,
   `official task query --query today`, `official task search`, `official task
-  undone`, `official task filter`, and bounded `official focus list`.
+  undone`, `official task filter`, and bounded `official focus list` for both
+  focus types.
 - Remaining read smokes: known-id habit/focus reads.
 - Write smokes remain blocked until disposable project/task/habit/focus targets
   exist.

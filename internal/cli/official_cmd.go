@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -1049,11 +1050,11 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 
 	switch args[0] {
 	case "get":
-		if len(args) < 2 {
-			return failTyped("official focus get", "validation", "usage: dida official focus get <focus-id>", "run: dida official focus --help", jsonOut, stdout, stderr)
+		payload, err := parseOfficialFocusIDTypeArgs(args[1:])
+		if err != nil {
+			return failTyped("official focus get", "validation", err.Error(), "run: dida official focus --help", jsonOut, stdout, stderr)
 		}
-		focusID := args[1]
-		result, err := client.CallTool(ctx, "get_focus", map[string]any{"focusId": focusID})
+		result, err := client.CallTool(ctx, "get_focus", payload)
 		if err != nil {
 			return failTyped("official focus get", "api", err.Error(), "", jsonOut, stdout, stderr)
 		}
@@ -1063,16 +1064,9 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		return writeJSON(stdout, result)
 
 	case "list":
-		startTime, endTime, err := parseFocusListArgs(args[1:])
+		payload, err := parseFocusListArgs(args[1:])
 		if err != nil {
 			return failTyped("official focus list", "validation", err.Error(), "run: dida official focus --help", jsonOut, stdout, stderr)
-		}
-		payload := map[string]any{}
-		if startTime != "" {
-			payload["startTime"] = startTime
-		}
-		if endTime != "" {
-			payload["endTime"] = endTime
 		}
 		result, err := client.CallTool(ctx, "get_focuses_by_time", payload)
 		if err != nil {
@@ -1084,18 +1078,14 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		return writeJSON(stdout, result)
 
 	case "delete":
-		if len(args) < 2 {
-			return failTyped("official focus delete", "validation", "usage: dida official focus delete <focus-id> --yes", "run: dida official focus --help", jsonOut, stdout, stderr)
-		}
-		focusID := args[1]
-		confirmed, err := parseOfficialYesFlag(args[2:])
+		payload, confirmed, err := parseOfficialFocusDeleteArgs(args[1:])
 		if err != nil {
 			return failTyped("official focus delete", "validation", err.Error(), "", jsonOut, stdout, stderr)
 		}
 		if !confirmed {
 			return failTyped("official focus delete", "confirmation_required", "official focus delete requires --yes", "only delete known disposable focus records", jsonOut, stdout, stderr)
 		}
-		result, err := client.CallTool(ctx, "delete_focus", map[string]any{"focusId": focusID})
+		result, err := client.CallTool(ctx, "delete_focus", payload)
 		if err != nil {
 			return failTyped("official focus delete", "api", err.Error(), "", jsonOut, stdout, stderr)
 		}
@@ -1111,11 +1101,11 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 
 func printOfficialFocusHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
-	fmt.Fprintln(stdout, "  dida official focus get <focus-id> [--json]")
-	fmt.Fprintln(stdout, "  dida official focus list [--start-time RFC3339] [--end-time RFC3339] [--json]")
-	fmt.Fprintln(stdout, "  dida official focus delete <focus-id> --yes [--json]")
+	fmt.Fprintln(stdout, "  dida official focus get <focus-id> --type 0|1 [--json]")
+	fmt.Fprintln(stdout, "  dida official focus list --from-time RFC3339 --to-time RFC3339 --type 0|1 [--json]")
+	fmt.Fprintln(stdout, "  dida official focus delete <focus-id> --type 0|1 --yes [--json]")
 	fmt.Fprintln(stdout, "")
-	fmt.Fprintln(stdout, "Manage focus sessions using the official MCP API.")
+	fmt.Fprintln(stdout, "Manage focus sessions using the official MCP API. Type 0 is Pomodoro; type 1 is timing.")
 }
 
 func parseOfficialYesFlag(args []string) (bool, error) {
@@ -1131,26 +1121,127 @@ func parseOfficialYesFlag(args []string) (bool, error) {
 	return confirmed, nil
 }
 
-func parseFocusListArgs(args []string) (string, string, error) {
-	startTime := ""
-	endTime := ""
-	for i := 0; i < len(args); i++ {
+func parseOfficialFocusIDTypeArgs(args []string) (map[string]any, error) {
+	if len(args) == 0 {
+		return nil, fmt.Errorf("focus id is required")
+	}
+	focusID := args[0]
+	focusType, hasType, err := parseOfficialFocusTypeFlag(args[1:])
+	if err != nil {
+		return nil, err
+	}
+	if !hasType {
+		return nil, fmt.Errorf("--type 0|1 is required")
+	}
+	return map[string]any{"focus_id": focusID, "type": focusType}, nil
+}
+
+func parseOfficialFocusDeleteArgs(args []string) (map[string]any, bool, error) {
+	if len(args) == 0 {
+		return nil, false, fmt.Errorf("focus id is required")
+	}
+	focusID := args[0]
+	confirmed := false
+	focusType := 0
+	hasType := false
+	for i := 1; i < len(args); i++ {
 		switch args[i] {
-		case "--start-time":
+		case "--yes":
+			confirmed = true
+		case "--type":
 			if i+1 >= len(args) {
-				return "", "", fmt.Errorf("--start-time requires an RFC3339 timestamp value")
+				return nil, false, fmt.Errorf("--type requires 0 or 1")
 			}
-			startTime = args[i+1]
-			i++
-		case "--end-time":
-			if i+1 >= len(args) {
-				return "", "", fmt.Errorf("--end-time requires an RFC3339 timestamp value")
+			parsed, err := parseFocusType(args[i+1])
+			if err != nil {
+				return nil, false, err
 			}
-			endTime = args[i+1]
+			focusType = parsed
+			hasType = true
 			i++
 		default:
-			return "", "", fmt.Errorf("unknown flag %q", args[i])
+			return nil, false, fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
-	return startTime, endTime, nil
+	if !hasType {
+		return nil, false, fmt.Errorf("--type 0|1 is required")
+	}
+	return map[string]any{"focus_id": focusID, "type": focusType}, confirmed, nil
+}
+
+func parseFocusListArgs(args []string) (map[string]any, error) {
+	fromTime := ""
+	toTime := ""
+	focusType := 0
+	hasType := false
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--from-time", "--start-time":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("%s requires an RFC3339 timestamp value", args[i])
+			}
+			fromTime = args[i+1]
+			i++
+		case "--to-time", "--end-time":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("%s requires an RFC3339 timestamp value", args[i])
+			}
+			toTime = args[i+1]
+			i++
+		case "--type":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--type requires 0 or 1")
+			}
+			parsed, err := parseFocusType(args[i+1])
+			if err != nil {
+				return nil, err
+			}
+			focusType = parsed
+			hasType = true
+			i++
+		default:
+			return nil, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if fromTime == "" {
+		return nil, fmt.Errorf("--from-time is required")
+	}
+	if toTime == "" {
+		return nil, fmt.Errorf("--to-time is required")
+	}
+	if !hasType {
+		return nil, fmt.Errorf("--type 0|1 is required")
+	}
+	return map[string]any{"from_time": fromTime, "to_time": toTime, "type": focusType}, nil
+}
+
+func parseOfficialFocusTypeFlag(args []string) (int, bool, error) {
+	focusType := 0
+	hasType := false
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--type":
+			if i+1 >= len(args) {
+				return 0, false, fmt.Errorf("--type requires 0 or 1")
+			}
+			parsed, err := parseFocusType(args[i+1])
+			if err != nil {
+				return 0, false, err
+			}
+			focusType = parsed
+			hasType = true
+			i++
+		default:
+			return 0, false, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return focusType, hasType, nil
+}
+
+func parseFocusType(value string) (int, error) {
+	focusType, err := strconv.Atoi(value)
+	if err != nil || (focusType != 0 && focusType != 1) {
+		return 0, fmt.Errorf("--type must be 0 for Pomodoro or 1 for timing")
+	}
+	return focusType, nil
 }
