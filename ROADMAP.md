@@ -34,6 +34,7 @@ As of the current main branch:
   - `official tools`
   - `official show`
   - `official call`
+  - local token config helpers under `official token`
   - first-class project read wrappers
   - first-class task read/filter/query wrappers
   - first-class official task batch-add, batch-update, and project completion
@@ -59,11 +60,11 @@ As of the current main branch:
   - Web API gap catalog
   - MCP tool crosswalk
 - distribution is live:
-  - `v0.1.7` GitHub Release exists
+  - `v0.1.8` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the latest `v0.1.7` release asset on Windows
+  - `install.ps1` has been smoke-tested against the latest `v0.1.8` release asset on Windows
   - installed `v0.1.4` binary has smoke-tested `openapi client set/status/clear`
-  - `install.sh` has been smoke-tested against the latest `v0.1.7` release asset on Linux/amd64
+  - `install.sh` has been smoke-tested against the latest `v0.1.8` release asset on Linux/amd64
   - npm installer skeleton has been smoke-tested against `v0.1.4` on Windows
     and WSL Linux
   - package manager templates exist under `packaging/` for Homebrew and Scoop;
@@ -92,7 +93,7 @@ As of the current main branch:
 
 ### Official MCP
 
-- Auth: `DIDA365_TOKEN=dp_...`
+- Auth: `DIDA365_TOKEN=dp_...` or saved local official token config
 - Role: official token-based tool surface
 - Risk: smaller surface, but cleaner contracts
 
@@ -363,7 +364,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.1.7`; release workflow uses Node 24-compatible action major versions.
+Status: implemented and smoke-tested through `v0.1.8`; release workflow uses Node 24-compatible action major versions.
 
 ### F2. Install Scripts
 
@@ -376,7 +377,7 @@ Status: implemented and smoke-tested through `v0.1.7`; release workflow uses Nod
 - install-time `dida version` and `dida doctor --json`
 
 Status: implemented; Windows `install.ps1` and WSL Linux `install.sh` latest
-smokes passed against `v0.1.7`. The installed-binary OpenAPI client config
+smokes passed against `v0.1.8`. The installed-binary OpenAPI client config
 smoke passed against `v0.1.4`.
 
 ### F3. npm Installer

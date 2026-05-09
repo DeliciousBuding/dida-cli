@@ -80,9 +80,9 @@ The `npm/` directory is a package skeleton for a future npm distribution:
   wrapper is not overwritten
 - local Windows and WSL Linux smoke tests installed `v0.1.4` from GitHub
   Releases in temporary copies and verified `node bin/dida version`
-- Windows `install.ps1` latest smoke installed `v0.1.7` from GitHub Releases
+- Windows `install.ps1` latest smoke installed `v0.1.8` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
-- WSL Linux `install.sh` latest smoke installed `v0.1.7` from GitHub Releases
+- WSL Linux `install.sh` latest smoke installed `v0.1.8` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
 
 Do not publish it until:
@@ -107,9 +107,9 @@ toolchain and may not match packaged release behavior.
 `packaging/` contains maintainer templates for package managers that generally
 live outside this repository:
 
-- `packaging/homebrew/dida.rb` pins `v0.1.7` macOS and Linux release archives
+- `packaging/homebrew/dida.rb` pins `v0.1.8` macOS and Linux release archives
   with checksums.
-- `packaging/scoop/dida.json` pins `v0.1.7` Windows amd64 and arm64 release
+- `packaging/scoop/dida.json` pins `v0.1.8` Windows amd64 and arm64 release
   archives with checksums.
 - `packaging/winget/README.md` records the future winget submission boundary
   without committing generated manifests prematurely.
