@@ -6,6 +6,8 @@ import (
 	"io"
 	"math/rand"
 	"net/http"
+	"os/exec"
+	"runtime"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/openapi"
@@ -23,6 +25,8 @@ func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		return runOpenAPIStatus(jsonOut, stdout, stderr)
 	case "logout":
 		return runOpenAPILogout(jsonOut, stdout, stderr)
+	case "login":
+		return runOpenAPILogin(args[1:], jsonOut, stdout, stderr)
 	case "auth-url":
 		return runOpenAPIAuthURL(args[1:], jsonOut, stdout, stderr)
 	case "exchange-code":
@@ -74,6 +78,75 @@ func runOpenAPILogout(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	}
 	fmt.Fprintln(stdout, "OpenAPI token cleared.")
 	return 0
+}
+
+func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	redirectURI, scope, state, host, port, timeout, noOpen, err := parseOpenAPILoginFlags(args)
+	if err != nil {
+		return failTyped("openapi login", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+	clientID, err := openapi.ResolveClientID("")
+	if err != nil {
+		return failTyped("openapi login", "auth", err.Error(), "set DIDA365_OPENAPI_CLIENT_ID", jsonOut, stdout, stderr)
+	}
+	clientSecret, err := openapi.ResolveClientSecret("")
+	if err != nil {
+		return failTyped("openapi login", "auth", err.Error(), "set DIDA365_OPENAPI_CLIENT_SECRET", jsonOut, stdout, stderr)
+	}
+	redirectURI = fmt.Sprintf("http://%s:%d/callback", host, port)
+	authURL := openapi.AuthorizationURL(clientID, redirectURI, scope, state)
+	type callbackResult struct {
+		code  string
+		state string
+	}
+	codeCh := make(chan callbackResult, 1)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case codeCh <- callbackResult{code: r.URL.Query().Get("code"), state: r.URL.Query().Get("state")}:
+		default:
+		}
+		_, _ = w.Write([]byte("DidaCLI OpenAPI callback received. You can return to the terminal."))
+	})
+	server := &http.Server{Addr: fmt.Sprintf("%s:%d", host, port), Handler: mux}
+	go func() { _ = server.ListenAndServe() }()
+	if !noOpen {
+		_ = openBrowserURL(authURL)
+	}
+	if jsonOut {
+		_ = writeJSON(stdout, envelope{OK: true, Command: "openapi login", Data: map[string]any{
+			"authorization_url": authURL,
+			"redirect_uri":      redirectURI,
+			"state":             state,
+			"scope":             scope,
+			"waiting":           true,
+		}})
+	} else {
+		fmt.Fprintln(stdout, "Open this URL in a browser and finish authorization:")
+		fmt.Fprintln(stdout, authURL)
+	}
+	select {
+	case result := <-codeCh:
+		_ = server.Close()
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		token, err := openapi.ExchangeCode(ctx, clientID, clientSecret, result.code, redirectURI, scope)
+		if err != nil {
+			return failTyped("openapi login", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if err := openapi.SaveToken(token); err != nil {
+			return failTyped("openapi login", "auth", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		data := map[string]any{"saved": true, "state": result.state, "token": openapi.TokenStatus()}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi login", Data: data})
+		}
+		fmt.Fprintln(stdout, "OpenAPI token saved.")
+		return 0
+	case <-time.After(timeout):
+		_ = server.Close()
+		return failTyped("openapi login", "timeout", "timed out waiting for OAuth callback", "", jsonOut, stdout, stderr)
+	}
 }
 
 func runOpenAPIAuthURL(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -274,4 +347,78 @@ func parseOpenAPIListenFlags(args []string) (string, int, error) {
 		}
 	}
 	return host, port, nil
+}
+
+func parseOpenAPILoginFlags(args []string) (string, string, string, string, int, time.Duration, bool, error) {
+	redirectURI := ""
+	scope := openapi.DefaultScopes
+	state := fmt.Sprintf("dida-%d-%d", time.Now().Unix(), rand.Intn(100000))
+	host := "127.0.0.1"
+	port := 17890
+	timeout := 10 * time.Minute
+	noOpen := false
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--redirect-uri":
+			if i+1 >= len(args) {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--redirect-uri requires a value")
+			}
+			redirectURI = args[i+1]
+			i++
+		case "--scope":
+			if i+1 >= len(args) {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--scope requires a value")
+			}
+			scope = args[i+1]
+			i++
+		case "--state":
+			if i+1 >= len(args) {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--state requires a value")
+			}
+			state = args[i+1]
+			i++
+		case "--host":
+			if i+1 >= len(args) {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--host requires a value")
+			}
+			host = args[i+1]
+			i++
+		case "--port":
+			if i+1 >= len(args) {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--port requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &port); err != nil || port <= 0 {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--port must be a positive integer")
+			}
+			i++
+		case "--timeout":
+			if i+1 >= len(args) {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--timeout requires seconds")
+			}
+			var seconds int
+			if _, err := fmt.Sscanf(args[i+1], "%d", &seconds); err != nil || seconds <= 0 {
+				return "", "", "", "", 0, 0, false, fmt.Errorf("--timeout must be a positive integer")
+			}
+			timeout = time.Duration(seconds) * time.Second
+			i++
+		case "--no-open":
+			noOpen = true
+		default:
+			return "", "", "", "", 0, 0, false, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return redirectURI, scope, state, host, port, timeout, noOpen, nil
+}
+
+func openBrowserURL(target string) error {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "windows":
+		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", target)
+	case "darwin":
+		cmd = exec.Command("open", target)
+	default:
+		cmd = exec.Command("xdg-open", target)
+	}
+	return cmd.Start()
 }

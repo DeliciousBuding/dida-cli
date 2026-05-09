@@ -90,8 +90,13 @@ dida official doctor --json
 dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
+dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
 dida openapi doctor --json
+dida openapi status --json
+dida openapi login --json
 dida openapi auth-url --json
+dida openapi exchange-code --code <code> --json
+dida openapi project list --json
 dida schema list --json
 dida agent context --json
 dida auth status --verify --json

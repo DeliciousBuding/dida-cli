@@ -84,6 +84,7 @@ Usage:
   dida openapi doctor [--json]
   dida openapi status [--json]
   dida openapi logout [--json]
+  dida openapi login [--host HOST] [--port PORT] [--scope SCOPES] [--state VALUE] [--timeout SECONDS] [--no-open] [--json]
   dida openapi auth-url [--redirect-uri URL] [--scope SCOPES] [--state VALUE] [--json]
   dida openapi listen-callback [--host HOST] [--port PORT] [--json]
   dida openapi exchange-code --code CODE [--redirect-uri URL] [--scope SCOPES] [--json]
