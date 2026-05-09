@@ -243,6 +243,66 @@ func TestFilterListMissingAuthJSON(t *testing.T) {
 	}
 }
 
+func TestSchemaListJSONDoesNotRequireAuth(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"schema", "list", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "schema list" {
+		t.Fatalf("command = %v, want schema list", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	schemas := data["schemas"].([]any)
+	if len(schemas) < 20 {
+		t.Fatalf("schema count = %d, want broad command coverage", len(schemas))
+	}
+}
+
+func TestSchemaShowTaskCreateJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"schema", "show", "task.create", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	schema := data["schema"].(map[string]any)
+	if schema["command"] != "dida task create --project <project-id> --title <title> --dry-run --json" {
+		t.Fatalf("command = %v", schema["command"])
+	}
+	if schema["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", schema["dryRun"])
+	}
+}
+
+func TestSchemaShowUnknownJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"schema", "show", "missing.id", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "not_found" {
+		t.Fatalf("error.type = %v, want not_found", errPayload["type"])
+	}
+}
+
 func TestResourceCreateDryRunJSON(t *testing.T) {
 	cases := [][]string{
 		{"project", "create", "--name", "Smoke", "--dry-run", "--json"},

@@ -50,6 +50,7 @@ func rootCommands(version string) []rootCommand {
 		{Name: "settings", Run: runSettings},
 		{Name: "completed", Run: runCompleted},
 		{Name: "quadrant", Run: runQuadrant},
+		{Name: "schema", Run: runSchema},
 		{Name: "raw", Run: runRaw},
 		{Name: "project", Run: runProject},
 		{Name: "folder", Run: runFolder},

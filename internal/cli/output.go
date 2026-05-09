@@ -43,6 +43,7 @@ func failTyped(command string, errType string, message string, hint string, json
 
 func writeJSON(w io.Writer, value any) int {
 	enc := json.NewEncoder(w)
+	enc.SetEscapeHTML(false)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(value); err != nil {
 		return 1

@@ -16,6 +16,19 @@ dida auth logout --json
 
 Credentials are stored in `~/.dida-cli/`. Full cookie values are never printed.
 
+## Schema
+
+```bash
+dida schema list --json
+dida schema show task.create --json
+dida schema show column.create --json
+```
+
+Schema output is local and does not require auth. It exposes command IDs, command
+strings, status, Web API endpoints, `--dry-run` support, destructive
+confirmation requirements, and compact-output support for agents that need to
+choose the safest command without reading the full README.
+
 ## Discovery
 
 ```bash

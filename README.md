@@ -95,6 +95,8 @@ dida auth status --verify --json
 
 ```bash
 dida doctor --json
+dida schema list --json
+dida schema show task.create --json
 dida auth status --verify --json
 dida sync all --json
 dida sync checkpoint <checkpoint> --json
@@ -186,6 +188,7 @@ Recommended read-only context pack:
 
 ```bash
 dida doctor --json
+dida schema list --json
 dida auth status --verify --json
 dida project list --json
 dida folder list --json

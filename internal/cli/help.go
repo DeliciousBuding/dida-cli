@@ -22,6 +22,7 @@ Commands:
   settings     Read user preferences
   completed    Read completed task history
   quadrant     View active tasks by Eisenhower quadrant
+  schema       List machine-readable command contracts
   project      Project discovery and CRUD
   folder       Project folder CRUD
   tag          Tag discovery and CRUD
@@ -211,6 +212,17 @@ Usage:
   dida raw get <path> [--json]
 
 Only GET is supported for raw calls.
+`))
+}
+
+func printSchemaHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida schema list [--json]
+  dida schema show <schema-id> [--json]
+
+Schema output is local and does not require auth. Use it to discover command
+contracts, safety flags, endpoint coverage, and compact-output support.
 `))
 }
 

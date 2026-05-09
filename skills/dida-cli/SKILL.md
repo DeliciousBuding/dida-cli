@@ -13,6 +13,7 @@ Run these before doing useful work:
 
 ```bash
 dida doctor --json
+dida schema list --json
 dida auth status --verify --json
 ```
 
@@ -23,6 +24,13 @@ dida auth login --browser --json
 ```
 
 Never ask the user to paste cookies, browser tokens, or raw `t=` values into chat. If manual cookie import is unavoidable, tell the operator to run `dida auth cookie set --token-stdin` locally.
+
+Use the local schema command when selecting a command or checking safety flags:
+
+```bash
+dida schema show task.create --json
+dida schema show comment.delete --json
+```
 
 ## Read Context
 

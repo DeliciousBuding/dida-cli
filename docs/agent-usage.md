@@ -6,6 +6,7 @@ Use this guide when DidaCLI is called from Hermes, Codex, Claude Code, or anothe
 
 ```bash
 dida doctor --json
+dida schema list --json
 dida auth status --verify --json
 ```
 
@@ -16,6 +17,10 @@ dida auth login --browser --json
 ```
 
 Do not ask the user to paste cookies into chat.
+
+Use `dida schema show <id> --json` when you need the exact command contract for
+a write or less common resource. The schema command is local, auth-free, and
+lists whether `--dry-run`, `--yes`, or `--compact` applies.
 
 ## Context Pack
 
