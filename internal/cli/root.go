@@ -1,0 +1,73 @@
+package cli
+
+import (
+	"fmt"
+	"io"
+)
+
+type rootCommand struct {
+	Name string
+	Run  func(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int
+}
+
+func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printHelp(stdout)
+		return 0
+	}
+	if args[0] == "--version" || args[0] == "version" {
+		fmt.Fprintln(stdout, version)
+		return 0
+	}
+
+	jsonOut, args := consumeJSONFlag(args)
+	command := args[0]
+
+	for _, cmd := range rootCommands(version) {
+		if cmd.Name == command {
+			return cmd.Run(args[1:], jsonOut, stdout, stderr)
+		}
+	}
+	return fail(command, fmt.Sprintf("unknown command %q", command), jsonOut, stdout, stderr)
+}
+
+func rootCommands(version string) []rootCommand {
+	return []rootCommand{
+		{
+			Name: "+today",
+			Run: func(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+				return runTask(append([]string{"today"}, args...), jsonOut, stdout, stderr)
+			},
+		},
+		{
+			Name: "doctor",
+			Run: func(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+				return runDoctor(args, version, jsonOut, stdout, stderr)
+			},
+		},
+		{Name: "auth", Run: runAuth},
+		{Name: "sync", Run: runSync},
+		{Name: "settings", Run: runSettings},
+		{Name: "completed", Run: runCompleted},
+		{Name: "quadrant", Run: runQuadrant},
+		{Name: "raw", Run: runRaw},
+		{Name: "project", Run: runProject},
+		{Name: "folder", Run: runFolder},
+		{Name: "tag", Run: runTag},
+		{Name: "column", Run: runColumn},
+		{Name: "task", Run: runTask},
+	}
+}
+
+func consumeJSONFlag(args []string) (bool, []string) {
+	out := args[:0]
+	jsonOut := false
+	for _, arg := range args {
+		if arg == "--json" || arg == "-j" {
+			jsonOut = true
+			continue
+		}
+		out = append(out, arg)
+	}
+	return jsonOut, out
+}
