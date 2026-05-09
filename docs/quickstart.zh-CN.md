@@ -67,6 +67,7 @@ dida agent context --json
 ```bash
 dida schema list --json
 dida schema show task.create --json
+dida schema show openapi.login --json
 ```
 
 生成写操作前先查 schema。它会告诉 Agent 哪些命令支持 `--dry-run`、`--yes` 和紧凑输出。

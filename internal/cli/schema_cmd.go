@@ -107,8 +107,12 @@ func didaCommandSchemas() []commandSchema {
 		{ID: "openapi.clientStatus", Title: "Check saved official OpenAPI client config", Resource: "openapi", Operation: "read", Command: "dida openapi client status --json", Status: "stable", AuthRequired: false, Notes: "Reports whether local OpenAPI client config is available without printing the secret."},
 		{ID: "openapi.clientSet", Title: "Save official OpenAPI client config", Resource: "openapi", Operation: "auth", Command: "dida openapi client set --id <client-id> --secret-stdin --json", Status: "stable", AuthRequired: false, Notes: "Stores client id and client secret locally for OAuth commands. Environment variables still take precedence."},
 		{ID: "openapi.clientClear", Title: "Clear saved official OpenAPI client config", Resource: "openapi", Operation: "auth", Command: "dida openapi client clear --json", Status: "stable", AuthRequired: false},
+		{ID: "openapi.status", Title: "Check saved official OpenAPI OAuth token", Resource: "openapi", Operation: "auth", Command: "dida openapi status --json", Status: "stable", AuthRequired: false, Notes: "Reports whether a local OAuth access token is available without printing it."},
 		{ID: "openapi.authUrl", Title: "Generate official OpenAPI authorization URL", Resource: "openapi", Operation: "auth", Command: "dida openapi auth-url --json", HTTP: []string{"GET https://dida365.com/oauth/authorize"}, Status: "stable", AuthRequired: false},
+		{ID: "openapi.listenCallback", Title: "Listen for one official OpenAPI OAuth callback", Resource: "openapi", Operation: "auth", Command: "dida openapi listen-callback --json", HTTP: []string{"GET local callback /callback?code=...&state=..."}, Status: "stable", AuthRequired: false, Notes: "Local-only helper for manual no-browser OAuth flows."},
 		{ID: "openapi.exchangeCode", Title: "Exchange OAuth authorization code for access token", Resource: "openapi", Operation: "auth", Command: "dida openapi exchange-code --code <code> --json", HTTP: []string{"POST https://dida365.com/oauth/token"}, Status: "stable", AuthRequired: false},
+		{ID: "openapi.login", Title: "Complete browser-based official OpenAPI OAuth login", Resource: "openapi", Operation: "auth", Command: "dida openapi login --browser --json", HTTP: []string{"GET https://dida365.com/oauth/authorize", "GET local callback /callback", "POST https://dida365.com/oauth/token"}, Status: "stable", AuthRequired: false, Notes: "Requires client config and a developer app redirect URL matching the reported local callback."},
+		{ID: "openapi.logout", Title: "Clear saved official OpenAPI OAuth token", Resource: "openapi", Operation: "auth", Command: "dida openapi logout --json", Status: "stable", AuthRequired: false, Notes: "Removes the saved local OpenAPI access token."},
 		{ID: "openapi.projectList", Title: "List projects through official OpenAPI", Resource: "openapi", Operation: "read", Command: "dida openapi project list --json", HTTP: []string{"GET /open/v1/project"}, Status: "stable", AuthRequired: false, Notes: "Requires an already saved OAuth access token."},
 		{ID: "openapi.projectGet", Title: "Get project through official OpenAPI", Resource: "openapi", Operation: "read", Command: "dida openapi project get <project-id> --json", HTTP: []string{"GET /open/v1/project/{projectId}"}, Status: "stable", AuthRequired: false, Notes: "Requires an already saved OAuth access token."},
 		{ID: "openapi.projectData", Title: "Get project data through official OpenAPI", Resource: "openapi", Operation: "read", Command: "dida openapi project data <project-id> --json", HTTP: []string{"GET /open/v1/project/{projectId}/data"}, Status: "stable", AuthRequired: false, Notes: "Requires an already saved OAuth access token. Project id may be inbox."},
@@ -213,10 +217,13 @@ func applyChannelAuthMetadata(schemas []commandSchema) {
 		"official.tokenClear":  true,
 	}
 	openAPINoAuth := map[string]bool{
-		"openapi.doctor":       true,
-		"openapi.clientStatus": true,
-		"openapi.clientSet":    true,
-		"openapi.clientClear":  true,
+		"openapi.doctor":         true,
+		"openapi.clientStatus":   true,
+		"openapi.clientSet":      true,
+		"openapi.clientClear":    true,
+		"openapi.status":         true,
+		"openapi.listenCallback": true,
+		"openapi.logout":         true,
 	}
 	for i := range schemas {
 		id := schemas[i].ID

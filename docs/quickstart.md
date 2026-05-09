@@ -70,6 +70,7 @@ today, upcoming, and quadrants.
 ```bash
 dida schema list --json
 dida schema show task.create --json
+dida schema show openapi.login --json
 ```
 
 Inspect schema before generated writes. It tells agents which commands support

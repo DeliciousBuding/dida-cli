@@ -25,6 +25,7 @@ the cookie does not enter shell history.
 dida schema list --json
 dida schema show task.create --json
 dida schema show column.create --json
+dida schema show openapi.login --json
 ```
 
 Schema output is local and does not require auth. It exposes command IDs,

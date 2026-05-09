@@ -550,8 +550,12 @@ func TestSchemaAuthMetadataForOfficialAndOpenAPI(t *testing.T) {
 		"official.task.get":      true,
 		"official.task.batchAdd": true,
 		"openapi.doctor":         false,
+		"openapi.status":         false,
 		"openapi.clientSet":      false,
 		"openapi.authUrl":        true,
+		"openapi.login":          true,
+		"openapi.listenCallback": false,
+		"openapi.logout":         false,
 		"openapi.projectList":    true,
 		"openapi.taskCreate":     true,
 	}
