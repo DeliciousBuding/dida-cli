@@ -122,6 +122,8 @@ Static validation on Windows confirmed the Homebrew and Scoop template URLs
 and SHA-256 hashes match the `v0.1.11` release `checksums.txt` for all six
 release assets. Native `brew`/`scoop` install smoke is still pending because
 those package managers are not available in the current environment.
+`winget` is available, but `wingetcreate` is not installed, so winget manifest
+generation and local validation remain deferred.
 
 These files are not published channels yet. Treat them as release engineering
 inputs for a future tap, bucket, or winget submission.

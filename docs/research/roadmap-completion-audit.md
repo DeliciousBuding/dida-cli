@@ -121,7 +121,8 @@ Remaining:
 - Homebrew and Scoop templates are not yet published to external package
   repositories, and native package-manager install smoke remains pending.
 - winget manifest generation and submission remain deferred until release
-  cadence and package identity are final.
+  cadence and package identity are final; current host has `winget` but not
+  `wingetcreate`.
 - npm installer skeleton is smoke-tested on Windows and WSL Linux but is not
   published.
 

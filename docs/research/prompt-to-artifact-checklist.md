@@ -57,7 +57,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows and WSL Linux against `v0.1.11`; package is not published. |
 | Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.1.11`; no external tap or native install smoke yet. |
 | Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.1.11`; no external bucket or Scoop install smoke on this machine. |
-| winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final. |
+| winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final; `winget` exists locally but `wingetcreate` is unavailable. |
 
 ## Verification Evidence
 
@@ -100,6 +100,8 @@ Skipped or blocked verification:
 - native macOS install smoke: no macOS host in this environment
 - Homebrew formula syntax/install smoke: `brew` and `ruby` are unavailable here
 - Scoop install smoke: `scoop` is unavailable here
+- winget manifest generation: `winget` is available, but `wingetcreate` is
+  unavailable here
 - Official MCP habit/focus write smoke: task write smoke succeeded with cleanup;
   habit/focus writes still need disposable targets
 - Official MCP known-id habit/focus reads: current account returned no habits
