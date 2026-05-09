@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/model"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
@@ -300,6 +301,48 @@ func TestSchemaShowUnknownJSON(t *testing.T) {
 	errPayload := payload["error"].(map[string]any)
 	if errPayload["type"] != "not_found" {
 		t.Fatalf("error.type = %v, want not_found", errPayload["type"])
+	}
+}
+
+func TestBuildAgentContextCompact(t *testing.T) {
+	now := time.Unix(1893456000, 0) // 2030-01-01T00:00:00Z
+	view := model.SyncView{
+		InboxID: "inbox",
+		Projects: []model.Project{{
+			ID:   "p1",
+			Name: "Inbox",
+			Raw:  map[string]any{"large": true},
+		}},
+		ProjectGroups: []map[string]any{{"id": "g1", "name": "Work", "ignored": strings.Repeat("x", 20)}},
+		Tags:          []map[string]any{{"name": "deep", "color": "#111111", "ignored": true}},
+		Filters:       []map[string]any{{"id": "f1", "name": "Today", "ignored": true}},
+		Tasks: []model.Task{{
+			ID:        "t1",
+			ProjectID: "p1",
+			Title:     "Compact context",
+			Content:   strings.Repeat("large ", 20),
+			Desc:      strings.Repeat("markdown ", 20),
+			DueUnix:   now.Add(time.Hour).Unix(),
+			Priority:  5,
+			Raw:       map[string]any{"large": true},
+		}},
+	}
+	data, meta := buildAgentContext(view, agentContextOptions{Days: 14, Limit: 50, Compact: true}, now)
+	if meta["today"] != 1 || meta["upcoming"] != 1 {
+		t.Fatalf("meta = %#v", meta)
+	}
+	encoded, err := json.Marshal(data)
+	if err != nil {
+		t.Fatalf("marshal context: %v", err)
+	}
+	text := string(encoded)
+	for _, forbidden := range []string{"content", "raw", "markdown", "ignored"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("agent context leaked %q: %s", forbidden, text)
+		}
+	}
+	if !strings.Contains(text, "Compact context") {
+		t.Fatalf("agent context missing task title: %s", text)
 	}
 }
 

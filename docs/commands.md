@@ -29,6 +29,20 @@ strings, status, Web API endpoints, `--dry-run` support, destructive
 confirmation requirements, and compact-output support for agents that need to
 choose the safest command without reading the full README.
 
+## Agent Context
+
+```bash
+dida agent context --json
+dida agent context --days 30 --limit 100 --json
+dida agent context --full --json
+```
+
+`agent context` performs one full sync and returns a compact context pack:
+projects, folders, tags, filters, today's tasks, upcoming tasks, and quadrant
+buckets. It is the preferred first read for automation because it avoids several
+separate sync calls. Compact mode is on by default; use `--full` only when large
+task text, checklist, reminder, and raw fields are needed.
+
 ## Discovery
 
 ```bash

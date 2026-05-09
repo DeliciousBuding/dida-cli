@@ -14,6 +14,7 @@ Run these before doing useful work:
 ```bash
 dida doctor --json
 dida schema list --json
+dida agent context --json
 dida auth status --verify --json
 ```
 
@@ -34,7 +35,13 @@ dida schema show comment.delete --json
 
 ## Read Context
 
-Build context with bounded JSON commands:
+Prefer the one-call context pack:
+
+```bash
+dida agent context --json
+```
+
+Use separate bounded JSON commands when you need a narrower response:
 
 ```bash
 dida project list --json

@@ -45,6 +45,7 @@ func rootCommands(version string) []rootCommand {
 				return runDoctor(args, version, jsonOut, stdout, stderr)
 			},
 		},
+		{Name: "agent", Run: runAgent},
 		{Name: "auth", Run: runAuth},
 		{Name: "sync", Run: runSync},
 		{Name: "settings", Run: runSettings},

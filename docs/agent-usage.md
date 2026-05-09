@@ -7,6 +7,7 @@ Use this guide when DidaCLI is called from Hermes, Codex, Claude Code, or anothe
 ```bash
 dida doctor --json
 dida schema list --json
+dida agent context --json
 dida auth status --verify --json
 ```
 
@@ -23,6 +24,14 @@ a write or less common resource. The schema command is local, auth-free, and
 lists whether `--dry-run`, `--yes`, or `--compact` applies.
 
 ## Context Pack
+
+Prefer the one-call context pack:
+
+```bash
+dida agent context --json
+```
+
+Use separate reads when you need a narrower or resource-specific response:
 
 ```bash
 dida project list --json

@@ -17,6 +17,7 @@ Usage:
 
 Commands:
   doctor       Check local config and auth status
+  agent        Agent-oriented context pack
   auth         Manage local cookie auth
   sync         Sync tasks/projects/tags
   settings     Read user preferences
@@ -49,6 +50,16 @@ Usage:
   dida auth logout [--json]
   dida auth cookie set --token-stdin
   dida auth cookie set --token <token>
+`))
+}
+
+func printAgentHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida agent context [--days N] [--limit N] [--compact|--full] [--json]
+
+Agent context performs one full sync and returns compact projects, folders,
+tags, filters, today, upcoming, and quadrant views in a single JSON envelope.
 `))
 }
 

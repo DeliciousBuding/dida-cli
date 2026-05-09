@@ -97,6 +97,7 @@ dida auth status --verify --json
 dida doctor --json
 dida schema list --json
 dida schema show task.create --json
+dida agent context --json
 dida auth status --verify --json
 dida sync all --json
 dida sync checkpoint <checkpoint> --json
@@ -189,6 +190,7 @@ Recommended read-only context pack:
 ```bash
 dida doctor --json
 dida schema list --json
+dida agent context --json
 dida auth status --verify --json
 dida project list --json
 dida folder list --json
@@ -218,6 +220,7 @@ Install notes for Codex, Claude Code, OpenClaw, and Hermes Agent are in [docs/sk
 Agent rules:
 
 - Do not ask users to paste cookies into chat.
+- Prefer `dida agent context --json` for the first task-management context pack.
 - Use `--json` for automation.
 - Use `--dry-run` before broad or generated writes.
 - Use `--yes` only for explicit destructive actions.
