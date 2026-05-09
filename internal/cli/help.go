@@ -95,6 +95,14 @@ Usage:
   dida openapi project list [--json]
   dida openapi project get <project-id> [--json]
   dida openapi project data <project-id> [--json]
+  dida openapi task get --project <project-id> --task <task-id> [--json]
+  dida openapi task create --args-json <json> [--dry-run] [--json]
+  dida openapi task update <task-id> --args-json <json> [--dry-run] [--json]
+  dida openapi task complete --project <project-id> --task <task-id> [--dry-run] [--json]
+  dida openapi task delete --project <project-id> --task <task-id> --yes [--dry-run] [--json]
+  dida openapi task move --args-json <json-array> [--dry-run] [--json]
+  dida openapi task completed --args-json <json> [--json]
+  dida openapi task filter --args-json <json> [--json]
 
 These commands use the official OAuth-based OpenAPI channel.
 They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.

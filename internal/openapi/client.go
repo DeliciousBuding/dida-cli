@@ -1,6 +1,7 @@
 package openapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -87,4 +88,71 @@ func (c *Client) ProjectData(ctx context.Context, projectID string) (map[string]
 		return nil, err
 	}
 	return out, nil
+}
+
+func (c *Client) Task(ctx context.Context, projectID string, taskID string) (map[string]any, error) {
+	var out map[string]any
+	path := "/project/" + url.PathEscape(projectID) + "/task/" + url.PathEscape(taskID)
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CreateTask(ctx context.Context, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/task", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) UpdateTask(ctx context.Context, taskID string, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/task/"+url.PathEscape(taskID), payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CompleteTask(ctx context.Context, projectID string, taskID string) error {
+	path := "/project/" + url.PathEscape(projectID) + "/task/" + url.PathEscape(taskID) + "/complete"
+	return c.Do(ctx, http.MethodPost, path, nil, nil)
+}
+
+func (c *Client) DeleteTask(ctx context.Context, projectID string, taskID string) error {
+	path := "/project/" + url.PathEscape(projectID) + "/task/" + url.PathEscape(taskID)
+	return c.Do(ctx, http.MethodDelete, path, nil, nil)
+}
+
+func (c *Client) MoveTasks(ctx context.Context, payload any) (any, error) {
+	var out any
+	if err := c.doJSON(ctx, http.MethodPost, "/task/move", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CompletedTasks(ctx context.Context, payload map[string]any) ([]map[string]any, error) {
+	var out []map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/task/completed", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) FilterTasks(ctx context.Context, payload map[string]any) ([]map[string]any, error) {
+	var out []map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/task/filter", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) doJSON(ctx context.Context, method string, path string, payload any, out any) error {
+	data, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("encode request: %w", err)
+	}
+	return c.Do(ctx, method, path, bytes.NewReader(data), out)
 }

@@ -68,6 +68,14 @@ dida openapi exchange-code --code <code> --json
 dida openapi project list --json
 dida openapi project get <project-id> --json
 dida openapi project data <project-id> --json
+dida openapi task get --project <project-id> --task <task-id> --json
+dida openapi task create --args-json "{\"projectId\":\"<project-id>\",\"title\":\"Task\"}" --dry-run --json
+dida openapi task update <task-id> --args-json "{\"projectId\":\"<project-id>\",\"title\":\"Task\"}" --dry-run --json
+dida openapi task complete --project <project-id> --task <task-id> --dry-run --json
+dida openapi task delete --project <project-id> --task <task-id> --yes --json
+dida openapi task move --args-json "[{\"fromProjectId\":\"<from>\",\"toProjectId\":\"<to>\",\"taskId\":\"<task-id>\"}]" --dry-run --json
+dida openapi task completed --args-json "{\"projectIds\":[\"<project-id>\"]}" --json
+dida openapi task filter --args-json "{\"projectIds\":[\"<project-id>\"],\"status\":[0]}" --json
 dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json

@@ -796,3 +796,27 @@ func TestOpenAPIExchangeFlagParsing(t *testing.T) {
 		t.Fatalf("values = %q %q %q", code, redirectURI, scope)
 	}
 }
+
+func TestOpenAPITaskTargetWriteFlagsRequireConfirmation(t *testing.T) {
+	_, _, _, err := parseOpenAPITaskTargetWriteFlags([]string{"--project", "p1", "--task", "t1"}, true)
+	if err == nil {
+		t.Fatalf("parseOpenAPITaskTargetWriteFlags() error = nil, want confirmation error")
+	}
+	projectID, taskID, dryRun, err := parseOpenAPITaskTargetWriteFlags([]string{"--project", "p1", "--task", "t1", "--dry-run"}, true)
+	if err != nil {
+		t.Fatalf("parseOpenAPITaskTargetWriteFlags() error = %v", err)
+	}
+	if projectID != "p1" || taskID != "t1" || !dryRun {
+		t.Fatalf("values = %q %q %v", projectID, taskID, dryRun)
+	}
+}
+
+func TestOpenAPIJSONWriteFlags(t *testing.T) {
+	payload, dryRun, err := parseOpenAPIJSONWriteFlags([]string{"--args-json", "{\"title\":\"Task\"}", "--dry-run"})
+	if err != nil {
+		t.Fatalf("parseOpenAPIJSONWriteFlags() error = %v", err)
+	}
+	if payload["title"] != "Task" || !dryRun {
+		t.Fatalf("payload = %#v dryRun = %v", payload, dryRun)
+	}
+}
