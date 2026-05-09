@@ -1,0 +1,147 @@
+# Web API Gap Catalog
+
+This document tracks what is already covered in the private Dida365 Web API
+surface, what is blocked, and what still needs deeper reverse-engineering.
+
+It complements:
+
+- [api-coverage.md](../api-coverage.md)
+- [web-api.md](../web-api.md)
+- [api-surfaces.md](api-surfaces.md)
+
+## Coverage Snapshot
+
+The current Web API channel is already broad and is still the widest surface in
+the repository.
+
+Major areas already implemented:
+
+- sync and checkpoint
+- settings and web-side settings
+- task CRUD and advanced task fields
+- project, folder, tag CRUD
+- comments
+- closed history
+- search
+- statistics
+- templates
+- sharing metadata
+- calendar metadata
+- Pomodoro and habit read surfaces
+
+## Confirmed Gaps
+
+These are known private surfaces that exist but are not yet sufficiently
+understood or safely wrapped.
+
+### Column Management
+
+- `POST /batch/columnProject`
+
+Known status:
+
+- endpoint is visible in reverse-engineering notes
+- payload shapes for update, delete, and reorder are still not verified
+- rollback semantics are still unclear
+
+Current implication:
+
+- `column create` can exist as experimental
+- full kanban column lifecycle is still incomplete
+
+### Filter Writes
+
+- `POST /batch/filter`
+
+Known status:
+
+- endpoint is visible
+- create/update/delete bodies are not mapped
+- there is no reliable write-safe command surface yet
+
+### Task Activity Detail Stream
+
+- `GET /api/v1/task/activity/{taskId}`
+
+Known status:
+
+- path is visible in the webapp bundle
+- optional cursor-like query values such as `skip` and `lastId` are also visible
+- direct probing returned HTTP 500
+
+Current implication:
+
+- task activity remains a read-gap
+- this should not be promoted into a first-class command until a successful
+  browser-traced request shape is captured
+
+### Attachments
+
+- attachment upload
+- attachment association with comments
+- comment attachment flow
+
+Known status:
+
+- quota reads are implemented
+- upload and attach chains are not mapped
+- multipart and file-transfer behavior still need evidence
+
+### Collaboration Writes
+
+- invite creation / deletion
+- share permission mutation
+- multi-user collaboration updates
+
+Known status:
+
+- read-only share metadata is implemented
+- write semantics are still not mapped and not verified for rollback
+
+### Trash Pagination
+
+- `GET /project/all/trash/page?...`
+
+Known status:
+
+- the endpoint exists in the bundle
+- naive probes returned HTTP 500
+- the `type` parameter values and paging semantics are still unclear
+
+## Confirmed Probe Failures Or Uncertain Surfaces
+
+These are useful to keep visible so later sessions do not waste time repeating
+the same dead-end assumptions.
+
+- `GET /project/{id}/data` on the observed CN Web API returned 404
+- `GET /project/{id}/columns` returned 404
+- `GET /project/{id}` returned 405
+- `GET /api/v1/task/activity/{taskId}` returned 500 under direct probing
+- `GET /project/all/trash/page?...` returned 500 under direct probing
+- `POST /column` produced responses that looked successful but did not yet prove
+  full semantic correctness of the write
+- `PUT /tag/merge` can return success while the source tag still remains
+
+## Priority Order
+
+If the goal is to keep deepening the Web API channel, the most valuable next
+targets are:
+
+1. task activity detail
+2. trash pagination
+3. attachments and comment attachments
+4. columnProject update/delete/order
+5. filter writes
+6. collaboration writes
+
+## Documentation Direction
+
+This repo will be easier to maintain if the Web API docs are split more clearly:
+
+- `docs/webapi/overview.md`
+- `docs/webapi/coverage-matrix.md`
+- `docs/webapi/gaps.md`
+- `docs/webapi/probe-log.md`
+- `docs/webapi/resources/...`
+
+For now, this file serves as the working gap ledger.
