@@ -19,3 +19,14 @@ func TestRedactToken(t *testing.T) {
 		t.Fatalf("redactToken() = %q", got)
 	}
 }
+
+func TestTokenStatusDoesNotExposeLocalPath(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	status := TokenStatus()
+	if _, ok := status["path"]; ok {
+		t.Fatalf("TokenStatus exposed local path: %#v", status)
+	}
+	if status["available"] != false {
+		t.Fatalf("available = %#v, want false", status["available"])
+	}
+}

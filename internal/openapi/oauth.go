@@ -145,7 +145,7 @@ func ClearToken() error {
 }
 
 func TokenStatus() map[string]any {
-	status := map[string]any{"path": TokenPath()}
+	status := map[string]any{}
 	token, err := LoadToken()
 	if err != nil {
 		status["available"] = false
