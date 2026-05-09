@@ -66,6 +66,8 @@ As of the current main branch:
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
   - npm installer skeleton has been smoke-tested against `v0.1.4` on Windows
     and WSL Linux
+  - package manager templates exist under `packaging/` for Homebrew and Scoop;
+    winget is documented as a future submission
 
 ## Non-Negotiable Rules
 
@@ -374,13 +376,15 @@ policy are confirmed.
 - Scoop bucket manifest
 - both should reference GitHub Release assets and checksums
 
-Status: planned.
+Status: templates added under `packaging/`; not published to an external tap or
+bucket yet.
 
 ### F5. winget
 
 - winget manifest after release cadence stabilizes
 
-Status: planned.
+Status: submission notes added under `packaging/winget/`; manifest generation is
+deferred until release cadence and package identifier are final.
 
 ## Commit Strategy
 

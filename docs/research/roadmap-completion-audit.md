@@ -80,13 +80,19 @@ Implemented:
 - npm installer skeleton smoke passed on WSL Linux against `v0.1.4`; this also
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as `bin/dida-bin`.
+- Package manager templates exist for Homebrew and Scoop under `packaging/`,
+  pinned to `v0.1.4` release assets and checksums.
+- winget submission notes exist under `packaging/winget/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
 
 Remaining:
 
 - macOS installer smoke should be repeated for `v0.1.4` on a native macOS host.
-- Homebrew, Scoop, and winget remain planned.
+- Homebrew and Scoop templates are not yet published to external package
+  repositories.
+- winget manifest generation and submission remain deferred until release
+  cadence and package identity are final.
 - npm installer skeleton is smoke-tested on Windows and WSL Linux but is not
   published.
 

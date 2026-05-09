@@ -17,9 +17,9 @@ cloning the repository. GitHub Releases are the canonical binary source.
 
 | Channel | Priority | Plan |
 | --- | ---: | --- |
-| Homebrew tap | 4 | Add a formula after release assets stabilize. |
-| Scoop bucket | 4 | Add manifest using GitHub Release asset URLs and checksums. |
-| winget | 5 | Add manifest after stable versioning and release cadence are proven. |
+| Homebrew tap | 4 | Template exists in `packaging/homebrew/dida.rb`; publish from a dedicated tap after native smoke. |
+| Scoop bucket | 4 | Template exists in `packaging/scoop/dida.json`; publish from a dedicated bucket after install smoke. |
+| winget | 5 | Notes exist in `packaging/winget/README.md`; generate a manifest after release cadence is stable. |
 
 ## GitHub Releases
 
@@ -97,3 +97,18 @@ go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
 
 Use Release assets for normal users and agents. `go install` depends on a Go
 toolchain and may not match packaged release behavior.
+
+## Package Manager Templates
+
+`packaging/` contains maintainer templates for package managers that generally
+live outside this repository:
+
+- `packaging/homebrew/dida.rb` pins `v0.1.4` macOS and Linux release archives
+  with checksums.
+- `packaging/scoop/dida.json` pins `v0.1.4` Windows amd64 and arm64 release
+  archives with checksums.
+- `packaging/winget/README.md` records the future winget submission boundary
+  without committing generated manifests prematurely.
+
+These files are not published channels yet. Treat them as release engineering
+inputs for a future tap, bucket, or winget submission.
