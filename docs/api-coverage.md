@@ -8,6 +8,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 |---|---|---|---|---|
 | Auth | `Cookie: t=<token>` | `auth login`, `auth cookie set`, `auth status --verify`, `auth logout` | Stable | Unit tests and live auth verify |
 | Full sync | `GET /batch/check/0` | `sync all` | Stable | Unit tests and live read |
+| Agent context | derived from `GET /batch/check/0` | `agent context` | Stable derived command | Unit compact-output test and live read on 2026-05-10 |
 | Incremental sync | `GET /batch/check/{checkpoint}` | `sync checkpoint` | Stable | Unit tests preserve add/update/delete/order/reminder deltas |
 | Settings | `GET /user/preferences/settings` | `settings get`, `settings get --include-web` | Stable | Unit query test and live read |
 | Completed tasks | `GET /project/all/completed` | `completed today/yesterday/week/list` | Stable | Unit query test and live read |

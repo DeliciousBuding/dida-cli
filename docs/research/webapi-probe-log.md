@@ -9,6 +9,7 @@ payload dumps, or local browser exports here.
 | Surface | Endpoint | Status | Notes |
 | --- | --- | --- | --- |
 | Full sync | `GET /batch/check/0` | working | Backbone for projects, tags, filters, tasks, and checkpoints. |
+| Agent context | `GET /batch/check/0` derived view | working | Live-smoked on 2026-05-10; compact output returned projects, active tasks, today/upcoming, and quadrants without needing extra sync calls. |
 | Incremental sync | `GET /batch/check/{checkpoint}` | working | Used by `sync checkpoint`. |
 | Project tasks | `GET /project/{projectId}/tasks` | working | Used by `project tasks`. |
 | Columns read | `GET /column/project/{projectId}` | working | Used by `column list` and `project columns`. |
