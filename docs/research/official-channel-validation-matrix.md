@@ -38,9 +38,9 @@ They are intentionally not interchangeable.
 | Batch task add | `batch_add_tasks` | `official task batch-add` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
 | Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live write needs disposable targets and schema confirmation. |
 | Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | implemented | Local `--dry-run` preview works without token; live write needs known disposable tasks. |
-| Task search | `search_task` | `official task search` | implemented | Safe read; still needs a query-specific live smoke. |
-| Task undone by date | `list_undone_tasks_by_date` | `official task undone` | implemented | Safe read; live-smoke with bounded date range. |
-| Task filtering | `filter_tasks` | `official task filter` | implemented | Safe read; live-smoke with narrow status/project filters. |
+| Task search | `search_task` | `official task search` | live-verified | No-result query smoke succeeded on 2026-05-10. |
+| Task undone by date | `list_undone_tasks_by_date` | `official task undone` | live-verified | Same-day bounded range smoke succeeded on 2026-05-10. |
+| Task filtering | `filter_tasks` | `official task filter` | live-verified | `--status 0` smoke succeeded on 2026-05-10; output was summarized by count only. |
 
 ## Official OpenAPI
 
@@ -61,8 +61,7 @@ They are intentionally not interchangeable.
 ## Current Priority
 
 1. Live-verify `openapi login` with a real authorization code.
-2. Live-smoke `official task search`, `official task undone`, and
-   `official task filter` with narrow queries.
+2. Live-smoke known-id MCP habit/focus reads when safe IDs exist.
 3. Live-smoke MCP writes only after disposable project/task/habit targets exist.
 4. Live-smoke OpenAPI project/task/focus/habit wrappers once OAuth token
    persistence is proven on the current account.
