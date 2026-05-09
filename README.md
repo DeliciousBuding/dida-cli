@@ -97,6 +97,7 @@ Non-GET raw requests should stay disabled until a specific safe workflow needs t
 ```text
 dida doctor [--json]
 dida auth login [--json]
+dida auth login --browser [--timeout 180] [--json]
 dida auth status [--json]
 dida auth status --verify [--json]
 dida auth cookie set
@@ -176,13 +177,20 @@ dida task list --filter all --limit 50 --json
 Login flow:
 
 ```bash
+dida auth login --browser --json
+dida auth status --verify --json
+```
+
+Fallback login flow:
+
+```bash
 dida auth login --json
 # User completes browser / WeChat / QR login and copies only cookie "t".
 dida auth cookie set --token-stdin
 dida auth status --verify --json
 ```
 
-Agents must not ask the user to paste cookies into chat. Tokens should go to stdin or a local secret manager only.
+Agents must not ask the user to paste cookies into chat. Tokens should go to stdin, a browser capture flow, or a local secret manager only.
 
 ## Build
 
