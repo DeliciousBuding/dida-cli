@@ -93,13 +93,27 @@ Use for stable long-term operations where feature coverage is enough.
 Expected auth:
 
 - OAuth2 app from the Dida365/TickTick developer portal.
-- Access token and refresh token stored under `~/.dida-cli/oauth.json`.
+- Access token and refresh token are stored by `dida openapi login`.
+- This channel is separate from Web API cookie auth and official MCP
+  `DIDA365_TOKEN` auth.
 
-Initial commands:
+Implemented command families:
 
-- `dida auth oauth start`
-- `dida project list`
-- `dida task create/update/complete/delete`
+- `dida openapi doctor`
+- `dida openapi status`
+- `dida openapi auth-url`
+- `dida openapi listen-callback`
+- `dida openapi exchange-code`
+- `dida openapi login`
+- `dida openapi project list/get/data`
+- `dida openapi task get/create/update/complete/delete/move/completed/filter`
+- `dida openapi focus get/list/delete`
+- `dida openapi habit list/get/create/update/checkin/checkins`
+
+Current blocker:
+
+- Full live OAuth verification still needs a configured developer app redirect
+  URL and real browser approval on the current account.
 
 ## Safety Rules
 

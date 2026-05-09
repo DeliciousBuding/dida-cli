@@ -51,7 +51,7 @@ As of the current main branch:
   - focus wrappers
   - habit wrappers
 - docs already include:
-  - API coverage matrix
+  - API coverage matrix at `docs/api-coverage.md`
   - Web API notes
   - OpenAPI guide
   - MCP vs Web API comparison
@@ -59,9 +59,9 @@ As of the current main branch:
   - Web API gap catalog
   - MCP tool crosswalk
 - distribution is live:
-  - `v0.1.0` GitHub Release exists
+  - `v0.1.1` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the release asset on Windows
+  - `install.ps1` has been smoke-tested against the `v0.1.1` release asset on Windows
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
 
 ## Non-Negotiable Rules
@@ -335,7 +335,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented; needs first tag release smoke.
+Status: implemented and smoke-tested through `v0.1.1`.
 
 ### F2. Install Scripts
 
@@ -347,7 +347,7 @@ Status: implemented; needs first tag release smoke.
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; syntax and parser checks required before each release.
+Status: implemented; Windows installer smoke passed against `v0.1.1`.
 
 ### F3. npm Installer
 
