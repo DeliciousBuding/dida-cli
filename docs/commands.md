@@ -56,6 +56,9 @@ dida official call list_projects --json
 dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
 dida official project get <project-id> --json
 dida official project data <project-id> --json
+dida official task search --query "today" --json
+dida official task undone --start 2026-05-01T00:00:00+08:00 --end 2026-05-09T23:59:59+08:00 --json
+dida official task filter --project <project-id> --status 0 --json
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
 dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
@@ -234,6 +237,10 @@ days and the default output limit is 50.
 ```bash
 dida official project get <project-id> --json
 dida official project data <project-id> --json
+
+dida official task search --query "today" --json
+dida official task undone --project <project-id> --start 2026-05-01T00:00:00+08:00 --end 2026-05-09T23:59:59+08:00 --json
+dida official task filter --project <project-id> --priority 0,5 --tag work --status 0 --json
 
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --json

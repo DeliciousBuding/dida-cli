@@ -106,6 +106,8 @@ Use `dida official ...` only for the official MCP channel. It requires
 ```bash
 dida official tools --limit 20 --json
 dida official project data <project-id> --json
+dida official task search --query "today" --json
+dida official task filter --project <project-id> --status 0 --json
 dida official show get_focuses_by_time --json
 dida official habit get <habit-id> --json
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json

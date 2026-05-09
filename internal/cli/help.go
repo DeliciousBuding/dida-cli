@@ -74,6 +74,7 @@ Usage:
   dida official show <tool-name> [--json]
   dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--json]
   dida official project <subcommand> [options] [--json]
+  dida official task <subcommand> [options] [--json]
   dida official habit <subcommand> [options] [--json]
   dida official focus <subcommand> [options] [--json]
 

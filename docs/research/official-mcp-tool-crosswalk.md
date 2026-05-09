@@ -34,9 +34,9 @@ first-class commands.
 | `get_task_by_id` | `task get` | Overlap |
 | `fetch` | `task get` or `raw get` depending on use | Useful but overlapping |
 | `search` | `search all` | Overlap; official may be narrower and cleaner |
-| `search_task` | `task search` / `search all` | Useful candidate |
-| `filter_tasks` | no exact equivalent | Worth wrapping |
-| `list_undone_tasks_by_date` | no exact structured equivalent | Worth wrapping |
+| `search_task` | `official task search` | Wrapped; Web API search remains separate |
+| `filter_tasks` | `official task filter` | Wrapped |
+| `list_undone_tasks_by_date` | `official task undone` | Wrapped |
 | `list_undone_tasks_by_time_query` | `task today`, `task list --filter ...` | Worth wrapping behind a friendlier query command |
 | `list_completed_tasks_by_date` | `completed list` | Overlap |
 
@@ -76,9 +76,9 @@ commands instead of only `official call`.
 3. `complete_tasks_in_project`
 4. `batch_add_tasks`
 5. `batch_update_tasks`
-6. `filter_tasks`
-7. `list_undone_tasks_by_date`
-8. `search_task`
+6. `filter_tasks` - wrapped as `official task filter`
+7. `list_undone_tasks_by_date` - wrapped as `official task undone`
+8. `search_task` - wrapped as `official task search`
 9. `get_habit` - wrapped as `official habit get`
 10. `create_habit` - wrapped as `official habit create`
 11. `update_habit` - wrapped as `official habit update`

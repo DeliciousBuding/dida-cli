@@ -36,7 +36,9 @@ They are intentionally not interchangeable.
 | Project data | `get_project_with_undone_tasks` | `official project data` | implemented | Needs a known project id for live read smoke. |
 | Batch task add | `batch_add_tasks` | none | documented | Needs wrapper design with clear payload file support. |
 | Batch task update | `batch_update_tasks` | none | documented | Needs dry-run-like local request preview. |
-| Task filtering | `filter_tasks` | none | documented | Good candidate for compact output. |
+| Task search | `search_task` | `official task search` | implemented | Safe read; live-smoke after MCP token is available. |
+| Task undone by date | `list_undone_tasks_by_date` | `official task undone` | implemented | Safe read; live-smoke with bounded date range. |
+| Task filtering | `filter_tasks` | `official task filter` | implemented | Safe read; live-smoke with narrow status/project filters. |
 
 ## Official OpenAPI
 
@@ -56,7 +58,7 @@ They are intentionally not interchangeable.
 
 1. Live-verify `openapi login` with a real authorization code.
 2. Live-smoke `official focus list` because it is a bounded read.
-3. Live-smoke MCP project wrappers because they improve agent context without
+3. Live-smoke MCP project and task wrappers because they improve agent context without
    private Web API risk.
 4. Keep OpenAPI task/focus/habit wrappers blocked until OAuth token persistence
    is proven on the current account.

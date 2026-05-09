@@ -739,6 +739,44 @@ func TestOfficialYesFlagParsing(t *testing.T) {
 	}
 }
 
+func TestOfficialTaskFilterFlagParsing(t *testing.T) {
+	filter, err := parseOfficialTaskFilterFlags([]string{
+		"--project", "p1",
+		"--project", "p2",
+		"--start", "2026-05-01T00:00:00+08:00",
+		"--end", "2026-05-09T23:59:59+08:00",
+		"--priority", "0,5",
+		"--tag", "work,urgent",
+		"--kind", "TEXT,CHECKLIST",
+		"--status", "0,2",
+	})
+	if err != nil {
+		t.Fatalf("parseOfficialTaskFilterFlags() error = %v", err)
+	}
+	if got := filter["startDate"]; got != "2026-05-01T00:00:00+08:00" {
+		t.Fatalf("startDate = %#v", got)
+	}
+	if got := filter["projectIds"].([]string); len(got) != 2 || got[0] != "p1" || got[1] != "p2" {
+		t.Fatalf("projectIds = %#v", got)
+	}
+	if got := filter["priority"].([]int); len(got) != 2 || got[0] != 0 || got[1] != 5 {
+		t.Fatalf("priority = %#v", got)
+	}
+	if got := filter["tag"].([]string); len(got) != 2 || got[0] != "work" || got[1] != "urgent" {
+		t.Fatalf("tag = %#v", got)
+	}
+}
+
+func TestOfficialTaskSearchFlagParsing(t *testing.T) {
+	query, err := parseOfficialTaskSearchFlags([]string{"--query", "today"})
+	if err != nil {
+		t.Fatalf("parseOfficialTaskSearchFlags() error = %v", err)
+	}
+	if query != "today" {
+		t.Fatalf("query = %q, want today", query)
+	}
+}
+
 func TestOpenAPIAuthURLFlagParsing(t *testing.T) {
 	redirectURI, scope, state, err := parseOpenAPIAuthURLFlags([]string{"--redirect-uri", "http://127.0.0.1:17890/callback", "--scope", "tasks:read", "--state", "abc"})
 	if err != nil {

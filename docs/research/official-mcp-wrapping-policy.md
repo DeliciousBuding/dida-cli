@@ -35,6 +35,9 @@ and JSON every time.
 | --- | --- | --- |
 | `get_project_by_id` | `official project get` | Official project detail read avoids private Web API endpoint ambiguity. |
 | `get_project_with_undone_tasks` | `official project data` | Bundles project, columns, and undone tasks for agent context. |
+| `search_task` | `official task search` | Official search is a narrow read with a simple query contract. |
+| `list_undone_tasks_by_date` | `official task undone` | Bounded task reads are useful for planning agents. |
+| `filter_tasks` | `official task filter` | Exposes official structured filters without private Web API guessing. |
 | `get_habit` | `official habit get` | Habit detail is not covered by the Web API read surface. |
 | `create_habit` | `official habit create` | Official channel supports habit writes with schema-backed payloads. |
 | `update_habit` | `official habit update` | Official channel supports habit writes with schema-backed payloads. |
@@ -45,11 +48,10 @@ and JSON every time.
 
 ## Next Promotion Candidates
 
-1. `filter_tasks`
-2. `list_undone_tasks_by_date`
-3. `complete_tasks_in_project`
-4. `batch_add_tasks`
-5. `batch_update_tasks`
+1. `list_undone_tasks_by_time_query`
+2. `complete_tasks_in_project`
+3. `batch_add_tasks`
+4. `batch_update_tasks`
 
 The project and read/filter wrappers should come before batch writes because
 they improve agent context without requiring rollback planning.

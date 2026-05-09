@@ -27,6 +27,8 @@ func runOfficial(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 		return runOfficialCall(args[1:], jsonOut, stdout, stderr)
 	case "project":
 		return runOfficialProject(args[1:], jsonOut, stdout, stderr)
+	case "task":
+		return runOfficialTask(args[1:], jsonOut, stdout, stderr)
 	case "habit":
 		return runOfficialHabit(args[1:], jsonOut, stdout, stderr)
 	case "focus":
@@ -290,6 +292,212 @@ func printOfficialProjectHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "  dida official project data <project-id> [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Read projects using the official MCP API.")
+}
+
+func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printOfficialTaskHelp(stdout)
+		return 0
+	}
+
+	token, err := officialmcp.ResolveToken("")
+	if err != nil {
+		return failTyped("official task", "auth", err.Error(), "set DIDA365_TOKEN to the official dida365 API token", jsonOut, stdout, stderr)
+	}
+	client := officialmcp.NewClient(token)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
+		return failTyped("official task", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+
+	switch args[0] {
+	case "search":
+		query, err := parseOfficialTaskSearchFlags(args[1:])
+		if err != nil {
+			return failTyped("official task search", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "search_task", map[string]any{"query": query})
+		if err != nil {
+			return failTyped("official task search", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task search", Data: result})
+		}
+		return writeJSON(stdout, result)
+	case "undone":
+		search, err := parseOfficialTaskDateSearchFlags(args[1:])
+		if err != nil {
+			return failTyped("official task undone", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "list_undone_tasks_by_date", map[string]any{"search": search})
+		if err != nil {
+			return failTyped("official task undone", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task undone", Data: result})
+		}
+		return writeJSON(stdout, result)
+	case "filter":
+		filter, err := parseOfficialTaskFilterFlags(args[1:])
+		if err != nil {
+			return failTyped("official task filter", "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "filter_tasks", map[string]any{"filter": filter})
+		if err != nil {
+			return failTyped("official task filter", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official task filter", Data: result})
+		}
+		return writeJSON(stdout, result)
+	default:
+		return fail("official task", fmt.Sprintf("unknown task subcommand %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+func printOfficialTaskHelp(stdout io.Writer) {
+	fmt.Fprintln(stdout, "Usage:")
+	fmt.Fprintln(stdout, "  dida official task search --query <text> [--json]")
+	fmt.Fprintln(stdout, "  dida official task undone [--project <project-id>] [--start <time>] [--end <time>] [--json]")
+	fmt.Fprintln(stdout, "  dida official task filter [--project <project-id>] [--start <time>] [--end <time>] [--priority 0,1,3,5] [--tag <tag>] [--kind TEXT,NOTE,CHECKLIST] [--status 0,2] [--json]")
+	fmt.Fprintln(stdout, "")
+	fmt.Fprintln(stdout, "Read and filter tasks using the official MCP API.")
+}
+
+func parseOfficialTaskSearchFlags(args []string) (string, error) {
+	query := ""
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--query", "-q":
+			if i+1 >= len(args) {
+				return "", fmt.Errorf("--query requires a value")
+			}
+			query = args[i+1]
+			i++
+		default:
+			return "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if query == "" {
+		return "", fmt.Errorf("missing required --query")
+	}
+	return query, nil
+}
+
+func parseOfficialTaskDateSearchFlags(args []string) (map[string]any, error) {
+	search := map[string]any{}
+	projects := []string{}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--project":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--project requires a value")
+			}
+			projects = append(projects, args[i+1])
+			i++
+		case "--start":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--start requires a value")
+			}
+			search["startDate"] = args[i+1]
+			i++
+		case "--end":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--end requires a value")
+			}
+			search["endDate"] = args[i+1]
+			i++
+		default:
+			return nil, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if len(projects) > 0 {
+		search["projectIds"] = projects
+	}
+	return search, nil
+}
+
+func parseOfficialTaskFilterFlags(args []string) (map[string]any, error) {
+	filter := map[string]any{}
+	projects := []string{}
+	tags := []string{}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--project":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--project requires a value")
+			}
+			projects = append(projects, args[i+1])
+			i++
+		case "--start":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--start requires a value")
+			}
+			filter["startDate"] = args[i+1]
+			i++
+		case "--end":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--end requires a value")
+			}
+			filter["endDate"] = args[i+1]
+			i++
+		case "--priority":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--priority requires a value")
+			}
+			values, err := parseOfficialIntCSV(args[i+1])
+			if err != nil {
+				return nil, fmt.Errorf("--priority: %w", err)
+			}
+			filter["priority"] = values
+			i++
+		case "--tag":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--tag requires a value")
+			}
+			tags = append(tags, splitCSV(args[i+1])...)
+			i++
+		case "--kind":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--kind requires a value")
+			}
+			filter["kind"] = splitCSV(args[i+1])
+			i++
+		case "--status":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--status requires a value")
+			}
+			values, err := parseOfficialIntCSV(args[i+1])
+			if err != nil {
+				return nil, fmt.Errorf("--status: %w", err)
+			}
+			filter["status"] = values
+			i++
+		default:
+			return nil, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if len(projects) > 0 {
+		filter["projectIds"] = projects
+	}
+	if len(tags) > 0 {
+		filter["tag"] = tags
+	}
+	return filter, nil
+}
+
+func parseOfficialIntCSV(value string) ([]int, error) {
+	parts := splitCSV(value)
+	out := make([]int, 0, len(parts))
+	for _, part := range parts {
+		var item int
+		if _, err := fmt.Sscanf(part, "%d", &item); err != nil {
+			return nil, fmt.Errorf("invalid integer %q", part)
+		}
+		out = append(out, item)
+	}
+	return out, nil
 }
 
 func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
