@@ -94,7 +94,7 @@ dida official task batch-add --args-json '{"tasks":[{"title":"任务"}]}' --dry-
 ```bash
 dida openapi doctor --json
 dida openapi client set --id <client-id> --secret-stdin --json
-dida openapi login --json
+dida openapi login --browser --json
 dida openapi project list --json
 dida openapi project create --args-json '{"name":"Project","viewMode":"list","kind":"TASK"}' --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
@@ -102,10 +102,10 @@ dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
 
-运行 `dida openapi login --json` 前，先在开发者后台把 OAuth redirect URL
+运行 `dida openapi login --browser --json` 前，先在开发者后台把 OAuth redirect URL
 配置成 `dida openapi doctor --json` 输出的 `default_redirect_uri`。
 
-`dida openapi login --json` 会打开浏览器，并在 OAuth 回调完成后只输出一个
+`dida openapi login --browser --json` 会打开浏览器，并在 OAuth 回调完成后只输出一个
 最终 JSON envelope。无浏览器的手动流程请用 `dida openapi auth-url --json`
 和 `dida openapi listen-callback --json`。
 也可以继续使用 `DIDA365_OPENAPI_CLIENT_ID` 和

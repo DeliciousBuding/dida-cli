@@ -100,7 +100,7 @@ MCP.
 ```bash
 dida openapi doctor --json
 dida openapi client set --id <client-id> --secret-stdin --json
-dida openapi login --json
+dida openapi login --browser --json
 dida openapi project list --json
 dida openapi project create --args-json '{"name":"Project","viewMode":"list","kind":"TASK"}' --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
@@ -108,10 +108,10 @@ dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
 
-Before `dida openapi login --json`, configure the developer app OAuth redirect
+Before `dida openapi login --browser --json`, configure the developer app OAuth redirect
 URL to the `default_redirect_uri` reported by `dida openapi doctor --json`.
 
-`dida openapi login --json` opens the browser and emits one final JSON envelope
+`dida openapi login --browser --json` opens the browser and emits one final JSON envelope
 after the OAuth callback. For manual no-browser flows, use `dida openapi
 auth-url --json` and `dida openapi listen-callback --json`.
 You may also use `DIDA365_OPENAPI_CLIENT_ID` and

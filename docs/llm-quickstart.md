@@ -45,7 +45,7 @@ dida official task batch-add --args-json '{"tasks":[{"title":"Agent task"}]}' --
 # Official OpenAPI: OAuth REST
 dida openapi doctor --json
 dida openapi client status --json
-dida openapi login --json
+dida openapi login --browser --json
 dida openapi project list --json
 dida openapi project create --args-json '{"name":"Project","viewMode":"list","kind":"TASK"}' --dry-run --json
 dida openapi habit list --json

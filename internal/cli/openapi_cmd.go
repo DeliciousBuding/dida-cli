@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
@@ -220,7 +222,10 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if err != nil {
 		return failTyped("openapi login", "auth", err.Error(), "set DIDA365_OPENAPI_CLIENT_SECRET", jsonOut, stdout, stderr)
 	}
-	redirectURI = fmt.Sprintf("http://%s:%d/callback", host, port)
+	redirectURI, host, port, err = normalizeOpenAPICallback(redirectURI, host, port)
+	if err != nil {
+		return failTyped("openapi login", "validation", err.Error(), "use a local redirect URI like http://127.0.0.1:17890/callback", jsonOut, stdout, stderr)
+	}
 	authURL := openapi.AuthorizationURL(clientID, redirectURI, scope, state)
 	type callbackResult struct {
 		code  string
@@ -235,8 +240,13 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		}
 		_, _ = w.Write([]byte("DidaCLI OpenAPI callback received. You can return to the terminal."))
 	})
-	server := &http.Server{Addr: fmt.Sprintf("%s:%d", host, port), Handler: mux}
-	go func() { _ = server.ListenAndServe() }()
+	addr := fmt.Sprintf("%s:%d", host, port)
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return failTyped("openapi login", "callback", fmt.Sprintf("listen on %s: %v", addr, err), "choose another port with --port or update the developer app redirect URI", jsonOut, stdout, stderr)
+	}
+	server := &http.Server{Handler: mux}
+	go func() { _ = server.Serve(listener) }()
 	if !noOpen {
 		_ = openBrowserURL(authURL)
 	}
@@ -279,6 +289,44 @@ func validateOpenAPICallback(expectedState string, code string, gotState string)
 		return fmt.Errorf("oauth callback state mismatch")
 	}
 	return nil
+}
+
+func normalizeOpenAPICallback(redirectURI string, host string, port int) (string, string, int, error) {
+	if strings.TrimSpace(redirectURI) == "" {
+		return fmt.Sprintf("http://%s:%d/callback", host, port), host, port, nil
+	}
+	parsed, err := url.Parse(redirectURI)
+	if err != nil {
+		return "", "", 0, fmt.Errorf("invalid --redirect-uri: %w", err)
+	}
+	if parsed.Scheme != "http" {
+		return "", "", 0, fmt.Errorf("--redirect-uri must use http for the local callback listener")
+	}
+	if parsed.Path != "/callback" {
+		return "", "", 0, fmt.Errorf("--redirect-uri path must be /callback")
+	}
+	hostname := parsed.Hostname()
+	if hostname == "" {
+		return "", "", 0, fmt.Errorf("--redirect-uri must include a host")
+	}
+	if !isLoopbackHost(hostname) {
+		return "", "", 0, fmt.Errorf("--redirect-uri host must be localhost or a loopback IP")
+	}
+	portValue := 80
+	if parsed.Port() != "" {
+		if _, err := fmt.Sscanf(parsed.Port(), "%d", &portValue); err != nil || portValue <= 0 {
+			return "", "", 0, fmt.Errorf("--redirect-uri port must be a positive integer")
+		}
+	}
+	return redirectURI, hostname, portValue, nil
+}
+
+func isLoopbackHost(host string) bool {
+	if strings.EqualFold(host, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsLoopback()
 }
 
 func runOpenAPIAuthURL(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -1292,6 +1340,8 @@ func parseOpenAPILoginFlags(args []string) (string, string, string, string, int,
 			}
 			timeout = time.Duration(seconds) * time.Second
 			i++
+		case "--browser":
+			noOpen = false
 		case "--no-open":
 			noOpen = true
 		default:

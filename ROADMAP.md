@@ -269,6 +269,11 @@ This channel is not complete until a real OAuth flow is verified live.
 - 2026-05-10: saved client config, `openapi doctor`, and `openapi auth-url`
   verified locally without committing secrets or local paths; browser approval
   and token persistence still need completion.
+- 2026-05-10: `openapi login` now supports explicit `--browser`, honors local
+  `--redirect-uri`, rejects non-loopback callback hosts before browser launch,
+  and returns immediate JSON errors when the callback listener cannot be
+  configured. Unit tests cover callback normalization and invalid callback
+  shapes.
 
 Acceptance:
 
@@ -471,7 +476,7 @@ If another agent takes over, the best sequence is:
 
 Top five next tasks:
 
-1. Finish and live-verify `openapi login`
+1. Complete browser authorization for `openapi login` after the developer app redirect URL is configured, then live-smoke OpenAPI resources
 2. Create or identify disposable official MCP habit/focus targets for known-id reads
 3. Capture a successful Web API task activity request with a Pro account or trace
 4. Capture a reversible task-level attachment association trace, then decide whether to expose task attachment upload/download commands

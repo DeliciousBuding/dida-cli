@@ -135,7 +135,7 @@ dida official task query --query "today" --json
 dida official task batch-add --args-json "{\"tasks\":[{\"title\":\"Task\"}]}" --dry-run --json
 dida openapi doctor --json
 dida openapi status --json
-dida openapi login --json
+dida openapi login --browser --json
 dida openapi auth-url --json
 dida openapi exchange-code --code <code> --json
 dida openapi project list --json

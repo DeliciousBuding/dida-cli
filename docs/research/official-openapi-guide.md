@@ -54,6 +54,13 @@ Practical conclusion:
 
 - `client_id` and `client_secret` are not themselves an OpenAPI access token
 - a real OAuth authorization code flow is still required before the OpenAPI can be used as a live third channel
+- DidaCLI now has local OAuth plumbing for this flow:
+  `openapi client set`, `openapi auth-url`, `openapi login`,
+  `openapi listen-callback`, `openapi exchange-code`, `openapi status`, and
+  `openapi logout`
+- `openapi login` is designed for local callback URLs such as
+  `http://127.0.0.1:17890/callback`; non-loopback redirect hosts are rejected
+  before browser launch so agents get a fast JSON error instead of a long wait
 
 ## Main Resource Areas
 
@@ -212,7 +219,9 @@ because that is where the private Web API is currently much more capable.
 ## Notes For Future Implementation
 
 - Do not assume `dp_...` MCP tokens work for the OpenAPI.
-- Add OpenAPI support only after a real OAuth access-token flow is available.
+- Keep OpenAPI commands behind the OAuth access-token boundary. The login
+  plumbing exists, but live resource verification still requires a saved OAuth
+  token from browser authorization.
 - Keep channel boundaries explicit in CLI docs and schema metadata.
 - Prefer resource areas where the official contract is clearly better than the
   private Web API, not just because an official endpoint exists.

@@ -1130,6 +1130,35 @@ func TestOpenAPIExchangeFlagParsing(t *testing.T) {
 	}
 }
 
+func TestOpenAPILoginFlagParsingAndCallbackNormalization(t *testing.T) {
+	redirectURI, scope, state, host, port, timeout, noOpen, err := parseOpenAPILoginFlags([]string{"--browser", "--redirect-uri", "http://127.0.0.1:17999/callback", "--scope", "tasks:read", "--state", "abc", "--timeout", "7"})
+	if err != nil {
+		t.Fatalf("parseOpenAPILoginFlags() error = %v", err)
+	}
+	if scope != "tasks:read" || state != "abc" || timeout != 7*time.Second || noOpen {
+		t.Fatalf("unexpected parsed values: scope=%q state=%q timeout=%v noOpen=%v", scope, state, timeout, noOpen)
+	}
+	redirectURI, host, port, err = normalizeOpenAPICallback(redirectURI, host, port)
+	if err != nil {
+		t.Fatalf("normalizeOpenAPICallback() error = %v", err)
+	}
+	if redirectURI != "http://127.0.0.1:17999/callback" || host != "127.0.0.1" || port != 17999 {
+		t.Fatalf("callback = %q %q %d", redirectURI, host, port)
+	}
+}
+
+func TestNormalizeOpenAPICallbackRejectsNonLocalShape(t *testing.T) {
+	if _, _, _, err := normalizeOpenAPICallback("https://example.com/callback", "127.0.0.1", 17890); err == nil {
+		t.Fatalf("normalizeOpenAPICallback() error = nil, want scheme error")
+	}
+	if _, _, _, err := normalizeOpenAPICallback("http://127.0.0.1:17890/not-callback", "127.0.0.1", 17890); err == nil {
+		t.Fatalf("normalizeOpenAPICallback() error = nil, want path error")
+	}
+	if _, _, _, err := normalizeOpenAPICallback("http://example.com:17890/callback", "127.0.0.1", 17890); err == nil {
+		t.Fatalf("normalizeOpenAPICallback() error = nil, want loopback host error")
+	}
+}
+
 func TestOpenAPILoginJSONNoOpenFailsSingleEnvelope(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"openapi", "login", "--no-open", "--json"}, "test-version", &stdout, &stderr)
