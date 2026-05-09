@@ -186,6 +186,10 @@ func runCalendar(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	switch args[0] {
 	case "subscriptions":
 		return runCalendarSubscriptions(jsonOut, stdout, stderr)
+	case "archived":
+		return runCalendarArchivedEvents(jsonOut, stdout, stderr)
+	case "third-accounts":
+		return runCalendarThirdAccounts(jsonOut, stdout, stderr)
 	default:
 		return fail("calendar", fmt.Sprintf("unknown calendar command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -206,4 +210,125 @@ func runCalendarSubscriptions(jsonOut bool, stdout io.Writer, stderr io.Writer) 
 	}
 	printMapList(stdout, items, "calendar subscriptions")
 	return 0
+}
+
+func runCalendarArchivedEvents(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.CalendarArchivedEvents(ctx)
+	})
+	if err != nil {
+		return failTyped("calendar archived", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	items := result.([]map[string]any)
+	meta := map[string]any{"count": len(items)}
+	data := map[string]any{"events": items}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "calendar archived", Meta: meta, Data: data})
+	}
+	printMapList(stdout, items, "archived calendar events")
+	return 0
+}
+
+func runCalendarThirdAccounts(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.CalendarThirdAccounts(ctx)
+	})
+	if err != nil {
+		return failTyped("calendar third-accounts", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	data := map[string]any{"accounts": result}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "calendar third-accounts", Data: data})
+	}
+	fmt.Fprintln(stdout, "Calendar third-party accounts read.")
+	return 0
+}
+
+func runStats(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printStatsHelp(stdout)
+		return 0
+	}
+	switch args[0] {
+	case "general":
+		return runStatsGeneral(jsonOut, stdout, stderr)
+	default:
+		return fail("stats", fmt.Sprintf("unknown stats command %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+func runStatsGeneral(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.StatisticsGeneral(ctx)
+	})
+	if err != nil {
+		return failTyped("stats general", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	data := map[string]any{"statistics": result}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "stats general", Data: data})
+	}
+	fmt.Fprintf(stdout, "General statistics: %d keys\n", len(result.(map[string]any)))
+	return 0
+}
+
+func runTemplate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printTemplateHelp(stdout)
+		return 0
+	}
+	if args[0] != "project" || len(args) < 2 || args[1] != "list" {
+		return failTyped("template", "validation", "usage: dida template project list [--timestamp N] [--limit N]", "run: dida template --help", jsonOut, stdout, stderr)
+	}
+	timestamp, limit, err := parseTemplateListFlags(args[2:])
+	if err != nil {
+		return failTyped("template project list", "validation", err.Error(), "run: dida template --help", jsonOut, stdout, stderr)
+	}
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.ProjectTemplates(ctx, timestamp)
+	})
+	if err != nil {
+		return failTyped("template project list", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	payload := result.(map[string]any)
+	templates, _ := payload["projectTemplates"].([]any)
+	total := len(templates)
+	if limit > 0 && len(templates) > limit {
+		templates = templates[:limit]
+		payload["projectTemplates"] = templates
+	}
+	meta := map[string]any{"count": len(templates), "total": total, "limit": limit}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "template project list", Meta: meta, Data: payload})
+	}
+	fmt.Fprintf(stdout, "Project templates: %d of %d\n", len(templates), total)
+	return 0
+}
+
+func parseTemplateListFlags(args []string) (int64, int, error) {
+	var timestamp int64
+	limit := 50
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--timestamp":
+			if i+1 >= len(args) {
+				return 0, 0, fmt.Errorf("--timestamp requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &timestamp); err != nil || timestamp < 0 {
+				return 0, 0, fmt.Errorf("--timestamp must be a non-negative integer")
+			}
+			i++
+		case "--limit":
+			if i+1 >= len(args) {
+				return 0, 0, fmt.Errorf("--limit requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+				return 0, 0, fmt.Errorf("--limit must be a non-negative integer")
+			}
+			i++
+		default:
+			return 0, 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return timestamp, limit, nil
 }

@@ -63,6 +63,9 @@ dida attachment quota --json
 dida reminder daily --json
 dida share project shares <project-id> --json
 dida calendar subscriptions --json
+dida stats general --json
+dida pomo timeline --limit 10 --json
+dida template project list --limit 10 --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.

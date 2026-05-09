@@ -127,9 +127,14 @@ dida attachment quota --json
 dida reminder daily --json
 dida share project shares <project-id> --json
 dida calendar subscriptions --json
+dida calendar archived --json
+dida stats general --json
+dida template project list --limit 50 --json
 dida pomo preferences --json
 dida pomo list --from 2026-05-01 --to 2026-05-09 --limit 20 --json
 dida pomo task --project <project-id> --task <task-id> --json
+dida pomo stats --json
+dida pomo timeline --limit 20 --json
 dida habit preferences --json
 dida habit list --json
 dida habit sections --json

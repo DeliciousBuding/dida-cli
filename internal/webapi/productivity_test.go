@@ -25,6 +25,8 @@ func TestProductivityReadsUseExpectedEndpoints(t *testing.T) {
 				t.Fatalf("afterStamp = %v, want 1234", got)
 			}
 			_ = json.NewEncoder(w).Encode(map[string]any{"checkins": map[string]any{}})
+		case "/pomodoros/statistics/generalForDesktop":
+			_ = json.NewEncoder(w).Encode(map[string]any{"totalPomoCount": 1})
 		default:
 			_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "x1", "name": "item"}})
 		}
@@ -39,6 +41,8 @@ func TestProductivityReadsUseExpectedEndpoints(t *testing.T) {
 		func() error { _, err := client.PomodoroPreferences(ctx); return err },
 		func() error { _, err := client.Pomodoros(ctx, 1000, 2000); return err },
 		func() error { _, err := client.PomodoroTimings(ctx, 1000, 2000); return err },
+		func() error { _, err := client.PomodoroStatisticsGeneral(ctx); return err },
+		func() error { _, err := client.PomodoroTimeline(ctx, "cursor1"); return err },
 		func() error { _, err := client.TaskPomodoros(ctx, "p1", "t1"); return err },
 		func() error { _, err := client.HabitPreferences(ctx); return err },
 		func() error { _, err := client.Habits(ctx); return err },
@@ -55,6 +59,8 @@ func TestProductivityReadsUseExpectedEndpoints(t *testing.T) {
 		"GET /user/preferences/pomodoro",
 		"GET /pomodoros?from=1000&to=2000",
 		"GET /pomodoros/timing?from=1000&to=2000",
+		"GET /pomodoros/statistics/generalForDesktop",
+		"GET /pomodoros/timeline?to=cursor1",
 		"GET /pomodoros/task?projectId=p1&taskId=t1",
 		"GET /user/preferences/habit?platform=web",
 		"GET /habits",

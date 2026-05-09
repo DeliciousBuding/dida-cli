@@ -30,6 +30,10 @@ func runPomo(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runPomoList(args[1:], true, jsonOut, stdout, stderr)
 	case "task":
 		return runPomoTask(args[1:], jsonOut, stdout, stderr)
+	case "stats", "statistics":
+		return runPomoStats(jsonOut, stdout, stderr)
+	case "timeline":
+		return runPomoTimeline(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("pomo", fmt.Sprintf("unknown pomo command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -69,6 +73,70 @@ func runPomoTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	}
 	printMapList(stdout, items, "task pomodoros")
 	return 0
+}
+
+func runPomoStats(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.PomodoroStatisticsGeneral(ctx)
+	})
+	if err != nil {
+		return failTyped("pomo stats", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	data := map[string]any{"statistics": result}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "pomo stats", Data: data})
+	}
+	fmt.Fprintf(stdout, "Pomodoro statistics: %d keys\n", len(result.(map[string]any)))
+	return 0
+}
+
+func runPomoTimeline(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	to, limit, err := parseTimelineFlags(args)
+	if err != nil {
+		return failTyped("pomo timeline", "validation", err.Error(), "run: dida pomo --help", jsonOut, stdout, stderr)
+	}
+	result, err := executeRead(func(ctx context.Context, client *webapi.Client) (any, error) {
+		return client.PomodoroTimeline(ctx, to)
+	})
+	if err != nil {
+		return failTyped("pomo timeline", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	items := result.([]map[string]any)
+	total := len(items)
+	items = limitMapItems(items, limit)
+	meta := map[string]any{"count": len(items), "total": total, "limit": limit}
+	data := map[string]any{"to": to, "items": items}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "pomo timeline", Meta: meta, Data: data})
+	}
+	printMapList(stdout, items, "pomodoro timeline items")
+	return 0
+}
+
+func parseTimelineFlags(args []string) (string, int, error) {
+	to := ""
+	limit := 50
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--to":
+			if i+1 >= len(args) {
+				return "", 0, fmt.Errorf("--to requires a cursor value")
+			}
+			to = args[i+1]
+			i++
+		case "--limit":
+			if i+1 >= len(args) {
+				return "", 0, fmt.Errorf("--limit requires a value")
+			}
+			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+				return "", 0, fmt.Errorf("--limit must be a non-negative integer")
+			}
+			i++
+		default:
+			return "", 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return to, limit, nil
 }
 
 func runPomoList(args []string, timing bool, jsonOut bool, stdout io.Writer, stderr io.Writer) int {

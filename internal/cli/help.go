@@ -26,6 +26,8 @@ Commands:
   reminder     Read reminder preferences
   share        Read sharing and collaboration metadata
   calendar     Read calendar subscription metadata
+  stats        Read account statistics
+  template     Read project templates
   pomo         Read Pomodoro preferences and records
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
@@ -150,6 +152,22 @@ func printCalendarHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida calendar subscriptions [--json]
+  dida calendar archived [--json]
+  dida calendar third-accounts [--json]
+`))
+}
+
+func printStatsHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida stats general [--json]
+`))
+}
+
+func printTemplateHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida template project list [--timestamp N] [--limit N] [--json]
 `))
 }
 
@@ -160,6 +178,8 @@ Usage:
   dida pomo list [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
   dida pomo timing [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--limit N] [--json]
   dida pomo task --project <project-id> --task <task-id> [--json]
+  dida pomo stats [--json]
+  dida pomo timeline [--to <cursor>] [--limit N] [--json]
 `))
 }
 

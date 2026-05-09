@@ -2,6 +2,7 @@ package webapi
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 )
@@ -75,6 +76,40 @@ func (c *Client) ProjectInviteURL(ctx context.Context, projectID string) (map[st
 func (c *Client) CalendarSubscriptions(ctx context.Context) ([]map[string]any, error) {
 	var out []map[string]any
 	if err := c.Do(ctx, http.MethodGet, "/calendar/subscription", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CalendarArchivedEvents(ctx context.Context) ([]map[string]any, error) {
+	var out []map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/calendar/archivedEvent", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CalendarThirdAccounts(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/calendar/third/accounts", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) StatisticsGeneral(ctx context.Context) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/statistics/general", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) ProjectTemplates(ctx context.Context, timestamp int64) (map[string]any, error) {
+	values := url.Values{}
+	values.Set("timestamp", fmt.Sprintf("%d", timestamp))
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/projectTemplates/all?"+values.Encode(), nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil

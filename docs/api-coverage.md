@@ -32,8 +32,12 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Sharing contacts | `GET /share/shareContacts`, `GET /project/share/recentProjectUsers` | `share contacts`, `share recent-users` | Stable read | Unit endpoint test and live read |
 | Project share state | `GET /project/{projectId}/shares`, `GET /project/{projectId}/share/check-quota`, `GET /project/{projectId}/collaboration/invite-url` | `share project shares/quota/invite-url` | Stable read | Unit endpoint test and live read |
 | Calendar subscriptions | `GET /calendar/subscription` | `calendar subscriptions` | Stable read | Unit endpoint test and live read |
+| Calendar archived and accounts | `GET /calendar/archivedEvent`, `GET /calendar/third/accounts` | `calendar archived`, `calendar third-accounts` | Stable read | Unit endpoint test and live read |
+| Statistics | `GET /statistics/general` | `stats general` | Stable read | Unit endpoint test and live read |
+| Project templates | `GET /projectTemplates/all?timestamp=...` | `template project list` | Stable read | Unit endpoint test and live read |
 | Pomodoro preferences | `GET /user/preferences/pomodoro` | `pomo preferences` | Stable read | Live read |
 | Pomodoro records | `GET /pomodoros`, `GET /pomodoros/timing` | `pomo list`, `pomo timing` | Stable read | Live read |
+| Pomodoro statistics and timeline | `GET /pomodoros/statistics/generalForDesktop`, `GET /pomodoros/timeline` | `pomo stats`, `pomo timeline` | Stable read | Unit endpoint test and live read |
 | Task Pomodoro records | `GET /pomodoros/task?projectId=...&taskId=...` | `pomo task` | Stable read | Unit endpoint test and live read |
 | Habit preferences | `GET /user/preferences/habit?platform=web` | `habit preferences` | Stable read | Live read |
 | Habits and sections | `GET /habits`, `GET /habitSections` | `habit list`, `habit sections` | Stable read | Live read |

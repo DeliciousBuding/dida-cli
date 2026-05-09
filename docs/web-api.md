@@ -37,6 +37,8 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/user/preferences/pomodoro` | Pomodoro preferences |
 | `GET` | `/pomodoros?from={millis}&to={millis}` | Pomodoro records |
 | `GET` | `/pomodoros/timing?from={millis}&to={millis}` | Pomodoro timing records |
+| `GET` | `/pomodoros/statistics/generalForDesktop` | Pomodoro statistics |
+| `GET` | `/pomodoros/timeline?to={cursor}` | Pomodoro timeline |
 | `GET` | `/pomodoros/task?projectId={projectId}&taskId={taskId}` | Task Pomodoro records |
 | `GET` | `/user/preferences/habit?platform=web` | Habit preferences |
 | `GET` | `/habits` | Habits |
@@ -51,6 +53,10 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/project/{projectId}/share/check-quota` | Project share quota |
 | `GET` | `/project/{projectId}/collaboration/invite-url` | Project invite-link state |
 | `GET` | `/calendar/subscription` | Calendar subscriptions |
+| `GET` | `/calendar/archivedEvent` | Archived calendar events |
+| `GET` | `/calendar/third/accounts` | Third-party calendar accounts |
+| `GET` | `/statistics/general` | General account statistics |
+| `GET` | `/projectTemplates/all?timestamp={millis}` | Project templates |
 
 Observed CN full sync shape:
 

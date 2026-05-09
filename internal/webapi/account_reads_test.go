@@ -18,7 +18,7 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 			_ = json.NewEncoder(w).Encode(true)
 		case "/attachment/dailyLimit", "/project/p1/share/check-quota":
 			_ = json.NewEncoder(w).Encode(1)
-		case "/project/p1/shares", "/calendar/subscription", "/project/share/recentProjectUsers":
+		case "/project/p1/shares", "/calendar/subscription", "/calendar/archivedEvent", "/project/share/recentProjectUsers":
 			_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "x1", "name": "item"}})
 		default:
 			_ = json.NewEncoder(w).Encode(map[string]any{"enabled": true})
@@ -40,6 +40,10 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		func() error { _, err := client.ProjectShareQuota(ctx, "p1"); return err },
 		func() error { _, err := client.ProjectInviteURL(ctx, "p1"); return err },
 		func() error { _, err := client.CalendarSubscriptions(ctx); return err },
+		func() error { _, err := client.CalendarArchivedEvents(ctx); return err },
+		func() error { _, err := client.CalendarThirdAccounts(ctx); return err },
+		func() error { _, err := client.StatisticsGeneral(ctx); return err },
+		func() error { _, err := client.ProjectTemplates(ctx, 1234); return err },
 	}
 	for _, call := range calls {
 		if err := call(); err != nil {
@@ -57,6 +61,10 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		"GET /project/p1/share/check-quota",
 		"GET /project/p1/collaboration/invite-url",
 		"GET /calendar/subscription",
+		"GET /calendar/archivedEvent",
+		"GET /calendar/third/accounts",
+		"GET /statistics/general",
+		"GET /projectTemplates/all?timestamp=1234",
 	}
 	if strings.Join(seen, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("seen endpoints:\n%s\nwant:\n%s", strings.Join(seen, "\n"), strings.Join(want, "\n"))
