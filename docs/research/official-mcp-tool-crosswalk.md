@@ -9,8 +9,8 @@ first-class commands.
 | Official MCP tool | Current DidaCLI equivalent | Assessment |
 | --- | --- | --- |
 | `list_projects` | `project list` | Overlap; official is cleaner but not broader |
-| `get_project_by_id` | no exact first-class equivalent | Worth wrapping |
-| `get_project_with_undone_tasks` | `project tasks` plus extra reads | Worth wrapping as a bundle read |
+| `get_project_by_id` | `official project get` | Wrapped |
+| `get_project_with_undone_tasks` | `official project data` | Wrapped as a bundle read |
 | `create_project` | `project create` | Overlap |
 | `update_project` | `project update` | Overlap |
 
@@ -71,8 +71,8 @@ first-class commands.
 These are the official MCP tools with the strongest justification for dedicated
 commands instead of only `official call`.
 
-1. `get_project_by_id`
-2. `get_project_with_undone_tasks`
+1. `get_project_by_id` - wrapped as `official project get`
+2. `get_project_with_undone_tasks` - wrapped as `official project data`
 3. `complete_tasks_in_project`
 4. `batch_add_tasks`
 5. `batch_update_tasks`

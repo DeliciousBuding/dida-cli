@@ -32,8 +32,8 @@ They are intentionally not interchangeable.
 | Focus read | `get_focus` | `official focus get` | implemented | Needs a known focus id. |
 | Focus range | `get_focuses_by_time` | `official focus list` | implemented | Safe read; should be live-smoked with a bounded range. |
 | Focus delete | `delete_focus` | `official focus delete --yes` | implemented | Destructive; only test on a disposable focus record. |
-| Project detail | `get_project_by_id` | none | documented | Next high-value wrapper. |
-| Project data | `get_project_with_undone_tasks` | none | documented | Next high-value wrapper for agent context. |
+| Project detail | `get_project_by_id` | `official project get` | implemented | Needs a known project id for live read smoke. |
+| Project data | `get_project_with_undone_tasks` | `official project data` | implemented | Needs a known project id for live read smoke. |
 | Batch task add | `batch_add_tasks` | none | documented | Needs wrapper design with clear payload file support. |
 | Batch task update | `batch_update_tasks` | none | documented | Needs dry-run-like local request preview. |
 | Task filtering | `filter_tasks` | none | documented | Good candidate for compact output. |
@@ -56,7 +56,7 @@ They are intentionally not interchangeable.
 
 1. Live-verify `openapi login` with a real authorization code.
 2. Live-smoke `official focus list` because it is a bounded read.
-3. Add MCP project wrappers because they improve agent context without private
-   Web API risk.
+3. Live-smoke MCP project wrappers because they improve agent context without
+   private Web API risk.
 4. Keep OpenAPI task/focus/habit wrappers blocked until OAuth token persistence
    is proven on the current account.

@@ -54,6 +54,8 @@ dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
 dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
+dida official project get <project-id> --json
+dida official project data <project-id> --json
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --json
 dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json
@@ -227,9 +229,12 @@ Pomodoro range commands convert `YYYY-MM-DD` flags into the millisecond
 timestamps expected by the private Web API. The default range is the last 30
 days and the default output limit is 50.
 
-## Official MCP Habit And Focus
+## Official MCP Project, Habit, And Focus
 
 ```bash
+dida official project get <project-id> --json
+dida official project data <project-id> --json
+
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --json
 dida official habit update <habit-id> --args-json "{\"name\":\"Read more\"}" --json

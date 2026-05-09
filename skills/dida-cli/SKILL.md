@@ -161,6 +161,7 @@ Use official MCP when the operator has configured `DIDA365_TOKEN`:
 ```bash
 dida official doctor --json
 dida official show get_focuses_by_time --json
+dida official project data <project-id> --json
 dida official habit get <habit-id> --json
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
 dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-05-09T23:59:59+08:00 --json

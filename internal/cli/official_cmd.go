@@ -25,6 +25,8 @@ func runOfficial(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 		return runOfficialShow(args[1:], jsonOut, stdout, stderr)
 	case "call":
 		return runOfficialCall(args[1:], jsonOut, stdout, stderr)
+	case "project":
+		return runOfficialProject(args[1:], jsonOut, stdout, stderr)
 	case "habit":
 		return runOfficialHabit(args[1:], jsonOut, stdout, stderr)
 	case "focus":
@@ -233,6 +235,61 @@ func compactOfficialTools(tools []officialmcp.Tool) []officialmcp.Tool {
 		out = append(out, compact)
 	}
 	return out
+}
+
+func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printOfficialProjectHelp(stdout)
+		return 0
+	}
+
+	token, err := officialmcp.ResolveToken("")
+	if err != nil {
+		return failTyped("official project", "auth", err.Error(), "set DIDA365_TOKEN to the official dida365 API token", jsonOut, stdout, stderr)
+	}
+	client := officialmcp.NewClient(token)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
+		return failTyped("official project", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+
+	switch args[0] {
+	case "get":
+		if len(args) != 2 {
+			return failTyped("official project get", "validation", "usage: dida official project get <project-id>", "run: dida official project --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "get_project_by_id", map[string]any{"project_id": args[1]})
+		if err != nil {
+			return failTyped("official project get", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official project get", Data: result})
+		}
+		return writeJSON(stdout, result)
+	case "data":
+		if len(args) != 2 {
+			return failTyped("official project data", "validation", "usage: dida official project data <project-id>", "run: dida official project --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "get_project_with_undone_tasks", map[string]any{"project_id": args[1]})
+		if err != nil {
+			return failTyped("official project data", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official project data", Data: result})
+		}
+		return writeJSON(stdout, result)
+	default:
+		return fail("official project", fmt.Sprintf("unknown project subcommand %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+func printOfficialProjectHelp(stdout io.Writer) {
+	fmt.Fprintln(stdout, "Usage:")
+	fmt.Fprintln(stdout, "  dida official project get <project-id> [--json]")
+	fmt.Fprintln(stdout, "  dida official project data <project-id> [--json]")
+	fmt.Fprintln(stdout, "")
+	fmt.Fprintln(stdout, "Read projects using the official MCP API.")
 }
 
 func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {

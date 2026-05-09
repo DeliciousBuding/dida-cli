@@ -32,6 +32,7 @@ As of the current main branch:
   - `official tools`
   - `official show`
   - `official call`
+  - first-class project read wrappers
   - first-class habit wrappers
   - first-class focus wrappers
 - `official openapi` has:
@@ -338,10 +339,10 @@ If another agent takes over, the best sequence is:
 Top five next tasks:
 
 1. Finish and live-verify `openapi login`
-2. Live-smoke official MCP habit and focus wrappers where a safe target exists
+2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
 3. Capture a successful Web API task activity request
 4. Decode trash pagination semantics
-5. Add official MCP project wrappers
+5. Add official MCP read/filter task wrappers
 
 ## Done Means Done
 
