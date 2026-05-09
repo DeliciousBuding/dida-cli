@@ -59,9 +59,9 @@ As of the current main branch:
   - Web API gap catalog
   - MCP tool crosswalk
 - distribution is live:
-  - `v0.1.5` GitHub Release exists
+  - `v0.1.6` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the `v0.1.5` release asset on Windows
+  - `install.ps1` has been smoke-tested against the `v0.1.6` release asset on Windows
   - installed `v0.1.4` binary has smoke-tested `openapi client set/status/clear`
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
   - npm installer skeleton has been smoke-tested against `v0.1.4` on Windows
@@ -361,7 +361,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.1.5`; release workflow uses Node 24-compatible action major versions.
+Status: implemented and smoke-tested through `v0.1.6`; release workflow uses Node 24-compatible action major versions.
 
 ### F2. Install Scripts
 
@@ -373,7 +373,7 @@ Status: implemented and smoke-tested through `v0.1.5`; release workflow uses Nod
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; Windows installer smoke passed against `v0.1.5`. The
+Status: implemented; Windows installer smoke passed against `v0.1.6`. The
 installed-binary OpenAPI client config smoke and Linux/amd64 `install.sh`
 smoke passed against `v0.1.4`.
 

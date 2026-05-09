@@ -40,11 +40,11 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Explicit request | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Tag-push GitHub Release workflow | `.github/workflows/release.yml` | done | None for current workflow. |
-| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.5` assets | done | None. |
-| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.5` assets | done | None. |
-| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.5` assets | done | Native macOS install smoke is still unavailable. |
-| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.5` assets | done | None. |
-| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.5` | done | None. |
+| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.6` assets | done | None. |
+| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.6` assets | done | None. |
+| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.6` assets | done | Native macOS install smoke is still unavailable. |
+| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.6` assets | done | None. |
+| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.6` | done | None. |
 | Release notes include install methods | `.github/workflows/release.yml` release-notes step | done | None. |
 | `install.sh` OS/arch detection and checksum verification | `install.sh` | done | Linux/amd64 smoke passed; macOS native smoke pending. |
 | `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows smoke passed. |
@@ -68,7 +68,7 @@ Recently run successfully:
 - `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`
 - `git diff --check`
 - local path and known secret scan
-- Windows `install.ps1` smoke against `v0.1.5`
+- Windows `install.ps1` smoke against `v0.1.6`
 - Windows npm installer smoke against `v0.1.4`
 - WSL Linux npm installer smoke against `v0.1.4`
 - WSL Linux `install.sh` smoke against `v0.1.4`
@@ -77,7 +77,7 @@ Recently run successfully:
 - Web API task activity raw probes on 2026-05-10 confirmed the surface remains
   blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
-- release checksum comparison against `v0.1.5/checksums.txt`
+- release checksum comparison against `v0.1.6/checksums.txt`
 
 Skipped or blocked verification:
 
