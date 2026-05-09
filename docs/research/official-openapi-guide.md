@@ -75,9 +75,9 @@ Documented task paths include:
 - `POST /open/v1/task/{taskId}`
 - `POST /open/v1/project/{projectId}/task/{taskId}/complete`
 - `DELETE /open/v1/project/{projectId}/task/{taskId}`
-- `POST /open/v1/task/{taskId}/move`
-- `GET /open/v1/project/{projectId}/data/completed`
-- `POST /open/v1/project/{projectId}/data/filter`
+- `POST /open/v1/task/move`
+- `POST /open/v1/task/completed`
+- `POST /open/v1/task/filter`
 
 The task model in the page covers the familiar fields:
 
@@ -114,9 +114,9 @@ The project-related models include:
 - Column
 - ProjectData
 
-This is notable because the official OpenAPI does expose project-with-data and
-column-related response shapes, even though the command surface is still much
-smaller than the private Web API we are currently using.
+This is notable because the official OpenAPI exposes both project CRUD and
+project-with-data responses with column shapes, even though the command surface
+is still much smaller than the private Web API we are currently using.
 
 ## Focus Endpoints
 
@@ -201,7 +201,7 @@ The most defensible architecture remains:
 
 The current first-class official OpenAPI command surface covers:
 
-- project get/list/data
+- project get/list/data/create/update/delete
 - task get/create/update/complete/delete/move/completed/filter
 - focus get/list/delete
 - habit list/get/create/update/checkin/checkins

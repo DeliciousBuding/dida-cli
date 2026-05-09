@@ -61,7 +61,7 @@ Implemented and documented:
 
 - OAuth client config: `openapi client status/set/clear`.
 - OAuth helpers: `openapi doctor/status/auth-url/listen-callback/exchange-code/login/logout`.
-- Project, task, focus, and habit wrappers.
+- Project CRUD/data, task, focus, and habit wrappers.
 - OpenAPI guide and notes under `docs/research/`.
 - Saved client config plus `openapi auth-url` were verified on 2026-05-10
   without recording secrets or local paths.

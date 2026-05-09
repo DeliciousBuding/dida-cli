@@ -368,7 +368,10 @@ func runOpenAPIListenCallback(args []string, jsonOut bool, stdout io.Writer, std
 
 func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 {
-		return failTyped("openapi project", "validation", "usage: dida openapi project list|get|data", "run: dida openapi --help", jsonOut, stdout, stderr)
+		return failTyped("openapi project", "validation", "usage: dida openapi project list|get|data|create|update|delete", "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+	if handled, code := runOpenAPIProjectDryRun(args, jsonOut, stdout, stderr); handled {
+		return code
 	}
 	token, err := openapi.LoadToken()
 	if err != nil {
@@ -415,6 +418,53 @@ func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.
 			return writeJSON(stdout, envelope{OK: true, Command: "openapi project data", Data: data})
 		}
 		return writeJSON(stdout, data)
+	case "create":
+		payload, dryRun, err := parseOpenAPIJSONWriteFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi project create", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project create", Data: map[string]any{"dry_run": true, "payload": payload}})
+		}
+		project, err := client.CreateProject(ctx, payload)
+		if err != nil {
+			return failTyped("openapi project create", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project create", Data: map[string]any{"project": project}})
+		}
+		return writeJSON(stdout, project)
+	case "update":
+		projectID, payload, dryRun, err := parseOpenAPIIDJSONWriteFlags(args[1:], "project")
+		if err != nil {
+			return failTyped("openapi project update", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project update", Data: map[string]any{"dry_run": true, "project_id": projectID, "payload": payload}})
+		}
+		project, err := client.UpdateProject(ctx, projectID, payload)
+		if err != nil {
+			return failTyped("openapi project update", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project update", Data: map[string]any{"project": project}})
+		}
+		return writeJSON(stdout, project)
+	case "delete":
+		projectID, dryRun, yes, err := parseOpenAPIProjectDeleteFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi project delete", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi project delete", Data: map[string]any{"dry_run": true, "project_id": projectID}})
+		}
+		if !yes {
+			return failTyped("openapi project delete", "confirmation_required", "openapi project delete requires --yes", "preview with --dry-run first", jsonOut, stdout, stderr)
+		}
+		if err := client.DeleteProject(ctx, projectID); err != nil {
+			return failTyped("openapi project delete", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi project delete", Data: map[string]any{"project_id": projectID}})
 	default:
 		return failTyped("openapi project", "validation", fmt.Sprintf("unknown openapi project command %q", args[0]), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
@@ -736,6 +786,34 @@ func runOpenAPITaskDryRun(args []string, jsonOut bool, stdout io.Writer, stderr 
 	}
 }
 
+func runOpenAPIProjectDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
+	if !openAPIHasFlag(args[1:], "--dry-run") {
+		return false, 0
+	}
+	switch args[0] {
+	case "create":
+		payload, _, err := parseOpenAPIJSONWriteFlags(args[1:])
+		if err != nil {
+			return true, failTyped("openapi project create", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi project create", Data: map[string]any{"dry_run": true, "payload": payload}})
+	case "update":
+		projectID, payload, _, err := parseOpenAPIIDJSONWriteFlags(args[1:], "project")
+		if err != nil {
+			return true, failTyped("openapi project update", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi project update", Data: map[string]any{"dry_run": true, "project_id": projectID, "payload": payload}})
+	case "delete":
+		projectID, _, _, err := parseOpenAPIProjectDeleteFlags(args[1:])
+		if err != nil {
+			return true, failTyped("openapi project delete", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi project delete", Data: map[string]any{"dry_run": true, "project_id": projectID}})
+	default:
+		return false, 0
+	}
+}
+
 func runOpenAPIHabitDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
 	if !openAPIHasFlag(args[1:], "--dry-run") {
 		return false, 0
@@ -762,6 +840,32 @@ func runOpenAPIHabitDryRun(args []string, jsonOut bool, stdout io.Writer, stderr
 	default:
 		return false, 0
 	}
+}
+
+func parseOpenAPIProjectDeleteFlags(args []string) (string, bool, bool, error) {
+	projectID := ""
+	dryRun := false
+	yes := false
+	for _, arg := range args {
+		switch arg {
+		case "--dry-run":
+			dryRun = true
+		case "--yes":
+			yes = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				return "", false, false, fmt.Errorf("unknown flag %q", arg)
+			}
+			if projectID != "" {
+				return "", false, false, fmt.Errorf("unexpected argument %q", arg)
+			}
+			projectID = arg
+		}
+	}
+	if projectID == "" {
+		return "", false, false, fmt.Errorf("usage: dida openapi project delete <project-id> [--dry-run|--yes]")
+	}
+	return projectID, dryRun, yes, nil
 }
 
 func parseOpenAPIAuthURLFlags(args []string) (string, string, string, error) {

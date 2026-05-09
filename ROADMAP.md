@@ -278,7 +278,7 @@ Acceptance:
 
 Priority:
 
-1. `openapi project list/get/data`
+1. `openapi project list/get/data/create/update/delete` - implemented with local dry-run previews for writes
 2. `openapi task get/create/update/complete/delete/move`
 3. `openapi focus list/get/delete`
 4. `openapi habit list/get/create/update/checkins`

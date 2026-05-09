@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/model"
+	"github.com/DeliciousBuding/dida-cli/internal/openapi"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
 
@@ -1130,6 +1131,61 @@ func TestOpenAPIJSONWriteFlags(t *testing.T) {
 	}
 	if payload["title"] != "Task" || !dryRun {
 		t.Fatalf("payload = %#v dryRun = %v", payload, dryRun)
+	}
+}
+
+func TestOpenAPIProjectDryRunDoesNotRequireToken(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "project", "create", "--args-json", "{\"name\":\"Smoke\",\"viewMode\":\"list\",\"kind\":\"TASK\"}", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(create dry-run) code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"dry_run": true`) {
+		t.Fatalf("stdout missing dry_run: %s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"openapi", "project", "update", "p1", "--args-json", "{\"name\":\"Renamed\"}", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(update dry-run) code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"project_id": "p1"`) {
+		t.Fatalf("stdout missing project_id: %s", stdout.String())
+	}
+}
+
+func TestOpenAPIProjectDeleteRequiresYesJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	if err := openapi.SaveToken(&openapi.TokenResponse{OAuthToken: openapi.OAuthToken{AccessToken: "test-token", CreatedAt: time.Now().Unix()}}); err != nil {
+		t.Fatalf("SaveToken() error = %v", err)
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "project", "delete", "p1", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "confirmation_required" {
+		t.Fatalf("error.type = %v, want confirmation_required", errPayload["type"])
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"openapi", "project", "delete", "p1", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("dry-run code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"dry_run": true`) {
+		t.Fatalf("stdout missing dry_run: %s", stdout.String())
 	}
 }
 

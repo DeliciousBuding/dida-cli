@@ -90,6 +90,26 @@ func (c *Client) ProjectData(ctx context.Context, projectID string) (map[string]
 	return out, nil
 }
 
+func (c *Client) CreateProject(ctx context.Context, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/project", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) UpdateProject(ctx context.Context, projectID string, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/project/"+url.PathEscape(projectID), payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) DeleteProject(ctx context.Context, projectID string) error {
+	return c.Do(ctx, http.MethodDelete, "/project/"+url.PathEscape(projectID), nil, nil)
+}
+
 func (c *Client) Task(ctx context.Context, projectID string, taskID string) (map[string]any, error) {
 	var out map[string]any
 	path := "/project/" + url.PathEscape(projectID) + "/task/" + url.PathEscape(taskID)

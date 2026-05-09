@@ -78,6 +78,10 @@ dida openapi exchange-code --code <code> --json
 dida openapi project list --json
 dida openapi project get <project-id> --json
 dida openapi project data <project-id> --json
+dida openapi project create --args-json "{\"name\":\"Project\",\"viewMode\":\"list\",\"kind\":\"TASK\"}" --dry-run --json
+dida openapi project update <project-id> --args-json "{\"name\":\"Renamed\"}" --dry-run --json
+dida openapi project delete <project-id> --dry-run --json
+dida openapi project delete <project-id> --yes --json
 dida openapi task get --project <project-id> --task <task-id> --json
 dida openapi task create --args-json "{\"projectId\":\"<project-id>\",\"title\":\"Task\"}" --dry-run --json
 dida openapi task update <task-id> --args-json "{\"projectId\":\"<project-id>\",\"title\":\"Task\"}" --dry-run --json

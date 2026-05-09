@@ -187,6 +187,7 @@ does not accept MCP `dp_...` tokens or Web API cookies as bearer tokens.
 dida openapi doctor --json
 dida openapi client status --json
 dida openapi project list --json
+dida openapi project create --args-json "{\"name\":\"Project\",\"viewMode\":\"list\",\"kind\":\"TASK\"}" --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json "{\"stamp\":20260407,\"value\":1}" --dry-run --json

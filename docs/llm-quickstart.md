@@ -46,6 +46,7 @@ dida openapi doctor --json
 dida openapi client status --json
 dida openapi login --json
 dida openapi project list --json
+dida openapi project create --args-json '{"name":"Project","viewMode":"list","kind":"TASK"}' --dry-run --json
 dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
