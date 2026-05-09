@@ -73,6 +73,8 @@ Usage:
   dida official tools [--limit N] [--full] [--json]
   dida official show <tool-name> [--json]
   dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--json]
+  dida official habit <subcommand> [options] [--json]
+  dida official focus <subcommand> [options] [--json]
 
 These commands use the official dida365 MCP server and require DIDA365_TOKEN.
 `))
