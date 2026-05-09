@@ -36,6 +36,8 @@ dida task list --filter all --limit 50 --json
 dida task get <task-id> --json
 dida task search --query <text> --limit 20 --json
 dida task upcoming --days 14 --limit 50 --json
+dida quadrant list --json
+dida quadrant view Q2 --json
 ```
 
 ## Task Writes
@@ -43,7 +45,10 @@ dida task upcoming --days 14 --limit 50 --json
 ```bash
 dida task create --project <project-id> --title <title> --dry-run --json
 dida task create --project <project-id> --title <title> --content <text> --priority 3 --json
+dida task create --project <project-id> --title <title> --tag work --item "Checklist item" --json
 dida task update <task-id> --project <project-id> --title <title> --json
+dida task update <task-id> --project <project-id> --priority 0 --json
+dida task update <task-id> --project <project-id> --tags work,deep --column <column-id> --json
 dida task complete <task-id> --project <project-id> --json
 dida task delete <task-id> --project <project-id> --dry-run --json
 dida task delete <task-id> --project <project-id> --yes --json
@@ -60,6 +65,22 @@ Priority values follow Dida365 Web API conventions:
 | `1` | low |
 | `3` | medium |
 | `5` | high |
+
+Task create/update support these Web API fields:
+
+| Flag | Purpose |
+|---|---|
+| `--content <text>` | Plain task content |
+| `--desc <markdown>` | Rich description field |
+| `--start <time>` / `--due <time>` | Start and due timestamps |
+| `--timezone <zone>` | IANA timezone, for example `Asia/Shanghai` |
+| `--tag <name>` / `--tags a,b` | Tags |
+| `--item <title>` | Checklist item; repeatable |
+| `--column <id>` | Kanban column id |
+| `--reminder <value>` | Reminder value; repeatable |
+| `--repeat <rule>` / `--repeat-from <value>` / `--repeat-flag <value>` | Repeat metadata |
+| `--all-day` / `--not-all-day` | All-day toggle |
+| `--floating` / `--not-floating` | Floating task toggle |
 
 ## Project, Folder, Tag, and Column Writes
 
@@ -108,6 +129,8 @@ dida sync checkpoint <checkpoint> --json
 ```
 
 `sync all` returns the latest checkpoint in `meta.checkpoint`.
+
+`sync checkpoint` returns both a normalized `data.view` and raw-compatible `data.deltas` for task additions, updates, deletes, order changes, and reminder changes.
 
 ## Raw Read-Only Probe
 

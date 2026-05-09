@@ -73,6 +73,12 @@ Task operation shapes:
 {"delete":[{"taskId":"...","projectId":"..."}]}
 ```
 
+Task create/update exposes the observed Web API fields `content`, `desc`, `allDay`, `startDate`, `dueDate`, `timeZone`, `reminders`, `repeat`, `repeatFrom`, `repeatFlag`, `priority`, `columnId`, `tags`, `items`, and `isFloating`.
+
+`priority` is represented internally as an optional field so `--priority 0` is sent explicitly and can clear an existing priority.
+
+Incremental sync preserves `syncTaskBean.add`, `syncTaskBean.update`, `syncTaskBean.delete`, `syncOrderBean`, `syncTaskOrderBean`, and observed reminder delta containers in `sync checkpoint --json`.
+
 Resource operation shapes:
 
 ```json

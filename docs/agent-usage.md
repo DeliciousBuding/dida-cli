@@ -25,6 +25,7 @@ dida folder list --json
 dida tag list --json
 dida +today --json
 dida task upcoming --days 14 --limit 50 --json
+dida quadrant list --json
 dida completed today --json
 ```
 
@@ -61,6 +62,8 @@ dida tag delete agent-staging --yes --json
 ```
 
 Use `dida column create` only when the operator accepts that column support is based on an experimental private endpoint. The CLI does not expose column update/delete yet.
+
+Use `dida sync checkpoint <checkpoint> --json` when an agent needs deletions, order deltas, or reminder deltas; those live under `data.deltas`.
 
 ## Repo Skill
 

@@ -34,6 +34,7 @@ dida folder list --json
 dida tag list --json
 dida +today --json
 dida task upcoming --days 14 --limit 50 --json
+dida quadrant list --json
 dida completed today --json
 ```
 
@@ -49,6 +50,8 @@ dida task update <task-id> --project <project-id> --title "New title" --dry-run 
 dida task move <task-id> --from <project-id> --to <project-id> --dry-run --json
 dida task parent <task-id> --parent <parent-task-id> --project <project-id> --dry-run --json
 ```
+
+Use first-class task field flags instead of raw payloads: `--content`, `--desc`, `--start`, `--due`, `--timezone`, `--tag`, `--tags`, `--item`, `--column`, `--reminder`, `--repeat`, `--repeat-from`, `--repeat-flag`, `--all-day`, and `--floating`.
 
 Execute narrow writes only after the preview matches intent:
 

@@ -109,6 +109,7 @@ dida task today --json
 dida task list --filter all --limit 50 --json
 dida task search --query "exam" --limit 10 --json
 dida task upcoming --days 14 --json
+dida quadrant list --json
 dida completed today --json
 dida completed list --from 2026-05-01 --to 2026-05-09 --json
 dida raw get /batch/check/0 --json
@@ -186,6 +187,7 @@ dida folder list --json
 dida tag list --json
 dida +today --json
 dida task upcoming --days 14 --limit 50 --json
+dida quadrant list --json
 dida completed today --json
 ```
 
@@ -234,6 +236,8 @@ DidaCLI currently uses:
 - `POST /column`
 
 Private Web API behavior can change. See [docs/web-api.md](docs/web-api.md) and [docs/research/api-surfaces.md](docs/research/api-surfaces.md) for implementation notes.
+
+`sync checkpoint` exposes both normalized view data and raw-compatible delta sections so agents can see task deletes, order changes, and reminder changes.
 
 ## Project Layout
 
@@ -287,6 +291,7 @@ dida folder list --json
 dida tag list --json
 dida +today --json
 dida task upcoming --days 14 --json
+dida quadrant list --json
 dida completed today --json
 dida task create --project <project-id> --title "新任务" --json
 dida project create --name "新项目" --dry-run --json
