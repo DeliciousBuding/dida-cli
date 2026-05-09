@@ -42,7 +42,7 @@ They are intentionally not interchangeable.
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |
 | Task detail | `get_task_by_id`, `get_task_in_project` | `official task get` | live-verified | Project-scoped task detail smoke succeeded on 2026-05-10; private task payload was not committed. |
 | Batch task add | `batch_add_tasks` | `official task batch-add` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke created a disposable task and cleaned it up after verification. |
-| Batch task update | `batch_update_tasks` | `official task batch-update` | implemented | Local `--dry-run` preview works without token; live update still needs a disposable task update scenario. |
+| Batch task update | `batch_update_tasks` | `official task batch-update` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke updated a disposable task title/content/priority, verified it through `official task get`, and cleaned it up. |
 | Complete tasks in project | `complete_tasks_in_project` | `official task complete-project` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke completed the disposable task created through `official task batch-add`. |
 | Task search | `search_task` | `official task search` | live-verified | No-result query smoke succeeded on 2026-05-10. |
 | Task undone by date | `list_undone_tasks_by_date` | `official task undone` | live-verified | Same-day bounded range smoke succeeded on 2026-05-10. |

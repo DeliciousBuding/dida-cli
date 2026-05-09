@@ -30,7 +30,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Web API read coverage is documented | `docs/api-coverage.md`, `docs/research/webapi-gap-catalog.md` | partial | Task activity detail still blocked by `need_pro`; task-level attachment and private write flows need more evidence. |
 | Web API commands prefer JSON and compact output | `internal/cli/*`, `docs/commands.md`, `README.md` | done | Continue adding compact output when new noisy reads are promoted. |
 | Official MCP channel is explicit | `docs/research/official-mcp-tool-crosswalk.md`, `docs/research/official-mcp-vs-webapi.md` | done | Token-based health, tools, project get/data, task get/query/search/undone/filter, habit list/sections, and focus list were live-smoked on 2026-05-10. |
-| Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/habit/focus reads are live-smoked where safe IDs exist; task batch-add and complete-project were live-smoked with cleanup; habit writes and focus delete have local dry-run previews; current account has no habit or focus ids for known-id reads. |
+| Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/habit/focus reads are live-smoked where safe IDs exist; task batch-add, batch-update, and complete-project were live-smoked with cleanup; habit writes and focus delete have local dry-run previews; current account has no habit or focus ids for known-id reads. |
 | Official OpenAPI channel is explicit | `docs/research/official-openapi-guide.md`, `docs/research/official-openapi-notes.md` | done | OAuth live approval is not complete on this machine. |
 | Official OpenAPI OAuth helpers exist | `internal/cli/openapi_cmd.go`, `internal/openapi/oauth.go`, `internal/openapi/oauth_test.go` | partial | Saved client config and auth-url generation are verified; OAuth browser approval and saved access token are still missing. |
 | Official OpenAPI resource wrappers exist | `internal/cli/openapi_cmd.go`, `docs/commands.md` | partial | Project/task/focus/habit live calls need a saved OAuth token. |
@@ -72,7 +72,8 @@ Recently run successfully:
   `official habit create`, `official habit update`, `official habit checkin`,
   and `official focus delete`
 - Official MCP live reversible task write smoke on 2026-05-10:
-  `official task batch-add`, `official task get --project`,
+  `official task batch-add`, `official task batch-update`,
+  `official task get --project`,
   `official task complete-project`, followed by Web API `task delete` cleanup
 - Windows `install.ps1` latest smoke against `v0.1.11`
 - WSL Linux `install.sh` latest smoke against `v0.1.11`

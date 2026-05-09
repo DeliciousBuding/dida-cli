@@ -60,9 +60,9 @@ Not complete:
 - Token-based health, tools, project list, project get/data, task
   detail/time-query/search/undone/filter, habit list/sections, and focus range reads
   were live-smoked on 2026-05-10 without committing private payloads.
-- Official MCP task `batch-add`, project-scoped `task get`, and
-  `complete-project` were live-smoked on 2026-05-10 with a disposable task, then
-  cleaned up through the verified Web API task delete path.
+- Official MCP task `batch-add`, `batch-update`, project-scoped `task get`,
+  and `complete-project` were live-smoked on 2026-05-10 with disposable tasks,
+  then cleaned up through the verified Web API task delete path.
 - Known-id habit/focus reads are blocked on the current account because live
   token smokes found no habits and no focus records, including a 365-day focus
   range.

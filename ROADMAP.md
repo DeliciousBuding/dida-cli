@@ -242,9 +242,9 @@ Live evidence:
 - Local dry-run previews exist for official MCP task batch writes,
   `official habit create/update/checkin`, and `official focus delete`; these
   do not require a saved official token.
-- 2026-05-10 live reversible smoke verified official MCP task
-  `batch-add`, project-scoped `task get`, and `complete-project`; the temporary
-  task was then removed through the already verified Web API task delete path.
+- 2026-05-10 live reversible smokes verified official MCP task `batch-add`,
+  `batch-update`, project-scoped `task get`, and `complete-project`; temporary
+  tasks were then removed through the already verified Web API task delete path.
 - Known-id habit/focus read smokes are currently blocked by account state:
   2026-05-10 token smokes found zero habits and zero focus records, including a
   365-day focus range.
