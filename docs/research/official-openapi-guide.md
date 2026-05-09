@@ -3,10 +3,10 @@
 This document is a repo-authored summary of the official Dida365 OpenAPI page.
 It is intended for implementation planning and channel comparison inside DidaCLI.
 
-Source material was reviewed from the locally saved developer page:
+Source material was reviewed from a locally saved copy of the developer page
+and the public documentation URL:
 
-- `C:\Users\Ding\Downloads\TickTick Developer_files\index.html`
-- original URL: `https://developer.dida365.com/docs/index.html#/openapi`
+- `https://developer.dida365.com/docs/index.html#/openapi`
 
 ## Purpose
 
@@ -35,6 +35,25 @@ Important implication for DidaCLI:
 - this channel should be treated as a future OAuth-based third channel
 - it should not be modeled as a drop-in replacement for Web API cookie auth
 - it should not be conflated with the official MCP `DIDA365_TOKEN=dp_...` flow
+
+## Verified Runtime Findings
+
+The following behavior was verified directly during implementation work:
+
+- the provided `client_id` and `client_secret` are accepted by the OAuth token endpoint as a valid client pair
+- posting an invalid authorization code returns:
+  - `400 invalid_grant`
+  - `Invalid authorization code: ...`
+- attempting the authorization URL without a signed-in user returns a redirect to:
+  - `/signin?dest=...`
+- calling `/open/v1/...` directly with that same secret as a bearer token returns:
+  - `401 invalid_token`
+  - `WWW-Authenticate: Bearer realm="oauth"`
+
+Practical conclusion:
+
+- `client_id` and `client_secret` are not themselves an OpenAPI access token
+- a real OAuth authorization code flow is still required before the OpenAPI can be used as a live third channel
 
 ## Main Resource Areas
 
