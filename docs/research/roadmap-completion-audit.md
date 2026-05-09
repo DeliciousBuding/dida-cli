@@ -14,7 +14,7 @@ For the detailed prompt-to-artifact checklist, see
 | Three explicit channels: Web API, official MCP, official OpenAPI | `README.md`, `docs/commands.md`, `docs/research/api-channel-inventory.md` | Implemented |
 | Agent-first JSON command surface | `schema list/show`, `agent context`, stable JSON envelope tests in `internal/cli/cli_test.go` | Implemented |
 | Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.1.11` | Implemented and smoke-tested |
-| Root cleanliness | Current root contains only project-level directories/files; generated data stays ignored under `bin/`, `tmp/`, `data/` | Ongoing rule |
+| Root cleanliness | Current tracked root contains only project-level directories/files; generated data stays ignored under `bin/`, `tmp/`, and `data/private/` | Ongoing rule |
 | Secrets kept out of repo | Sensitive scans during changes; auth docs use env/stdin/placeholders | Ongoing rule |
 
 ## Channel Audit
@@ -52,17 +52,17 @@ Implemented and documented:
   dry-run wrappers, habit wrappers, and focus wrappers.
 - Local dry-run previews exist for official MCP task batch writes, habit
   create/update/checkin, and focus delete without requiring a saved token.
+- Token-based health, tools, project list, project get/data, task
+  detail/time-query/search/undone/filter, habit list/sections, and focus range
+  reads were live-smoked on 2026-05-10 without committing private payloads.
+- Official MCP task `batch-add`, `batch-update`, project-scoped `task get`,
+  and `complete-project` were live-smoked on 2026-05-10 with disposable tasks,
+  then cleaned up through the verified Web API task delete path.
 - Promotion policy: `docs/research/official-mcp-wrapping-policy.md`.
 - Crosswalk: `docs/research/official-mcp-tool-crosswalk.md`.
 
 Not complete:
 
-- Token-based health, tools, project list, project get/data, task
-  detail/time-query/search/undone/filter, habit list/sections, and focus range reads
-  were live-smoked on 2026-05-10 without committing private payloads.
-- Official MCP task `batch-add`, `batch-update`, project-scoped `task get`,
-  and `complete-project` were live-smoked on 2026-05-10 with disposable tasks,
-  then cleaned up through the verified Web API task delete path.
 - Known-id habit/focus reads are blocked on the current account because live
   token smokes found no habits and no focus records, including a 365-day focus
   range.

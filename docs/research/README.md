@@ -1,7 +1,8 @@
 # Research Index
 
-This directory tracks API evidence for DidaCLI. It is not a dumping ground for
-raw captures, secrets, cookies, or local machine paths.
+This directory tracks API evidence for DidaCLI. For the main documentation
+entrypoint, start at [../README.md](../README.md). This directory is not a
+dumping ground for raw captures, secrets, cookies, or local machine paths.
 
 ## Core Maps
 

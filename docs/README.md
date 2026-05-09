@@ -34,7 +34,8 @@ DidaCLI intentionally keeps three channels separate:
 ## Current External Blockers
 
 - Official OpenAPI requires a completed browser OAuth approval before live resource smokes.
-- Web API attachment upload smokes are blocked on the observed account while quota reports `underQuota=false`.
+- Web API repeat upload smokes are blocked on the observed account while quota reports `underQuota=false`; the verified comment attachment path remains implemented.
+- Web API task-level attachment mutation remains research-only until association, download/preview, file-limit, and cleanup behavior are traced with a disposable task.
 - Web API task activity detail is blocked by `need_pro` on the observed account.
 - Official MCP habit/focus known-id reads and destructive writes need disposable habit/focus targets.
 
