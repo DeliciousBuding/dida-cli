@@ -32,12 +32,20 @@ dida version
 dida doctor --json
 ```
 
+`doctor --json` is local-only by default. After login, use `--verify` for a
+read-only Web API health check:
+
+```bash
+dida doctor --verify --json
+```
+
 ## Web API Login
 
 The Web API channel uses the browser session cookie captured locally.
 
 ```bash
 dida auth login --browser --json
+dida doctor --verify --json
 dida auth status --verify --json
 ```
 

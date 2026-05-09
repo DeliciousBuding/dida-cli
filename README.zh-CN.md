@@ -77,7 +77,7 @@ dida doctor --json
 
 ```bash
 dida auth login --browser --json
-dida doctor --json
+dida doctor --verify --json
 dida agent context --json
 dida schema list --json
 ```

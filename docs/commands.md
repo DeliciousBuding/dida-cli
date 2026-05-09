@@ -7,6 +7,7 @@ Use `--compact` or `--brief` on task-heavy reads when an agent only needs IDs, t
 ## Auth
 
 ```bash
+dida doctor --verify --json
 dida auth login --browser --json
 dida auth login --json
 dida auth cookie set --token-stdin

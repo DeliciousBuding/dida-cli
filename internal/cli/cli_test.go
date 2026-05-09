@@ -32,6 +32,36 @@ func TestDoctorJSON(t *testing.T) {
 	}
 }
 
+func TestDoctorVerifyMissingAuthIncludesDiagnosticData(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"doctor", "--verify", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1, stdout=%s", code, stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["ok"] != false {
+		t.Fatalf("ok = %v, want false", payload["ok"])
+	}
+	if payload["command"] != "doctor" {
+		t.Fatalf("command = %v, want doctor", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	networkCheck := data["network_check"].(map[string]any)
+	if networkCheck["status"] != "failed" {
+		t.Fatalf("network_check.status = %v, want failed", networkCheck["status"])
+	}
+	if networkCheck["channel"] != "webapi" {
+		t.Fatalf("network_check.channel = %v, want webapi", networkCheck["channel"])
+	}
+}
+
 func TestJSONFlagWithoutCommandReturnsError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"--json"}, "test-version", &stdout, &stderr)

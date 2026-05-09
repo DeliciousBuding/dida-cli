@@ -31,12 +31,20 @@ dida version
 dida doctor --json
 ```
 
+默认的 `doctor --json` 只检查本地状态。登录后可以用 `--verify` 做一次只读
+Web API 健康检查：
+
+```bash
+dida doctor --verify --json
+```
+
 ## Web API 登录
 
 Web API 通道使用本地浏览器登录后的会话 cookie。
 
 ```bash
 dida auth login --browser --json
+dida doctor --verify --json
 dida auth status --verify --json
 ```
 

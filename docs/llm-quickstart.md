@@ -21,6 +21,7 @@ dida auth login --browser --json
 Then verify:
 
 ```bash
+dida doctor --verify --json
 dida auth status --verify --json
 ```
 
