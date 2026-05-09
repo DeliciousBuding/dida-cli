@@ -59,9 +59,9 @@ As of the current main branch:
   - Web API gap catalog
   - MCP tool crosswalk
 - distribution is live:
-  - `v0.1.2` GitHub Release exists
+  - `v0.1.3` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the `v0.1.2` release asset on Windows
+  - `install.ps1` has been smoke-tested against the `v0.1.3` release asset on Windows
   - `install.sh` has been smoke-tested against the release asset on Linux/amd64
 
 ## Non-Negotiable Rules
@@ -224,12 +224,14 @@ This channel is not complete until a real OAuth flow is verified live.
 
 ### C1. OAuth Login Experience
 
+- save OAuth client config with `openapi client set --id ... --secret-stdin`
 - finish `openapi login`
 - make it pleasant for human and agent use
 - keep auth flow separated from browser cookie auth
 
 Acceptance:
 
+- client id and secret are available from env or saved local config
 - a user can start login, authorize in browser, and persist an access token
 - token status is visible through `openapi doctor` / `openapi status`
 
@@ -335,7 +337,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.1.2`.
+Status: implemented and smoke-tested through `v0.1.3`.
 
 ### F2. Install Scripts
 
@@ -347,7 +349,7 @@ Status: implemented and smoke-tested through `v0.1.2`.
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; Windows installer smoke passed against `v0.1.2`.
+Status: implemented; Windows installer smoke passed against `v0.1.3`.
 
 ### F3. npm Installer
 
