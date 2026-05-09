@@ -26,10 +26,10 @@ dida schema show task.create --json
 dida schema show column.create --json
 ```
 
-Schema output is local and does not require auth. It exposes command IDs, command
-strings, status, Web API endpoints, `--dry-run` support, destructive
-confirmation requirements, and compact-output support for agents that need to
-choose the safest command without reading the full README.
+Schema output is local and does not require auth. It exposes command IDs,
+command strings, status, auth requirements, Web API endpoints, `--dry-run`
+support, destructive confirmation requirements, and compact-output support for
+agents that need to choose the safest command without reading the full README.
 
 ## Agent Context
 

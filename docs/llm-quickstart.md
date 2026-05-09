@@ -53,6 +53,11 @@ dida schema show task.create --json
 dida schema show task.delete --json
 ```
 
+Read `authRequired`, `dryRun`, and `confirmationRequired` before choosing a
+command. Commands under `official.*` need `DIDA365_TOKEN`; OpenAPI resource
+commands need a saved OAuth access token. Do not treat Web API cookie auth as
+valid for either official channel.
+
 ## Safe Reads
 
 ```bash

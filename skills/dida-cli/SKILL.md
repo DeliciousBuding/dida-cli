@@ -33,6 +33,11 @@ dida schema show task.create --json
 dida schema show comment.delete --json
 ```
 
+Check `authRequired`, `dryRun`, and `confirmationRequired` in schema output
+before choosing a command. If `authRequired` is true, verify the matching
+channel auth first; do not assume a Web API cookie can satisfy official MCP or
+OpenAPI commands.
+
 ## Read Context
 
 Prefer the one-call context pack:
@@ -68,8 +73,6 @@ dida stats general --json
 dida pomo timeline --limit 10 --json
 dida template project list --limit 10 --json
 dida search all --query <text> --limit 20 --json
-dida official doctor --json
-dida official tools --limit 20 --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
