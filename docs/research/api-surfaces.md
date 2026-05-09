@@ -34,6 +34,14 @@ Important existing endpoints:
 - `POST /batch/tag` and tag-specific endpoints for tag operations.
 - `POST /column` for column creation experiments.
 
+Observed negative probes on the CN Web API:
+
+- `GET /project/{projectId}/data` returned 404.
+- `GET /project/{projectId}/columns` returned 404.
+- `GET /project/{projectId}` returned 405.
+
+The working project task read endpoint remains `GET /project/{projectId}/tasks`.
+
 ### Client Layers
 
 - `webapi.Client`: HTTP transport, auth headers, endpoint path construction, error decoding.

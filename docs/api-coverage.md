@@ -32,6 +32,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 These surfaces are visible in payloads or product behavior but do not yet have verified command coverage:
 
 - Column update/delete: endpoint and rollback behavior not verified.
+- Named column list: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API; current column read is inferred from task `columnId`.
 - Attachments/media upload: payloads expose attachment metadata, but upload and attach flow has not been mapped.
 - Comments: payloads expose `commentCount`, but comment endpoints are not mapped.
 - Collaboration/team permissions: project payloads expose team and permission fields, but multi-user behavior is not mapped.
