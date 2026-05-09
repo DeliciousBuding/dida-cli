@@ -497,6 +497,7 @@ func TestSchemaAuthMetadataForOfficialAndOpenAPI(t *testing.T) {
 	cases := map[string]bool{
 		"official.doctor":        true,
 		"official.project.list":  true,
+		"official.habit.list":    true,
 		"official.task.batchAdd": true,
 		"openapi.doctor":         false,
 		"openapi.clientSet":      false,
@@ -972,6 +973,20 @@ func TestOfficialTaskCompleteProjectFlagParsing(t *testing.T) {
 	taskIDs := payload["task_ids"].([]string)
 	if len(taskIDs) != 3 || taskIDs[0] != "t1" || taskIDs[2] != "t3" {
 		t.Fatalf("task_ids = %#v", taskIDs)
+	}
+}
+
+func TestOfficialHabitCheckinsFlagParsing(t *testing.T) {
+	payload, err := parseOfficialHabitCheckinsArgs([]string{"--habit-ids", "h1,h2", "--from", "20260501", "--to", "20260510"})
+	if err != nil {
+		t.Fatalf("parseOfficialHabitCheckinsArgs() error = %v", err)
+	}
+	ids := payload["habit_ids"].([]string)
+	if len(ids) != 2 || ids[0] != "h1" || ids[1] != "h2" {
+		t.Fatalf("habit_ids = %#v", ids)
+	}
+	if payload["from_stamp"] != 20260501 || payload["to_stamp"] != 20260510 {
+		t.Fatalf("payload = %#v", payload)
 	}
 }
 

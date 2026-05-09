@@ -690,6 +690,32 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	}
 
 	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return failTyped("official habit list", "validation", "usage: dida official habit list", "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "list_habits", map[string]any{})
+		if err != nil {
+			return failTyped("official habit list", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official habit list", Data: result})
+		}
+		return writeJSON(stdout, result)
+
+	case "sections":
+		if len(args) != 1 {
+			return failTyped("official habit sections", "validation", "usage: dida official habit sections", "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "list_habit_sections", map[string]any{})
+		if err != nil {
+			return failTyped("official habit sections", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official habit sections", Data: result})
+		}
+		return writeJSON(stdout, result)
+
 	case "get":
 		if len(args) < 2 {
 			return failTyped("official habit get", "validation", "usage: dida official habit get <habit-id>", "run: dida official habit --help", jsonOut, stdout, stderr)
@@ -758,6 +784,20 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 		}
 		return writeJSON(stdout, result)
 
+	case "checkins":
+		payload, err := parseOfficialHabitCheckinsArgs(args[1:])
+		if err != nil {
+			return failTyped("official habit checkins", "validation", err.Error(), "run: dida official habit --help", jsonOut, stdout, stderr)
+		}
+		result, err := client.CallTool(ctx, "get_habit_checkins", payload)
+		if err != nil {
+			return failTyped("official habit checkins", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		if jsonOut {
+			return writeJSON(stdout, envelope{OK: true, Command: "official habit checkins", Data: result})
+		}
+		return writeJSON(stdout, result)
+
 	default:
 		return fail("official habit", fmt.Sprintf("unknown habit subcommand %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -765,10 +805,13 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 
 func printOfficialHabitHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
+	fmt.Fprintln(stdout, "  dida official habit list [--json]")
+	fmt.Fprintln(stdout, "  dida official habit sections [--json]")
 	fmt.Fprintln(stdout, "  dida official habit get <habit-id> [--json]")
 	fmt.Fprintln(stdout, "  dida official habit create [--args-json <json>] [--json]")
 	fmt.Fprintln(stdout, "  dida official habit update <habit-id> [--args-json <json>] [--json]")
 	fmt.Fprintln(stdout, "  dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number> [--json]")
+	fmt.Fprintln(stdout, "  dida official habit checkins --habit-ids <ids> --from YYYYMMDD --to YYYYMMDD [--json]")
 	fmt.Fprintln(stdout, "")
 	fmt.Fprintln(stdout, "Manage habits using the official MCP API.")
 }
@@ -808,6 +851,65 @@ func parseHabitCheckinArgs(args []string) (map[string]any, error) {
 		return nil, fmt.Errorf("missing required --value flag")
 	}
 	return payload, nil
+}
+
+func parseOfficialHabitCheckinsArgs(args []string) (map[string]any, error) {
+	payload := map[string]any{}
+	habitIDs := []string{}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--habit-ids":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--habit-ids requires a comma-separated value")
+			}
+			habitIDs = append(habitIDs, splitCSV(args[i+1])...)
+			i++
+		case "--from":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--from requires a YYYYMMDD value")
+			}
+			value, err := parseOfficialDateStamp(args[i+1], "--from")
+			if err != nil {
+				return nil, err
+			}
+			payload["from_stamp"] = value
+			i++
+		case "--to":
+			if i+1 >= len(args) {
+				return nil, fmt.Errorf("--to requires a YYYYMMDD value")
+			}
+			value, err := parseOfficialDateStamp(args[i+1], "--to")
+			if err != nil {
+				return nil, err
+			}
+			payload["to_stamp"] = value
+			i++
+		default:
+			return nil, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if len(habitIDs) == 0 {
+		return nil, fmt.Errorf("missing required --habit-ids")
+	}
+	if payload["from_stamp"] == nil {
+		return nil, fmt.Errorf("missing required --from")
+	}
+	if payload["to_stamp"] == nil {
+		return nil, fmt.Errorf("missing required --to")
+	}
+	payload["habit_ids"] = habitIDs
+	return payload, nil
+}
+
+func parseOfficialDateStamp(value string, flag string) (int, error) {
+	var stamp int
+	if _, err := fmt.Sscanf(value, "%d", &stamp); err != nil {
+		return 0, fmt.Errorf("%s must be an integer date stamp in YYYYMMDD format", flag)
+	}
+	if stamp < 10000101 || stamp > 99991231 {
+		return 0, fmt.Errorf("%s must be in YYYYMMDD format", flag)
+	}
+	return stamp, nil
 }
 
 func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {

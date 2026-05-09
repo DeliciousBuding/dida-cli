@@ -43,10 +43,13 @@ and JSON every time.
 | `complete_tasks_in_project` | `official task complete-project` | Batch completion uses explicit project/task IDs and supports local dry-run preview. |
 | `batch_add_tasks` | `official task batch-add` | Batch create is schema-backed but broad, so the wrapper keeps payload JSON visible. |
 | `batch_update_tasks` | `official task batch-update` | Batch update is schema-backed but broad, so the wrapper keeps payload JSON visible. |
+| `list_habits` | `official habit list` | Official habit discovery read; needed before known-id habit actions. |
+| `list_habit_sections` | `official habit sections` | Official section discovery read for habit organization. |
 | `get_habit` | `official habit get` | Habit detail is not covered by the Web API read surface. |
 | `create_habit` | `official habit create` | Official channel supports habit writes with schema-backed payloads. |
 | `update_habit` | `official habit update` | Official channel supports habit writes with schema-backed payloads. |
 | `upsert_habit_checkins` | `official habit checkin` | Common action can be expressed as one safe, predictable command. |
+| `get_habit_checkins` | `official habit checkins` | Bounded check-in history read with explicit habit IDs and date stamps. |
 | `get_focus` | `official focus get` | Focus detail is an official-only capability. |
 | `get_focuses_by_time` | `official focus list` | Bounded read that is useful for daily review agents. |
 | `delete_focus` | `official focus delete` | Officially supported destructive operation; use only with known IDs. |

@@ -198,13 +198,16 @@ Priority list:
 8. `list_undone_tasks_by_date`
 9. `search_task`
 10. `list_undone_tasks_by_time_query` - implemented as `official task query`
-11. `get_habit`
-12. `create_habit`
-13. `update_habit`
-14. `upsert_habit_checkins`
-15. `get_focus`
-16. `get_focuses_by_time`
-17. `delete_focus`
+11. `list_habits` - implemented as `official habit list`
+12. `list_habit_sections` - implemented as `official habit sections`
+13. `get_habit`
+14. `create_habit`
+15. `update_habit`
+16. `upsert_habit_checkins`
+17. `get_habit_checkins` - implemented as `official habit checkins`
+18. `get_focus`
+19. `get_focuses_by_time`
+20. `delete_focus`
 
 Acceptance:
 
