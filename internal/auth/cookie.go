@@ -54,6 +54,13 @@ func LoadCookieToken() (*CookieToken, error) {
 	return &item, nil
 }
 
+func ClearCookieToken() error {
+	if err := os.Remove(CookiePath()); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("remove cookie token: %w", err)
+	}
+	return nil
+}
+
 func CookieStatus() map[string]any {
 	item, err := LoadCookieToken()
 	status := map[string]any{

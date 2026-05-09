@@ -13,6 +13,7 @@ import (
 
 	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/config"
+	"github.com/DeliciousBuding/dida-cli/internal/model"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
 
@@ -24,7 +25,9 @@ type envelope struct {
 }
 
 type cliError struct {
+	Type    string `json:"type,omitempty"`
 	Message string `json:"message"`
+	Hint    string `json:"hint,omitempty"`
 }
 
 func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int {
@@ -41,6 +44,8 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 	command := args[0]
 
 	switch command {
+	case "+today":
+		return runTask(append([]string{"today"}, args[1:]...), jsonOut, stdout, stderr)
 	case "doctor":
 		return runDoctor(args[1:], version, jsonOut, stdout, stderr)
 	case "auth":
@@ -49,7 +54,11 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 		return runSync(args[1:], jsonOut, stdout, stderr)
 	case "raw":
 		return runRaw(args[1:], jsonOut, stdout, stderr)
-	case "project", "task", "report":
+	case "project":
+		return runProject(args[1:], jsonOut, stdout, stderr)
+	case "task":
+		return runTask(args[1:], jsonOut, stdout, stderr)
+	case "report":
 		return notImplemented(command, jsonOut, stdout, stderr)
 	default:
 		return fail(command, fmt.Sprintf("unknown command %q", command), jsonOut, stdout, stderr)
@@ -110,7 +119,11 @@ func runAuth(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	}
 	switch args[0] {
 	case "status":
+		verify := hasFlag(args[1:], "--verify")
 		data := map[string]any{"cookie": auth.CookieStatus(), "oauth": map[string]any{"available": false, "message": "not implemented"}}
+		if verify {
+			data["verify"] = verifyCookieAuth()
+		}
 		if jsonOut {
 			return writeJSON(stdout, envelope{OK: true, Command: "auth status", Data: data})
 		}
@@ -121,12 +134,61 @@ func runAuth(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 			fmt.Fprintf(stdout, "Token: %v\n", cookie["token_preview"])
 			fmt.Fprintf(stdout, "Saved at: %v\n", cookie["saved_at"])
 		}
+		if verify {
+			fmt.Fprintf(stdout, "Verify: %v\n", data["verify"])
+		}
 		return 0
+	case "login":
+		return runAuthLogin(args[1:], jsonOut, stdout, stderr)
+	case "logout":
+		return runAuthLogout(args[1:], jsonOut, stdout, stderr)
 	case "cookie":
 		return runAuthCookie(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("auth", fmt.Sprintf("unknown auth command %q", args[0]), jsonOut, stdout, stderr)
 	}
+}
+
+func runAuthLogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help") {
+		printAuthLoginHelp(stdout)
+		return 0
+	}
+	data := map[string]any{
+		"mode":             "manual_cookie",
+		"login_url":        "https://dida365.com/signin",
+		"cookie_name":      "t",
+		"recommended_next": "dida auth cookie set --token-stdin",
+		"agent_hint":       "Ask the user to sign in in a browser, copy only the Dida365 cookie named 't', then paste it to stdin for `dida auth cookie set --token-stdin`. Do not ask the user to paste cookies into chat.",
+		"wechat_hint":      "If the website shows WeChat or QR login, complete it in the browser first; the CLI only stores the resulting 't' cookie.",
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "auth login", Data: data})
+	}
+	fmt.Fprintln(stdout, "Open Dida365 login in your browser:")
+	fmt.Fprintln(stdout, "  https://dida365.com/signin")
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "After login, copy only the cookie named 't' and import it with:")
+	fmt.Fprintln(stdout, "  dida auth cookie set --token-stdin")
+	fmt.Fprintln(stdout)
+	fmt.Fprintln(stdout, "If WeChat/QR login appears, finish it in the browser first. The CLI stores only the resulting 't' cookie.")
+	return 0
+}
+
+func runAuthLogout(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help") {
+		fmt.Fprintln(stdout, "Usage: dida auth logout [--json]")
+		return 0
+	}
+	if err := auth.ClearCookieToken(); err != nil {
+		return failTyped("auth logout", "auth", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	data := map[string]any{"cookie_cleared": true, "path": auth.CookiePath()}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "auth logout", Data: data})
+	}
+	fmt.Fprintf(stdout, "Cookie auth cleared: %s\n", auth.CookiePath())
+	return 0
 }
 
 func runAuthCookie(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -188,7 +250,7 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	}
 	token, err := auth.LoadCookieToken()
 	if err != nil {
-		return fail("sync all", "missing cookie auth; run: dida auth cookie set --token-stdin", jsonOut, stdout, stderr)
+		return missingAuth("sync all", jsonOut, stdout, stderr)
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -196,29 +258,136 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	if err != nil {
 		return fail("sync all", err.Error(), jsonOut, stdout, stderr)
 	}
-	data := map[string]any{
-		"inboxId":       payload.InboxID,
-		"tasks":         payload.Tasks,
-		"projects":      payload.Projects,
-		"projectGroups": payload.ProjectGroups,
-		"tags":          payload.Tags,
-		"counts": map[string]int{
-			"tasks":         len(payload.Tasks),
-			"projects":      len(payload.Projects),
-			"projectGroups": len(payload.ProjectGroups),
-			"tags":          len(payload.Tags),
-		},
-	}
+	data := model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now())
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "sync all", Data: data})
 	}
-	counts := data["counts"].(map[string]int)
 	fmt.Fprintln(stdout, "Sync complete")
-	fmt.Fprintf(stdout, "Tasks: %d\n", counts["tasks"])
-	fmt.Fprintf(stdout, "Projects: %d\n", counts["projects"])
-	fmt.Fprintf(stdout, "Project groups: %d\n", counts["projectGroups"])
-	fmt.Fprintf(stdout, "Tags: %d\n", counts["tags"])
+	fmt.Fprintf(stdout, "Tasks: %d\n", data.Counts["tasks"])
+	fmt.Fprintf(stdout, "Projects: %d\n", data.Counts["projects"])
+	fmt.Fprintf(stdout, "Project groups: %d\n", data.Counts["projectGroups"])
+	fmt.Fprintf(stdout, "Tags: %d\n", data.Counts["tags"])
 	return 0
+}
+
+func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printProjectHelp(stdout)
+		return 0
+	}
+	if args[0] != "list" {
+		return fail("project", fmt.Sprintf("unknown project command %q", args[0]), jsonOut, stdout, stderr)
+	}
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("project list", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	data := map[string]any{
+		"projects": view.Projects,
+		"count":    len(view.Projects),
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "project list", Data: data})
+	}
+	printProjects(stdout, view.Projects)
+	return 0
+}
+
+func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+		printTaskHelp(stdout)
+		return 0
+	}
+	switch args[0] {
+	case "today":
+		return runTaskList(append([]string{"list", "--filter", "today"}, args[1:]...), jsonOut, stdout, stderr)
+	case "list":
+		return runTaskList(args, jsonOut, stdout, stderr)
+	default:
+		return fail("task", fmt.Sprintf("unknown task command %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	filter, limit, err := parseTaskListFlags(args[1:])
+	if err != nil {
+		return failTyped("task list", "validation", err.Error(), "run: dida task list --help", jsonOut, stdout, stderr)
+	}
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("task list", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+	}
+	now := time.Now()
+	var tasks []model.Task
+	switch filter {
+	case "all":
+		tasks = model.ActiveTasks(view.Tasks)
+	case "today":
+		tasks = model.TodayTasks(view.Tasks, now)
+	default:
+		return failTyped("task list", "validation", "unknown filter; supported filters: today, all", "run: dida task list --help", jsonOut, stdout, stderr)
+	}
+	total := len(tasks)
+	if limit > 0 && len(tasks) > limit {
+		tasks = tasks[:limit]
+	}
+	data := map[string]any{
+		"filter": filter,
+		"tasks":  tasks,
+		"count":  len(tasks),
+		"total":  total,
+	}
+	command := "task list"
+	if filter == "today" && len(args) > 0 && args[0] != "list" {
+		command = "task today"
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: command, Data: data})
+	}
+	printTasks(stdout, tasks, total)
+	return 0
+}
+
+func loadSyncView() (model.SyncView, error) {
+	token, err := auth.LoadCookieToken()
+	if err != nil {
+		return model.SyncView{}, fmt.Errorf("missing cookie auth; run: dida auth cookie set --token-stdin")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	payload, err := webapi.NewClient(token.Token).FullSync(ctx)
+	if err != nil {
+		return model.SyncView{}, err
+	}
+	return model.BuildSyncView(payload.InboxID, payload.Projects, payload.Tasks, payload.ProjectGroups, payload.Tags, time.Now()), nil
+}
+
+func parseTaskListFlags(args []string) (string, int, error) {
+	filter := "all"
+	limit := 50
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--filter":
+			if i+1 >= len(args) {
+				return "", 0, fmt.Errorf("--filter requires a value")
+			}
+			filter = args[i+1]
+			i++
+		case "--limit":
+			if i+1 >= len(args) {
+				return "", 0, fmt.Errorf("--limit requires a value")
+			}
+			var parsed int
+			if _, err := fmt.Sscanf(args[i+1], "%d", &parsed); err != nil {
+				return "", 0, fmt.Errorf("--limit must be an integer")
+			}
+			limit = parsed
+			i++
+		default:
+			return "", 0, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return filter, limit, nil
 }
 
 func runRaw(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -231,7 +400,7 @@ func runRaw(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int
 	}
 	token, err := auth.LoadCookieToken()
 	if err != nil {
-		return fail("raw get", "missing cookie auth; run: dida auth cookie set --token-stdin", jsonOut, stdout, stderr)
+		return missingAuth("raw get", jsonOut, stdout, stderr)
 	}
 	var data any
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -250,12 +419,50 @@ func notImplemented(command string, jsonOut bool, stdout io.Writer, stderr io.Wr
 }
 
 func fail(command string, message string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	return failTyped(command, "", message, "", jsonOut, stdout, stderr)
+}
+
+func missingAuth(command string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	return failTyped(command, "auth", "missing cookie auth", "run: dida auth login", jsonOut, stdout, stderr)
+}
+
+func failTyped(command string, errType string, message string, hint string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if jsonOut {
-		_ = writeJSON(stdout, envelope{OK: false, Command: command, Error: &cliError{Message: message}})
+		_ = writeJSON(stdout, envelope{OK: false, Command: command, Error: &cliError{Type: errType, Message: message, Hint: hint}})
 		return 1
 	}
 	fmt.Fprintf(stderr, "dida: %s\n", message)
+	if hint != "" {
+		fmt.Fprintf(stderr, "hint: %s\n", hint)
+	}
 	return 1
+}
+
+func verifyCookieAuth() map[string]any {
+	token, err := auth.LoadCookieToken()
+	if err != nil {
+		return map[string]any{"ok": false, "message": "missing cookie auth", "hint": "run: dida auth login"}
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	payload, err := webapi.NewClient(token.Token).FullSync(ctx)
+	if err != nil {
+		return map[string]any{"ok": false, "message": err.Error(), "hint": "refresh the Dida365 't' cookie with: dida auth login"}
+	}
+	return map[string]any{
+		"ok":       true,
+		"projects": len(payload.Projects),
+		"tasks":    len(payload.Tasks),
+	}
+}
+
+func hasFlag(args []string, flag string) bool {
+	for _, arg := range args {
+		if arg == flag {
+			return true
+		}
+	}
+	return false
 }
 
 func writeJSON(w io.Writer, value any) int {
@@ -295,6 +502,7 @@ Commands:
   report       Generate reports
   raw          Raw read-only API escape hatch
   version      Print version
+  +today       Shortcut for task today
 
 Global options:
   -j, --json   Emit machine-readable JSON
@@ -305,9 +513,23 @@ Global options:
 func printAuthHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
+  dida auth login [--json]
   dida auth status [--json]
+  dida auth status --verify [--json]
+  dida auth logout [--json]
   dida auth cookie set --token-stdin
   dida auth cookie set --token <token>
+`))
+}
+
+func printAuthLoginHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida auth login [--json]
+
+This prints a browser login guide. Complete Dida365/WeChat/QR login in the browser,
+then import only the resulting cookie named 't' with:
+  dida auth cookie set --token-stdin
 `))
 }
 
@@ -328,6 +550,22 @@ Usage:
 `))
 }
 
+func printProjectHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida project list [--json]
+`))
+}
+
+func printTaskHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida task today [--json] [--limit N]
+  dida task list [--json] [--filter today|all] [--limit N]
+  dida +today [--json] [--limit N]
+`))
+}
+
 func printRawHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
@@ -335,4 +573,38 @@ Usage:
 
 Only GET is supported for raw calls.
 `))
+}
+
+func printProjects(w io.Writer, projects []model.Project) {
+	if len(projects) == 0 {
+		fmt.Fprintln(w, "No projects found.")
+		return
+	}
+	fmt.Fprintf(w, "%-28s  %s\n", "ID", "NAME")
+	for _, project := range projects {
+		fmt.Fprintf(w, "%-28s  %s\n", project.ID, project.Name)
+	}
+}
+
+func printTasks(w io.Writer, tasks []model.Task, total int) {
+	if len(tasks) == 0 {
+		fmt.Fprintln(w, "No tasks found.")
+		return
+	}
+	fmt.Fprintf(w, "Showing %d of %d task(s)\n", len(tasks), total)
+	fmt.Fprintf(w, "%-28s  %-10s  %-8s  %-16s  %s\n", "ID", "PROJECT", "PRIORITY", "DUE", "TITLE")
+	for _, task := range tasks {
+		due := "-"
+		if task.DueDate != "" {
+			due = task.DueDate
+		}
+		project := task.ProjectName
+		if project == "" {
+			project = task.ProjectID
+		}
+		if len(project) > 10 {
+			project = project[:10]
+		}
+		fmt.Fprintf(w, "%-28s  %-10s  %-8d  %-16s  %s\n", task.ID, project, task.Priority, due, task.Title)
+	}
 }

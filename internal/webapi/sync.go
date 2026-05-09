@@ -6,15 +6,13 @@ import (
 )
 
 type SyncPayload struct {
-	InboxID       string         `json:"inboxId,omitempty"`
-	Tasks         []jsonObject   `json:"tasks,omitempty"`
-	Projects      []jsonObject   `json:"projects,omitempty"`
-	ProjectGroups []jsonObject   `json:"projectGroups,omitempty"`
-	Tags          []jsonObject   `json:"tags,omitempty"`
-	Raw           map[string]any `json:"-"`
+	InboxID       string           `json:"inboxId,omitempty"`
+	Tasks         []map[string]any `json:"tasks,omitempty"`
+	Projects      []map[string]any `json:"projects,omitempty"`
+	ProjectGroups []map[string]any `json:"projectGroups,omitempty"`
+	Tags          []map[string]any `json:"tags,omitempty"`
+	Raw           map[string]any   `json:"-"`
 }
-
-type jsonObject map[string]any
 
 func (c *Client) FullSync(ctx context.Context) (*SyncPayload, error) {
 	var raw map[string]any
@@ -30,12 +28,12 @@ func (c *Client) FullSync(ctx context.Context) (*SyncPayload, error) {
 	return payload, nil
 }
 
-func objectSlice(value any) []jsonObject {
+func objectSlice(value any) []map[string]any {
 	items, ok := value.([]any)
 	if !ok {
 		return nil
 	}
-	out := make([]jsonObject, 0, len(items))
+	out := make([]map[string]any, 0, len(items))
 	for _, item := range items {
 		if obj, ok := item.(map[string]any); ok {
 			out = append(out, obj)

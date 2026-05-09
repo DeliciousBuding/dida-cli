@@ -40,6 +40,37 @@ func TestSyncMissingAuthJSON(t *testing.T) {
 	}
 }
 
+func TestAuthLoginJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"auth", "login", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	if data["cookie_name"] != "t" {
+		t.Fatalf("cookie_name = %v, want t", data["cookie_name"])
+	}
+	if !strings.Contains(data["recommended_next"].(string), "--token-stdin") {
+		t.Fatalf("recommended_next missing stdin guidance: %v", data["recommended_next"])
+	}
+}
+
+func TestShortcutTodayPreservesFlags(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"+today", "--limit", "2", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(stdout.String(), `"command": "task list"`) {
+		t.Fatalf("stdout missing task list envelope: %s", stdout.String())
+	}
+}
+
 func TestUnknownCommandText(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"nope"}, "test-version", &stdout, &stderr)
