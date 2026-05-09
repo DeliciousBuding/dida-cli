@@ -29,8 +29,8 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Tag delete | `DELETE /tag?name=...` | `tag delete --yes` | Stable | Unit URL escaping test and live reversible smoke |
 | Filters | sync payload `filters` | `filter list` | Stable read | Unit sync-view test and live read |
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
-| Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke |
-| Attachment quota | `GET /api/v1/attachment/isUnderQuota`, `GET /api/v1/attachment/dailyLimit` | `attachment quota` | Stable read | Unit endpoint test and live read |
+| Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke; live empty-list read on 2026-05-10 |
+| Attachment quota | `GET /api/v1/attachment/isUnderQuota`, `GET /api/v1/attachment/dailyLimit` | `attachment quota` | Stable read | Unit endpoint test and live read on 2026-05-10 |
 | Daily reminder preferences | `GET /user/preferences/dailyReminder` | `reminder daily` | Stable read | Unit endpoint test and live read |
 | Sharing contacts | `GET /share/shareContacts`, `GET /project/share/recentProjectUsers` | `share contacts`, `share recent-users` | Stable read | Unit endpoint test and live read |
 | Project share state | `GET /project/{projectId}/shares`, `GET /project/{projectId}/share/check-quota`, `GET /project/{projectId}/collaboration/invite-url` | `share project shares/quota/invite-url` | Stable read | Unit endpoint test and live read |
@@ -57,7 +57,7 @@ These surfaces are visible in payloads or product behavior but do not yet have v
 - Column update/delete/order: exact `/batch/columnProject` endpoint is visible in the webapp bundle, but add/update/delete/order body shapes and rollback behavior are not verified.
 - Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API. Use `GET /column/project/{projectId}` instead.
 - Attachments/media upload: comment attachment paths and create payload shape are partially mapped in `docs/research/webapi-attachment-flow-notes.md`, but upload multipart fields, task-level attachment association, and cleanup behavior are not verified.
-- Task activity: the webapp bundle maps detail reads to legacy v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId`; 2026-05-10 live probing reached the route but returned `need_pro`, so response shape and pagination still need a Pro account or browser trace.
+- Task activity: the webapp bundle maps detail reads to legacy v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId`; earlier probing observed `need_pro`, while 2026-05-10 raw CLI probes returned HTTP 500 for no query, `skip=0`, and `skip=0&lastId=`, so response shape and pagination still need a Pro account or browser trace.
 - Comment attachments: comment CRUD is mapped, but multipart upload and attachment body flow are not exposed yet.
 - Collaboration/team permission writes: read-only share metadata is mapped, but invite creation/deletion and user permission changes are not exposed until multi-user behavior and rollback paths are mapped.
 - Filter writes: `/batch/filter` is visible in the webapp bundle, but create/update/delete payloads are not mapped.

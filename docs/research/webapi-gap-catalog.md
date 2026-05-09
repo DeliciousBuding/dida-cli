@@ -73,11 +73,14 @@ Known status:
   v2 base
 - v1 `/task/activity/{taskId}` reached the route but returned `need_pro` on the
   observed account
+- 2026-05-10 raw CLI probes against a real task returned HTTP 500 for the
+  no-query form, `skip=0`, and `skip=0&lastId=`
 
 Current implication:
 
 - task activity remains a read-gap because response fields and cursor semantics
   are not verified
+- the current CLI error envelope does not expose a stable upstream error body
 - this should not be promoted into a first-class command until a successful
   Pro-account read or browser-traced request shape is captured
 
@@ -90,6 +93,7 @@ Current implication:
 Known status:
 
 - quota reads are implemented
+- 2026-05-10 live `attachment quota` returned a valid quota envelope
 - comment attachment paths and create payload shape are partially mapped in
   [webapi-attachment-flow-notes.md](webapi-attachment-flow-notes.md)
 - upload multipart field names, response shape, task-level association, and
@@ -126,7 +130,8 @@ the same dead-end assumptions.
 - `GET /project/{id}/columns` returned 404
 - `GET /project/{id}` returned 405
 - `GET /api/v1/task/activity/{taskId}` returned 404 through the v2 base
-- `GET /task/activity/{taskId}` returned `need_pro` through the v1 base
+- `GET /task/activity/{taskId}` returned `need_pro` in earlier probing and HTTP
+  500 in 2026-05-10 raw CLI probes through the v1 base
 - `GET /project/all/trash/page?type=task` returned 500; use `from=<cursor>` for pagination
 - `POST /column` produced responses that looked successful but did not yet prove
   full semantic correctness of the write

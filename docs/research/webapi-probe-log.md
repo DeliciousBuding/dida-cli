@@ -17,18 +17,18 @@ payload dumps, or local browser exports here.
 | Project writes | `POST /batch/project` | working | Used by project CRUD with confirmation for delete. |
 | Folder writes | `POST /batch/projectGroup` | working | Used by folder CRUD. |
 | Tag writes | `POST /batch/tag`, `PUT /tag/rename`, `PUT /tag/merge`, `DELETE /tag` | working with quirks | Merge may leave the source tag object present. |
-| Comments | comment list/create/update/delete paths | working | Attachment fields are not exposed yet. |
+| Comments | comment list/create/update/delete paths | working | Attachment fields are not exposed yet. A 2026-05-10 live read against an existing task returned an empty comment list with the expected envelope. |
 | Completed history | `GET /project/all/completed` | working | Date-only inputs caused server errors; full datetime strings work. |
 | Closed history | `GET /project/{projectIds|all}/closed` | working | Uses full datetime strings and status filters. |
 | Trash pagination | `GET /project/all/trash/page?from={cursor}` | working | Live-smoked on 2026-05-10. First page returns `next=20`; `from=20` returns the next page and `next=40`. `type=task` returned HTTP 500 and should not be sent. |
 | Search | Web indexed search endpoint | working | Compact mode avoids large content blobs by default. |
-| Attachment quota | legacy v1 attachment quota endpoints | working | Upload flow still unmapped. |
+| Attachment quota | legacy v1 attachment quota endpoints | working | 2026-05-10 live read returned `underQuota=true` and a numeric daily limit. Upload flow still unmapped. |
 
 ## Failed Or Incomplete Probes
 
 | Surface | Endpoint | Observed result | Current interpretation | Next evidence needed |
 | --- | --- | --- | --- | --- |
-| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | HTTP 500 body reported `need_pro`; v2-style route returned 404 | Bundle evidence shows the legacy v1 client is correct. The observed account reaches the route but lacks the required Pro entitlement, so this is not a path-shape failure. | Pro account live read or browser trace that captures response fields and pagination semantics. |
+| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | Earlier probing observed `need_pro`; 2026-05-10 raw CLI probes against a real task returned HTTP 500 for no query, `skip=0`, and `skip=0&lastId=`; v2-style route returned 404 | Bundle evidence still points to the legacy v1 client, but current CLI probes do not expose a stable success or error body. This remains insufficient evidence for a command. | Pro account live read or browser trace that captures response fields, error body, and pagination semantics. |
 | Project data by id | `GET /project/{id}/data` | HTTP 404 on observed CN Web API | Not the active private endpoint for current web app. | Recheck only if bundle or network trace changes. |
 | Project columns by id | `GET /project/{id}/columns` | HTTP 404 | Replaced by `/column/project/{projectId}`. | None unless webapp changes. |
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |

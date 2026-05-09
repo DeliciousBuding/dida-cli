@@ -71,6 +71,10 @@ Recently run successfully:
 - Windows npm installer smoke against `v0.1.4`
 - WSL Linux npm installer smoke against `v0.1.4`
 - WSL Linux `install.sh` smoke against `v0.1.4`
+- Web API `auth status --verify`, `agent context`, `attachment quota`, and
+  empty `comment list` live reads on 2026-05-10
+- Web API task activity raw probes on 2026-05-10 confirmed the surface remains
+  blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
 - release checksum comparison against `v0.1.4/checksums.txt`
 
