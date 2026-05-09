@@ -84,7 +84,7 @@ func TestUnknownCommandText(t *testing.T) {
 
 func TestTaskCreateDryRunJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	code := Run([]string{"task", "create", "--project", "p1", "--title", "Smoke", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	code := Run([]string{"task", "create", "--project", "p1", "--title", "Smoke", "--tag", "agent", "--tags", "work,deep", "--item", "Step 1", "--column", "c1", "--all-day", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
 	}
@@ -101,6 +101,21 @@ func TestTaskCreateDryRunJSON(t *testing.T) {
 	}
 	if !strings.Contains(data["hint"].(string), "remove --dry-run") {
 		t.Fatalf("hint = %v", data["hint"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	add := requestPayload["add"].([]any)
+	task := add[0].(map[string]any)
+	if task["columnId"] != "c1" {
+		t.Fatalf("columnId = %v, want c1", task["columnId"])
+	}
+	if tags := task["tags"].([]any); len(tags) != 3 {
+		t.Fatalf("tags len = %d, want 3", len(tags))
+	}
+	if items := task["items"].([]any); len(items) != 1 {
+		t.Fatalf("items len = %d, want 1", len(items))
+	}
+	if task["allDay"] != true {
+		t.Fatalf("allDay = %v, want true", task["allDay"])
 	}
 }
 
@@ -170,5 +185,21 @@ func TestResourceDeleteRequiresYesJSON(t *testing.T) {
 		if errPayload["type"] != "confirmation_required" {
 			t.Fatalf("%v error.type = %v, want confirmation_required", args, errPayload["type"])
 		}
+	}
+}
+
+func TestFolderRejectsUnsupportedGroupFlag(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"folder", "create", "--name", "Folder", "--group", "g1", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
 	}
 }

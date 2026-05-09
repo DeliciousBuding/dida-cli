@@ -18,23 +18,33 @@ type Project struct {
 }
 
 type Task struct {
-	ID            string `json:"id"`
-	ProjectID     string `json:"projectId"`
-	ProjectName   string `json:"projectName,omitempty"`
-	Title         string `json:"title"`
-	Content       string `json:"content,omitempty"`
-	DueDate       string `json:"dueDate,omitempty"`
-	DueUnix       int64  `json:"dueUnix,omitempty"`
-	StartDate     string `json:"startDate,omitempty"`
-	StartUnix     int64  `json:"startUnix,omitempty"`
-	CompletedAt   string `json:"completedTime,omitempty"`
-	CompletedUnix int64  `json:"completedUnix,omitempty"`
-	Priority      int    `json:"priority"`
-	Status        int    `json:"status"`
-	Deleted       int    `json:"deleted"`
-	ColumnID      string `json:"columnId,omitempty"`
-	Overdue       bool   `json:"overdue,omitempty"`
-	Raw           any    `json:"raw,omitempty"`
+	ID            string           `json:"id"`
+	ProjectID     string           `json:"projectId"`
+	ProjectName   string           `json:"projectName,omitempty"`
+	ParentID      string           `json:"parentId,omitempty"`
+	Title         string           `json:"title"`
+	Content       string           `json:"content,omitempty"`
+	Desc          string           `json:"desc,omitempty"`
+	AllDay        bool             `json:"allDay,omitempty"`
+	DueDate       string           `json:"dueDate,omitempty"`
+	DueUnix       int64            `json:"dueUnix,omitempty"`
+	StartDate     string           `json:"startDate,omitempty"`
+	StartUnix     int64            `json:"startUnix,omitempty"`
+	CompletedAt   string           `json:"completedTime,omitempty"`
+	CompletedUnix int64            `json:"completedUnix,omitempty"`
+	Priority      int              `json:"priority"`
+	Status        int              `json:"status"`
+	Deleted       int              `json:"deleted"`
+	ColumnID      string           `json:"columnId,omitempty"`
+	Tags          []string         `json:"tags,omitempty"`
+	Items         []map[string]any `json:"items,omitempty"`
+	Reminders     []any            `json:"reminders,omitempty"`
+	Repeat        string           `json:"repeat,omitempty"`
+	RepeatFrom    string           `json:"repeatFrom,omitempty"`
+	RepeatFlag    string           `json:"repeatFlag,omitempty"`
+	IsFloating    bool             `json:"isFloating,omitempty"`
+	Overdue       bool             `json:"overdue,omitempty"`
+	Raw           any              `json:"raw,omitempty"`
 }
 
 type Column struct {
@@ -119,8 +129,11 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 			ID:          id,
 			ProjectID:   projectID,
 			ProjectName: projectNames[projectID],
+			ParentID:    str(item["parentId"]),
 			Title:       title,
 			Content:     str(item["content"]),
+			Desc:        str(item["desc"]),
+			AllDay:      boolish(firstPresent(item, "allDay", "isAllDay")),
 			DueDate:     due,
 			StartDate:   start,
 			CompletedAt: completed,
@@ -128,6 +141,13 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 			Status:      intish(item["status"]),
 			Deleted:     intish(item["deleted"]),
 			ColumnID:    str(item["columnId"]),
+			Tags:        stringSlice(item["tags"]),
+			Items:       objectSlice(item["items"]),
+			Reminders:   anySlice(item["reminders"]),
+			Repeat:      str(item["repeat"]),
+			RepeatFrom:  str(item["repeatFrom"]),
+			RepeatFlag:  str(item["repeatFlag"]),
+			IsFloating:  boolish(firstPresent(item, "isFloating")),
 			Raw:         item,
 		}
 		if dueOK {
@@ -337,4 +357,49 @@ func boolish(value any) bool {
 	default:
 		return false
 	}
+}
+
+func stringSlice(value any) []string {
+	items, ok := value.([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		if value := strings.TrimSpace(str(item)); value != "" {
+			out = append(out, value)
+		}
+	}
+	return out
+}
+
+func objectSlice(value any) []map[string]any {
+	items, ok := value.([]any)
+	if !ok {
+		return nil
+	}
+	out := make([]map[string]any, 0, len(items))
+	for _, item := range items {
+		if obj, ok := item.(map[string]any); ok {
+			out = append(out, obj)
+		}
+	}
+	return out
+}
+
+func anySlice(value any) []any {
+	items, ok := value.([]any)
+	if !ok {
+		return nil
+	}
+	return items
+}
+
+func firstPresent(item map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if value, ok := item[key]; ok && value != nil {
+			return value
+		}
+	}
+	return nil
 }

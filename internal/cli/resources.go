@@ -513,8 +513,6 @@ func parseNamedCreateFlags(args []string) (resourceOptions, error) {
 			opts.DryRun = true
 		case "--yes":
 			opts.Yes = true
-		case "--group":
-			i++
 		default:
 			if opts.Name == "" {
 				opts.Name = args[i]
@@ -547,8 +545,6 @@ func parseNamedUpdateFlags(args []string, command string) (resourceOptions, erro
 			opts.DryRun = true
 		case "--yes":
 			opts.Yes = true
-		case "--group":
-			i++
 		default:
 			return opts, fmt.Errorf("unknown flag %q", args[i])
 		}

@@ -3,8 +3,10 @@ package webapi
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -54,5 +56,48 @@ func TestTaskMutationsUseBatchTaskEndpoint(t *testing.T) {
 	}
 	if _, ok := requests[3]["delete"]; !ok {
 		t.Fatalf("delete payload missing delete: %#v", requests[3])
+	}
+}
+
+func TestTaskUpdateCanSendPriorityZero(t *testing.T) {
+	var rawBody string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("read request: %v", err)
+		}
+		rawBody = string(data)
+		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	priority := 0
+	if _, err := client.UpdateTask(context.Background(), TaskMutation{ID: "t1", ProjectID: "p1", Priority: &priority}); err != nil {
+		t.Fatalf("UpdateTask() error = %v", err)
+	}
+	if !strings.Contains(rawBody, `"priority":0`) {
+		t.Fatalf("request body missing priority zero: %s", rawBody)
+	}
+}
+
+func TestProjectTasksUsesProjectEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "GET /project/p1/tasks" {
+			t.Fatalf("request = %s, want GET /project/p1/tasks", got)
+		}
+		_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "t1", "projectId": "p1", "title": "Task"}})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	tasks, err := client.ProjectTasks(context.Background(), "p1")
+	if err != nil {
+		t.Fatalf("ProjectTasks() error = %v", err)
+	}
+	if len(tasks) != 1 {
+		t.Fatalf("tasks len = %d, want 1", len(tasks))
 	}
 }

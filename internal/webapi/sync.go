@@ -12,11 +12,17 @@ type SyncPayload struct {
 	InboxID       string           `json:"inboxId,omitempty"`
 	CheckPoint    int64            `json:"checkPoint,omitempty"`
 	Tasks         []map[string]any `json:"tasks,omitempty"`
+	TaskAdds      []map[string]any `json:"taskAdds,omitempty"`
+	TaskUpdates   []map[string]any `json:"taskUpdates,omitempty"`
+	TaskDeletes   []map[string]any `json:"taskDeletes,omitempty"`
 	Projects      []map[string]any `json:"projects,omitempty"`
 	ProjectGroups []map[string]any `json:"projectGroups,omitempty"`
 	Tags          []map[string]any `json:"tags,omitempty"`
 	Checks        []map[string]any `json:"checks,omitempty"`
 	Filters       []map[string]any `json:"filters,omitempty"`
+	SyncOrder     any              `json:"syncOrderBean,omitempty"`
+	SyncTaskOrder any              `json:"syncTaskOrderBean,omitempty"`
+	Reminders     any              `json:"reminders,omitempty"`
 	Raw           map[string]any   `json:"-"`
 }
 
@@ -34,14 +40,22 @@ func (c *Client) SyncSince(ctx context.Context, checkpoint int64) (*SyncPayload,
 	payload.CheckPoint = int64ish(raw["checkPoint"])
 	payload.Tasks = firstObjectSlice(raw, "tasks")
 	if len(payload.Tasks) == 0 {
-		payload.Tasks = append(payload.Tasks, nestedObjectSlice(raw, "syncTaskBean", "add")...)
-		payload.Tasks = append(payload.Tasks, nestedObjectSlice(raw, "syncTaskBean", "update")...)
+		payload.TaskAdds = nestedObjectSlice(raw, "syncTaskBean", "add")
+		payload.TaskUpdates = nestedObjectSlice(raw, "syncTaskBean", "update")
+		payload.TaskDeletes = nestedObjectSlice(raw, "syncTaskBean", "delete")
+		payload.Tasks = append(payload.Tasks, payload.TaskAdds...)
+		payload.Tasks = append(payload.Tasks, payload.TaskUpdates...)
+	} else {
+		payload.TaskAdds = payload.Tasks
 	}
 	payload.Projects = firstObjectSlice(raw, "projects", "projectProfiles")
 	payload.ProjectGroups = objectSlice(raw["projectGroups"])
 	payload.Tags = objectSlice(raw["tags"])
 	payload.Checks = objectSlice(raw["checks"])
 	payload.Filters = objectSlice(raw["filters"])
+	payload.SyncOrder = raw["syncOrderBean"]
+	payload.SyncTaskOrder = raw["syncTaskOrderBean"]
+	payload.Reminders = firstPresent(raw, "reminders", "reminderChanges", "syncReminderBean")
 	return payload, nil
 }
 
@@ -90,6 +104,15 @@ func nestedObjectSlice(item map[string]any, parent string, child string) []map[s
 		return nil
 	}
 	return objectSlice(parentObj[child])
+}
+
+func firstPresent(item map[string]any, keys ...string) any {
+	for _, key := range keys {
+		if value, ok := item[key]; ok && value != nil {
+			return value
+		}
+	}
+	return nil
 }
 
 func objectSlice(value any) []map[string]any {

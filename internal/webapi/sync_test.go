@@ -28,7 +28,13 @@ func TestFullSyncSupportsBatchCheckShape(t *testing.T) {
 				"update": []map[string]any{
 					{"id": "t2", "title": "Updated", "projectId": "p1"},
 				},
+				"delete": []map[string]any{
+					{"taskId": "t3", "projectId": "p1"},
+				},
 			},
+			"syncOrderBean":     map[string]any{"update": []any{"order"}},
+			"syncTaskOrderBean": map[string]any{"update": []any{"taskOrder"}},
+			"syncReminderBean":  map[string]any{"delete": []any{"reminder"}},
 		})
 	}))
 	defer server.Close()
@@ -44,6 +50,12 @@ func TestFullSyncSupportsBatchCheckShape(t *testing.T) {
 	}
 	if len(payload.Tasks) != 2 {
 		t.Fatalf("tasks len = %d, want 2", len(payload.Tasks))
+	}
+	if len(payload.TaskAdds) != 1 || len(payload.TaskUpdates) != 1 || len(payload.TaskDeletes) != 1 {
+		t.Fatalf("delta counts add/update/delete = %d/%d/%d, want 1/1/1", len(payload.TaskAdds), len(payload.TaskUpdates), len(payload.TaskDeletes))
+	}
+	if payload.SyncOrder == nil || payload.SyncTaskOrder == nil || payload.Reminders == nil {
+		t.Fatalf("expected order and reminder deltas to be preserved")
 	}
 }
 

@@ -5,18 +5,36 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"net/url"
 	"time"
 )
 
 type TaskMutation struct {
-	ID        string `json:"id,omitempty"`
-	ProjectID string `json:"projectId"`
-	Title     string `json:"title,omitempty"`
-	Content   string `json:"content,omitempty"`
-	DueDate   string `json:"dueDate,omitempty"`
-	Priority  int    `json:"priority,omitempty"`
-	Status    int    `json:"status,omitempty"`
-	TimeZone  string `json:"timeZone,omitempty"`
+	ID         string        `json:"id,omitempty"`
+	ProjectID  string        `json:"projectId"`
+	Title      string        `json:"title,omitempty"`
+	Content    string        `json:"content,omitempty"`
+	Desc       string        `json:"desc,omitempty"`
+	AllDay     *bool         `json:"allDay,omitempty"`
+	StartDate  string        `json:"startDate,omitempty"`
+	DueDate    string        `json:"dueDate,omitempty"`
+	TimeZone   string        `json:"timeZone,omitempty"`
+	Reminders  []string      `json:"reminders,omitempty"`
+	Repeat     string        `json:"repeat,omitempty"`
+	RepeatFrom string        `json:"repeatFrom,omitempty"`
+	RepeatFlag string        `json:"repeatFlag,omitempty"`
+	Priority   *int          `json:"priority,omitempty"`
+	Status     *int          `json:"status,omitempty"`
+	ColumnID   string        `json:"columnId,omitempty"`
+	Tags       []string      `json:"tags,omitempty"`
+	Items      []SubTaskItem `json:"items,omitempty"`
+	IsFloating *bool         `json:"isFloating,omitempty"`
+}
+
+type SubTaskItem struct {
+	ID     string `json:"id,omitempty"`
+	Title  string `json:"title"`
+	Status int    `json:"status,omitempty"`
 }
 
 func NewTaskID() string {
@@ -42,7 +60,8 @@ func (c *Client) UpdateTask(ctx context.Context, task TaskMutation) (map[string]
 }
 
 func (c *Client) CompleteTask(ctx context.Context, taskID string, projectID string) (map[string]any, error) {
-	return c.batchTask(ctx, map[string]any{"update": []TaskMutation{{ID: taskID, ProjectID: projectID, Status: 2}}})
+	status := 2
+	return c.batchTask(ctx, map[string]any{"update": []TaskMutation{{ID: taskID, ProjectID: projectID, Status: &status}}})
 }
 
 func (c *Client) DeleteTask(ctx context.Context, taskID string, projectID string) (map[string]any, error) {
@@ -53,6 +72,15 @@ func (c *Client) DeleteTask(ctx context.Context, taskID string, projectID string
 func (c *Client) batchTask(ctx context.Context, payload map[string]any) (map[string]any, error) {
 	var out map[string]any
 	if err := c.Do(ctx, http.MethodPost, "/batch/task", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) ProjectTasks(ctx context.Context, projectID string) ([]map[string]any, error) {
+	var out []map[string]any
+	path := "/project/" + url.PathEscape(projectID) + "/tasks"
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil

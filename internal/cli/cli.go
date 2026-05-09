@@ -57,6 +57,8 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 		return runSettings(args[1:], jsonOut, stdout, stderr)
 	case "completed":
 		return runCompleted(args[1:], jsonOut, stdout, stderr)
+	case "quadrant":
+		return runQuadrant(args[1:], jsonOut, stdout, stderr)
 	case "raw":
 		return runRaw(args[1:], jsonOut, stdout, stderr)
 	case "project":
@@ -69,8 +71,6 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 		return runColumn(args[1:], jsonOut, stdout, stderr)
 	case "task":
 		return runTask(args[1:], jsonOut, stdout, stderr)
-	case "report":
-		return notImplemented(command, jsonOut, stdout, stderr)
 	default:
 		return fail(command, fmt.Sprintf("unknown command %q", command), jsonOut, stdout, stderr)
 	}
@@ -361,8 +361,16 @@ func runSyncCheckpoint(checkpoint int64, jsonOut bool, stdout io.Writer, stderr 
 		"checks":              len(payload.Checks),
 		"filters":             len(payload.Filters),
 	}
+	deltas := map[string]any{
+		"taskAdds":      payload.TaskAdds,
+		"taskUpdates":   payload.TaskUpdates,
+		"taskDeletes":   payload.TaskDeletes,
+		"syncOrder":     payload.SyncOrder,
+		"syncTaskOrder": payload.SyncTaskOrder,
+		"reminders":     payload.Reminders,
+	}
 	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "sync checkpoint", Meta: meta, Data: data})
+		return writeJSON(stdout, envelope{OK: true, Command: "sync checkpoint", Meta: meta, Data: map[string]any{"view": data, "deltas": deltas}})
 	}
 	fmt.Fprintf(stdout, "Checkpoint: %d\n", payload.CheckPoint)
 	fmt.Fprintf(stdout, "Tasks: %d\n", data.Counts["tasks"])
@@ -500,14 +508,26 @@ func runProjectList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 }
 
 func runProjectTasks(projectID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	view, err := loadSyncView()
+	token, err := auth.LoadCookieToken()
 	if err != nil {
-		return failTyped("project tasks", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+		return missingAuth("project tasks", jsonOut, stdout, stderr)
 	}
-	tasks := model.ProjectTasks(view.Tasks, projectID)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	rawTasks, err := webapi.NewClient(token.Token).ProjectTasks(ctx, projectID)
+	if err != nil {
+		return failTyped("project tasks", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	projectNames := map[string]string{}
+	if view, err := loadSyncView(); err == nil {
+		for _, project := range view.Projects {
+			projectNames[project.ID] = project.Name
+		}
+	}
+	tasks := model.NormalizeTasks(rawTasks, projectNames, time.Now())
 	tasks = model.ActiveTasks(tasks)
 	data := map[string]any{"projectId": projectID, "tasks": stripTaskRaw(tasks)}
-	meta := map[string]any{"count": len(tasks)}
+	meta := map[string]any{"count": len(tasks), "source": "project_tasks_endpoint"}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "project tasks", Meta: meta, Data: data})
 	}
@@ -680,13 +700,24 @@ func runTaskCreate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 		return failTyped("task create", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
 	task := webapi.TaskMutation{
-		ID:        opts.ID,
-		ProjectID: opts.ProjectID,
-		Title:     opts.Title,
-		Content:   opts.Content,
-		DueDate:   opts.DueDate,
-		Priority:  opts.Priority,
-		TimeZone:  "Asia/Shanghai",
+		ID:         opts.ID,
+		ProjectID:  opts.ProjectID,
+		Title:      opts.Title,
+		Content:    opts.Content,
+		Desc:       opts.Desc,
+		AllDay:     opts.AllDay,
+		StartDate:  opts.StartDate,
+		DueDate:    opts.DueDate,
+		Priority:   priorityPointer(opts.Priority),
+		TimeZone:   opts.TimeZone,
+		Reminders:  opts.Reminders,
+		Repeat:     opts.Repeat,
+		RepeatFrom: opts.RepeatFrom,
+		RepeatFlag: opts.RepeatFlag,
+		ColumnID:   opts.ColumnID,
+		Tags:       opts.Tags,
+		Items:      opts.Items,
+		IsFloating: opts.IsFloating,
 	}
 	if task.ID == "" {
 		task.ID = webapi.NewTaskID()
@@ -715,13 +746,24 @@ func runTaskUpdate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 		return failTyped("task update", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
 	task := webapi.TaskMutation{
-		ID:        opts.TaskID,
-		ProjectID: opts.ProjectID,
-		Title:     opts.Title,
-		Content:   opts.Content,
-		DueDate:   opts.DueDate,
-		Priority:  opts.Priority,
-		TimeZone:  "Asia/Shanghai",
+		ID:         opts.TaskID,
+		ProjectID:  opts.ProjectID,
+		Title:      opts.Title,
+		Content:    opts.Content,
+		Desc:       opts.Desc,
+		AllDay:     opts.AllDay,
+		StartDate:  opts.StartDate,
+		DueDate:    opts.DueDate,
+		Priority:   priorityPointer(opts.Priority),
+		TimeZone:   opts.TimeZone,
+		Reminders:  opts.Reminders,
+		Repeat:     opts.Repeat,
+		RepeatFrom: opts.RepeatFrom,
+		RepeatFlag: opts.RepeatFlag,
+		ColumnID:   opts.ColumnID,
+		Tags:       opts.Tags,
+		Items:      opts.Items,
+		IsFloating: opts.IsFloating,
 	}
 	payload := map[string]any{"update": []webapi.TaskMutation{task}}
 	if opts.DryRun {
@@ -746,7 +788,8 @@ func runTaskComplete(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if err != nil {
 		return failTyped("task complete", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
-	payload := map[string]any{"update": []webapi.TaskMutation{{ID: opts.TaskID, ProjectID: opts.ProjectID, Status: 2}}}
+	status := 2
+	payload := map[string]any{"update": []webapi.TaskMutation{{ID: opts.TaskID, ProjectID: opts.ProjectID, Status: &status}}}
 	if opts.DryRun {
 		return writeMutationPreview("task complete", payload, opts.Yes, jsonOut, stdout, stderr)
 	}
@@ -894,25 +937,49 @@ func parseUpcomingFlags(args []string) (int, int, error) {
 }
 
 type taskCreateOptions struct {
-	ID        string
-	ProjectID string
-	Title     string
-	Content   string
-	DueDate   string
-	Priority  int
-	DryRun    bool
-	Yes       bool
+	ID         string
+	ProjectID  string
+	Title      string
+	Content    string
+	Desc       string
+	AllDay     *bool
+	StartDate  string
+	DueDate    string
+	TimeZone   string
+	Reminders  []string
+	Repeat     string
+	RepeatFrom string
+	RepeatFlag string
+	Priority   int
+	ColumnID   string
+	Tags       []string
+	Items      []webapi.SubTaskItem
+	IsFloating *bool
+	DryRun     bool
+	Yes        bool
 }
 
 type taskUpdateOptions struct {
-	TaskID    string
-	ProjectID string
-	Title     string
-	Content   string
-	DueDate   string
-	Priority  int
-	DryRun    bool
-	Yes       bool
+	TaskID     string
+	ProjectID  string
+	Title      string
+	Content    string
+	Desc       string
+	AllDay     *bool
+	StartDate  string
+	DueDate    string
+	TimeZone   string
+	Reminders  []string
+	Repeat     string
+	RepeatFrom string
+	RepeatFlag string
+	Priority   int
+	ColumnID   string
+	Tags       []string
+	Items      []webapi.SubTaskItem
+	IsFloating *bool
+	DryRun     bool
+	Yes        bool
 }
 
 type taskIDProjectOptions struct {
@@ -950,11 +1017,59 @@ func parseTaskCreateFlags(args []string) (taskCreateOptions, error) {
 			}
 			opts.Content = args[i+1]
 			i++
+		case "--desc":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--desc requires a value")
+			}
+			opts.Desc = args[i+1]
+			i++
+		case "--all-day":
+			value := true
+			opts.AllDay = &value
+		case "--not-all-day":
+			value := false
+			opts.AllDay = &value
+		case "--start":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--start requires a date")
+			}
+			opts.StartDate = args[i+1]
+			i++
 		case "--due", "-d":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a date", args[i])
 			}
 			opts.DueDate = args[i+1]
+			i++
+		case "--timezone", "--time-zone":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("%s requires a timezone", args[i])
+			}
+			opts.TimeZone = args[i+1]
+			i++
+		case "--reminder":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--reminder requires a value")
+			}
+			opts.Reminders = append(opts.Reminders, args[i+1])
+			i++
+		case "--repeat":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--repeat requires a value")
+			}
+			opts.Repeat = args[i+1]
+			i++
+		case "--repeat-from":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--repeat-from requires a value")
+			}
+			opts.RepeatFrom = args[i+1]
+			i++
+		case "--repeat-flag":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--repeat-flag requires a value")
+			}
+			opts.RepeatFlag = args[i+1]
 			i++
 		case "--priority":
 			if i+1 >= len(args) {
@@ -966,6 +1081,36 @@ func parseTaskCreateFlags(args []string) (taskCreateOptions, error) {
 			}
 			opts.Priority = priority
 			i++
+		case "--column":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--column requires a column id")
+			}
+			opts.ColumnID = args[i+1]
+			i++
+		case "--tag":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--tag requires a tag name")
+			}
+			opts.Tags = append(opts.Tags, args[i+1])
+			i++
+		case "--tags":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--tags requires comma-separated tag names")
+			}
+			opts.Tags = append(opts.Tags, splitCSV(args[i+1])...)
+			i++
+		case "--item":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--item requires a checklist item title")
+			}
+			opts.Items = append(opts.Items, webapi.SubTaskItem{Title: args[i+1]})
+			i++
+		case "--floating":
+			value := true
+			opts.IsFloating = &value
+		case "--not-floating":
+			value := false
+			opts.IsFloating = &value
 		case "--dry-run":
 			opts.DryRun = true
 		case "--yes":
@@ -983,9 +1128,6 @@ func parseTaskCreateFlags(args []string) (taskCreateOptions, error) {
 	}
 	if strings.TrimSpace(opts.Title) == "" {
 		return opts, fmt.Errorf("missing title; use --title <title>")
-	}
-	if opts.Priority < 0 {
-		opts.Priority = 0
 	}
 	return opts, nil
 }
@@ -1016,11 +1158,59 @@ func parseTaskUpdateFlags(args []string) (taskUpdateOptions, error) {
 			}
 			opts.Content = args[i+1]
 			i++
+		case "--desc":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--desc requires a value")
+			}
+			opts.Desc = args[i+1]
+			i++
+		case "--all-day":
+			value := true
+			opts.AllDay = &value
+		case "--not-all-day":
+			value := false
+			opts.AllDay = &value
+		case "--start":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--start requires a date")
+			}
+			opts.StartDate = args[i+1]
+			i++
 		case "--due", "-d":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a date", args[i])
 			}
 			opts.DueDate = args[i+1]
+			i++
+		case "--timezone", "--time-zone":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("%s requires a timezone", args[i])
+			}
+			opts.TimeZone = args[i+1]
+			i++
+		case "--reminder":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--reminder requires a value")
+			}
+			opts.Reminders = append(opts.Reminders, args[i+1])
+			i++
+		case "--repeat":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--repeat requires a value")
+			}
+			opts.Repeat = args[i+1]
+			i++
+		case "--repeat-from":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--repeat-from requires a value")
+			}
+			opts.RepeatFrom = args[i+1]
+			i++
+		case "--repeat-flag":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--repeat-flag requires a value")
+			}
+			opts.RepeatFlag = args[i+1]
 			i++
 		case "--priority":
 			if i+1 >= len(args) {
@@ -1032,6 +1222,36 @@ func parseTaskUpdateFlags(args []string) (taskUpdateOptions, error) {
 			}
 			opts.Priority = priority
 			i++
+		case "--column":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--column requires a column id")
+			}
+			opts.ColumnID = args[i+1]
+			i++
+		case "--tag":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--tag requires a tag name")
+			}
+			opts.Tags = append(opts.Tags, args[i+1])
+			i++
+		case "--tags":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--tags requires comma-separated tag names")
+			}
+			opts.Tags = append(opts.Tags, splitCSV(args[i+1])...)
+			i++
+		case "--item":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("--item requires a checklist item title")
+			}
+			opts.Items = append(opts.Items, webapi.SubTaskItem{Title: args[i+1]})
+			i++
+		case "--floating":
+			value := true
+			opts.IsFloating = &value
+		case "--not-floating":
+			value := false
+			opts.IsFloating = &value
 		case "--dry-run":
 			opts.DryRun = true
 		case "--yes":
@@ -1043,7 +1263,7 @@ func parseTaskUpdateFlags(args []string) (taskUpdateOptions, error) {
 	if strings.TrimSpace(opts.ProjectID) == "" {
 		return opts, fmt.Errorf("missing project id; use --project <project-id>")
 	}
-	if opts.Title == "" && opts.Content == "" && opts.DueDate == "" && opts.Priority < 0 {
+	if opts.Title == "" && opts.Content == "" && opts.Desc == "" && opts.StartDate == "" && opts.DueDate == "" && opts.TimeZone == "" && len(opts.Reminders) == 0 && opts.Repeat == "" && opts.RepeatFrom == "" && opts.RepeatFlag == "" && opts.Priority < 0 && opts.ColumnID == "" && len(opts.Tags) == 0 && len(opts.Items) == 0 && opts.AllDay == nil && opts.IsFloating == nil {
 		return opts, fmt.Errorf("no updates provided")
 	}
 	return opts, nil
@@ -1092,6 +1312,24 @@ func parsePriority(value string) (int, error) {
 	default:
 		return 0, fmt.Errorf("--priority must be one of 0, 1, 3, 5")
 	}
+}
+
+func priorityPointer(value int) *int {
+	if value < 0 {
+		return nil
+	}
+	return &value
+}
+
+func splitCSV(value string) []string {
+	parts := strings.Split(value, ",")
+	out := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if item := strings.TrimSpace(part); item != "" {
+			out = append(out, item)
+		}
+	}
+	return out
 }
 
 func writeMutationPreview(command string, payload any, yes bool, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -1287,16 +1525,16 @@ Usage:
 
 Commands:
   doctor       Check local config and auth status
-  auth         Manage OAuth and cookie auth
+  auth         Manage local cookie auth
   sync         Sync tasks/projects/tags
   settings     Read user preferences
   completed    Read completed task history
+  quadrant     View active tasks by Eisenhower quadrant
   project      Project discovery and CRUD
   folder       Project folder CRUD
   tag          Tag discovery and CRUD
   column       Kanban column discovery and experimental create
   task         Task reads and writes
-  report       Generate reports
   raw          Raw read-only API escape hatch
   version      Print version
   +today       Shortcut for task today
@@ -1388,13 +1626,31 @@ Usage:
   dida task search --query <text> [--limit N] [--json]
   dida task upcoming [--days N] [--limit N] [--json]
   dida task get <task-id> [--json]
-  dida task create --project <project-id> --title <title> [--dry-run] [--json]
-  dida task update <task-id> --project <project-id> [--title ...] [--dry-run] [--json]
+  dida task create --project <project-id> --title <title> [task fields...] [--dry-run] [--json]
+  dida task update <task-id> --project <project-id> [task fields...] [--dry-run] [--json]
   dida task complete <task-id> --project <project-id> [--dry-run] [--json]
   dida task delete <task-id> --project <project-id> --yes [--dry-run] [--json]
   dida task move <task-id> --from <project-id> --to <project-id> [--dry-run] [--json]
   dida task parent <task-id> --parent <task-id> --project <project-id> [--dry-run] [--json]
   dida +today [--json] [--limit N]
+
+Task fields:
+  --content <text>        Task content
+  --desc <markdown>       Rich description field
+  --start <time>          Start date/time
+  --due <time>            Due date/time
+  --timezone <zone>       IANA timezone, e.g. Asia/Shanghai
+  --priority 0|1|3|5      None, low, medium, high
+  --tag <name>            Add a tag; repeatable
+  --tags a,b              Add comma-separated tags
+  --item <title>          Add a checklist item; repeatable
+  --column <id>           Kanban column id
+  --reminder <value>      Reminder value; repeatable
+  --repeat <rule>         Repeat rule from Web API
+  --repeat-from <value>   Repeat base
+  --repeat-flag <value>   Repeat flag
+  --all-day | --not-all-day
+  --floating | --not-floating
 `))
 }
 
