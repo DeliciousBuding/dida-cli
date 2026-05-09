@@ -104,9 +104,10 @@ Known status:
 
 Known status:
 
-- the endpoint exists in the bundle
-- naive probes returned HTTP 500
-- the `type` parameter values and paging semantics are still unclear
+- live-smoked on 2026-05-10
+- `GET /project/all/trash/page` returns the first page and a `next` cursor
+- `GET /project/all/trash/page?from=20` returns the next page and a later `next` cursor
+- `type=task` returned HTTP 500 and should not be sent
 
 ## Confirmed Probe Failures Or Uncertain Surfaces
 
@@ -117,7 +118,7 @@ the same dead-end assumptions.
 - `GET /project/{id}/columns` returned 404
 - `GET /project/{id}` returned 405
 - `GET /api/v1/task/activity/{taskId}` returned 500 under direct probing
-- `GET /project/all/trash/page?...` returned 500 under direct probing
+- `GET /project/all/trash/page?type=task` returned 500; use `from=<cursor>` for pagination
 - `POST /column` produced responses that looked successful but did not yet prove
   full semantic correctness of the write
 - `PUT /tag/merge` can return success while the source tag still remains
@@ -128,11 +129,10 @@ If the goal is to keep deepening the Web API channel, the most valuable next
 targets are:
 
 1. task activity detail
-2. trash pagination
-3. attachments and comment attachments
-4. columnProject update/delete/order
-5. filter writes
-6. collaboration writes
+2. attachments and comment attachments
+3. columnProject update/delete/order
+4. filter writes
+5. collaboration writes
 
 ## Documentation Direction
 

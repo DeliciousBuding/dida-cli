@@ -25,6 +25,7 @@ Commands:
   settings     Read user preferences
   completed    Read completed task history
   closed       Read closed-history items from the Web API
+  trash        Read deleted tasks from trash
   attachment   Read attachment quota and upload limits
   reminder     Read reminder preferences
   share        Read sharing and collaboration metadata
@@ -172,6 +173,16 @@ func printClosedHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida closed list [--project <project-id>] [--status N] [--from YYYY-MM-DD] [--to YYYY-MM-DD] [--completed-user <user-id>] [--limit N] [--json]
+`))
+}
+
+func printTrashHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida trash list [--cursor N] [--limit N] [--compact|--full] [--json]
+
+The server returns a next cursor. Pass it back with --cursor to read the next page.
+Default output is compact for agent use.
 `))
 }
 

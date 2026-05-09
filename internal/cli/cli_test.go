@@ -490,6 +490,48 @@ func TestParseClosedListFlags(t *testing.T) {
 	}
 }
 
+func TestParseTrashListFlags(t *testing.T) {
+	opts, err := parseTrashListFlags([]string{"--cursor", "20", "--limit", "5", "--full"})
+	if err != nil {
+		t.Fatalf("parseTrashListFlags() error = %v", err)
+	}
+	if opts.Cursor != 20 || opts.Limit != 5 || opts.Compact {
+		t.Fatalf("opts = %#v", opts)
+	}
+	_, err = parseTrashListFlags([]string{"--cursor", "-1"})
+	if err == nil {
+		t.Fatalf("parseTrashListFlags() error = nil, want cursor error")
+	}
+}
+
+func TestTrashTaskOutputCompactOmitsLargeFields(t *testing.T) {
+	out := trashTaskOutput([]map[string]any{{
+		"id":          "t1",
+		"projectId":   "p1",
+		"title":       "Deleted",
+		"kind":        "TEXT",
+		"status":      float64(0),
+		"priority":    float64(1),
+		"deletedTime": float64(1778321394641),
+		"content":     strings.Repeat("large", 20),
+		"desc":        strings.Repeat("markdown", 20),
+		"items":       []any{map[string]any{"title": "step"}},
+	}}, true)
+	encoded, err := json.Marshal(out)
+	if err != nil {
+		t.Fatalf("marshal compact trash: %v", err)
+	}
+	text := string(encoded)
+	for _, forbidden := range []string{"content", "desc", "items", "large", "markdown"} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("compact trash leaked %q: %s", forbidden, text)
+		}
+	}
+	if !strings.Contains(text, "Deleted") {
+		t.Fatalf("compact trash missing title: %s", text)
+	}
+}
+
 func TestBuildAgentContextCompact(t *testing.T) {
 	now := time.Unix(1893456000, 0) // 2030-01-01T00:00:00Z
 	view := model.SyncView{

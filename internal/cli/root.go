@@ -60,6 +60,7 @@ func rootCommands(version string) []rootCommand {
 		{Name: "settings", Run: runSettings},
 		{Name: "completed", Run: runCompleted},
 		{Name: "closed", Run: runClosed},
+		{Name: "trash", Run: runTrash},
 		{Name: "attachment", Run: runAttachment},
 		{Name: "reminder", Run: runReminder},
 		{Name: "share", Run: runShare},

@@ -34,7 +34,7 @@ The primary integration surface is the Dida365 Web API used by the official web 
 
 ## Features
 
-- Web API first: sync, settings, projects, folders, tags, filters, columns, comments, tasks, completed history, closed history, search, Pomodoro, habits, sharing metadata, calendar metadata, statistics, templates, and raw GET probes.
+- Web API first: sync, settings, projects, folders, tags, filters, columns, comments, tasks, completed history, closed history, trash, search, Pomodoro, habits, sharing metadata, calendar metadata, statistics, templates, and raw GET probes.
 - Agent-safe JSON: every `--json` response uses a consistent envelope.
 - Ergonomic writes: create, update, complete, move, and parent operations run directly; destructive actions still require explicit confirmation.
 - Browser login: visible Dida365 login captures only the `t` cookie into `~/.dida-cli/`.
@@ -148,6 +148,7 @@ dida task today --json
 dida task upcoming --days 14 --json
 dida completed today --json
 dida closed list --status 2 --from 2026-05-01 --to 2026-05-09 --json
+dida trash list --cursor 20 --compact --json
 dida search all --query "exam" --limit 20 --json
 dida pomo stats --json
 dida habit checkins --habit <habit-id> --json

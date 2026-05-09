@@ -98,6 +98,7 @@ dida task today --compact --json
 dida task upcoming --days 14 --limit 50 --compact --json
 dida task search --query "paper" --limit 20 --compact --json
 dida completed today --compact --json
+dida trash list --cursor 20 --compact --json
 dida stats general --json
 ```
 

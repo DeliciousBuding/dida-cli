@@ -128,3 +128,26 @@ func TestTaskDueActivityCountsUsesExpectedEndpoint(t *testing.T) {
 		t.Fatalf("counts = %#v, want t1=2", counts)
 	}
 }
+
+func TestTrashPageUsesCursorEndpoint(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path + "?" + r.URL.RawQuery; got != "GET /project/all/trash/page?from=20" {
+			t.Fatalf("request = %s, want GET /project/all/trash/page?from=20", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"next":  40,
+			"tasks": []map[string]any{{"id": "t1", "title": "Deleted"}},
+		})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	page, err := client.TrashPage(context.Background(), 20)
+	if err != nil {
+		t.Fatalf("TrashPage() error = %v", err)
+	}
+	if page["next"] != float64(40) {
+		t.Fatalf("next = %#v, want 40", page["next"])
+	}
+}

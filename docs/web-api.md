@@ -36,6 +36,7 @@ x-device: browser-like Dida device descriptor
 | `GET` | `/column/project/{projectId}` | Kanban column list with names and sort order |
 | `GET` | `/project/all/completed?...` | Completed tasks |
 | `GET` | `/project/{projectIds|all}/closed?from={datetime}&to={datetime}&status={n}` | Closed-history items |
+| `GET` | `/project/all/trash/page?from={cursor}` | Deleted tasks in trash |
 | `GET` | `/user/preferences/pomodoro` | Pomodoro preferences |
 | `GET` | `/pomodoros?from={millis}&to={millis}` | Pomodoro records |
 | `GET` | `/pomodoros/timing?from={millis}&to={millis}` | Pomodoro timing records |
@@ -152,6 +153,18 @@ Task relationship shapes:
 ```
 
 Column update/delete/order endpoints are not yet documented in this CLI. The webapp bundle references `POST /batch/columnProject`, but DidaCLI should not expose first-class update/delete/order commands until payload shapes are observed and covered by tests.
+
+Trash pagination:
+
+```text
+GET /project/all/trash/page
+GET /project/all/trash/page?from=<next>
+```
+
+The response contains `tasks` and `next`. A live probe on 2026-05-10 returned
+the first 20 deleted tasks and `next=20`; passing `from=20` returned the next
+page and `next=40`. Do not send `type=task`: it returned HTTP 500 on the
+observed CN Web API.
 
 The webapp bundle references task activity detail paths with optional `skip`
 and `lastId` query values. Direct live probes on 2026-05-10 still failed:

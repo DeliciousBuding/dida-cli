@@ -1,6 +1,6 @@
 ---
 name: dida-cli
-description: Use DidaCLI to operate Dida365/TickTick from agents. Trigger whenever the user asks to read, create, update, complete, delete, move, organize, or audit Dida365 tasks, projects, folders, tags, completed history, or kanban columns. Prefer this skill over browser automation because DidaCLI provides stable JSON, auth checks, dry-run writes, and explicit destructive confirmations.
+description: Use DidaCLI to operate Dida365/TickTick from agents. Trigger whenever the user asks to read, create, update, complete, delete, move, organize, or audit Dida365 tasks, projects, folders, tags, completed history, trash, or kanban columns. Prefer this skill over browser automation because DidaCLI provides stable JSON, auth checks, dry-run writes, and explicit destructive confirmations.
 ---
 
 # DidaCLI Agent Skill
@@ -55,6 +55,7 @@ dida task upcoming --days 14 --limit 50 --compact --json
 dida task due-counts --json
 dida quadrant list --json
 dida completed today --compact --json
+dida trash list --cursor 20 --compact --json
 dida pomo list --limit 10 --json
 dida pomo task --project <project-id> --task <task-id> --json
 dida habit list --json

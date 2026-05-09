@@ -20,6 +20,7 @@ payload dumps, or local browser exports here.
 | Comments | comment list/create/update/delete paths | working | Attachment fields are not exposed yet. |
 | Completed history | `GET /project/all/completed` | working | Date-only inputs caused server errors; full datetime strings work. |
 | Closed history | `GET /project/{projectIds|all}/closed` | working | Uses full datetime strings and status filters. |
+| Trash pagination | `GET /project/all/trash/page?from={cursor}` | working | Live-smoked on 2026-05-10. First page returns `next=20`; `from=20` returns the next page and `next=40`. `type=task` returned HTTP 500 and should not be sent. |
 | Search | Web indexed search endpoint | working | Compact mode avoids large content blobs by default. |
 | Attachment quota | legacy v1 attachment quota endpoints | working | Upload flow still unmapped. |
 
@@ -28,7 +29,6 @@ payload dumps, or local browser exports here.
 | Surface | Endpoint | Observed result | Current interpretation | Next evidence needed |
 | --- | --- | --- | --- | --- |
 | Task activity detail | `GET /api/v1/task/activity/{taskId}` / v1 `/task/activity/{taskId}` | HTTP 404/500 under direct probing | 2026-05-10 probes confirmed v2-style `/api/v1/...` is not routed through the v2 base, while v1 `/task/activity/{taskId}` still returns HTTP 500 with `skip`, `lastId`, and `projectId` variants. | Browser-traced successful request including full base URL, query params, and any required page context. |
-| Trash pagination | `GET /project/all/trash/page?...` | HTTP 500 under naive probing | Missing required type/page semantics. | Browser trace from trash page with real query params. |
 | Project data by id | `GET /project/{id}/data` | HTTP 404 on observed CN Web API | Not the active private endpoint for current web app. | Recheck only if bundle or network trace changes. |
 | Project columns by id | `GET /project/{id}/columns` | HTTP 404 | Replaced by `/column/project/{projectId}`. | None unless webapp changes. |
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |

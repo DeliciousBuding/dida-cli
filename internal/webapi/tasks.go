@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -90,6 +91,20 @@ func (c *Client) TaskDueActivityCounts(ctx context.Context) (map[string]any, err
 	var out map[string]any
 	payload := map[string]string{"action": "T_DUE"}
 	if err := c.Do(ctx, http.MethodPost, "/task/activity/count/all", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) TrashPage(ctx context.Context, cursor int) (map[string]any, error) {
+	var out map[string]any
+	path := "/project/all/trash/page"
+	if cursor > 0 {
+		values := url.Values{}
+		values.Set("from", fmt.Sprintf("%d", cursor))
+		path += "?" + values.Encode()
+	}
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
