@@ -65,8 +65,8 @@ As of the current main branch:
   - `install.ps1` has been smoke-tested against the latest `v0.1.10` release asset on Windows
   - installed `v0.1.4` binary has smoke-tested `openapi client set/status/clear`
   - `install.sh` has been smoke-tested against the latest `v0.1.10` release asset on Linux/amd64
-  - npm installer skeleton has been smoke-tested against `v0.1.4` on Windows
-    and WSL Linux
+  - npm installer skeleton has been smoke-tested against `v0.1.10` on Windows
+    and `v0.1.4` on WSL Linux
   - package manager templates exist under `packaging/` for Homebrew and Scoop;
     winget is documented as a future submission
 
@@ -410,9 +410,9 @@ smoke passed against `v0.1.4`.
 - postinstall downloads matching GitHub Release binary
 - `bin/dida` forwards to the downloaded binary
 
-Status: skeleton smoke-tested on Windows and WSL Linux against `v0.1.4`; do not
-publish until package ownership, final npm scope, macOS smoke, and publishing
-policy are confirmed.
+Status: skeleton smoke-tested on Windows against `v0.1.10` and on WSL Linux
+against `v0.1.4`; do not publish until package ownership, final npm scope,
+macOS smoke, and publishing policy are confirmed.
 
 ### F4. Homebrew / Scoop
 

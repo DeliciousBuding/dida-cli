@@ -78,8 +78,11 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 - Windows stores the downloaded binary as `bin/dida.exe`
 - Unix-like systems store the downloaded binary as `bin/dida-bin` so the
   wrapper is not overwritten
-- local Windows and WSL Linux smoke tests installed `v0.1.4` from GitHub
-  Releases in temporary copies and verified `node bin/dida version`
+- local Windows smoke tests installed `v0.1.10` from GitHub Releases in a
+  temporary copy and verified `node bin/dida version` plus
+  `node bin/dida doctor --json`
+- local WSL Linux smoke tests installed `v0.1.4` from GitHub Releases in a
+  temporary copy and verified `node bin/dida version`
 - Windows `install.ps1` latest smoke installed `v0.1.10` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
 - WSL Linux `install.sh` latest smoke installed `v0.1.10` from GitHub Releases

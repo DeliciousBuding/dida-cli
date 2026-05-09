@@ -98,8 +98,9 @@ Implemented:
 - Linux/amd64 `install.sh` smoke passed against `v0.1.4` under WSL.
 - Installed `v0.1.4` binary smoke passed for `version`,
   `schema show openapi.clientSet`, and `openapi client set/status/clear`.
-- npm installer skeleton smoke passed on Windows against `v0.1.4` from a
-  temporary copy of `npm/`.
+- npm installer skeleton smoke passed on Windows against `v0.1.10` from a
+  temporary copy of `npm/`; this verified download/checksum, wrapper startup,
+  `version`, and `doctor --json`.
 - npm installer skeleton smoke passed on WSL Linux against `v0.1.4`; this also
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as `bin/dida-bin`.
