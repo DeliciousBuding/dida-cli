@@ -314,6 +314,7 @@ Added and now maintained:
 - `docs/research/official-mcp-wrapping-policy.md`
 - `docs/research/webapi-probe-log.md`
 - `docs/research/openapi-live-validation-log.md`
+- `docs/research/roadmap-completion-audit.md`
 
 ## Workstream F: Distribution
 

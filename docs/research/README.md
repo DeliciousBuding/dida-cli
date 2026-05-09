@@ -10,6 +10,8 @@ raw captures, secrets, cookies, or local machine paths.
   research.
 - [Official channel validation matrix](official-channel-validation-matrix.md):
   what has been live-tested, documented only, or blocked.
+- [Roadmap completion audit](roadmap-completion-audit.md): conservative
+  objective-to-evidence checklist and remaining blockers.
 
 ## Official Channels
 
