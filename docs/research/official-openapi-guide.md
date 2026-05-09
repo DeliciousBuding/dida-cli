@@ -127,8 +127,8 @@ Documented focus paths include:
 - `DELETE /open/v1/focus/{focusId}`
 
 The page documents an `OpenFocus` model and related task-brief structures.
-This makes focus one of the most promising official-channel areas to adopt in
-DidaCLI, since the current Web API path for focus/pomodoro is more fragmented.
+This is now wrapped in DidaCLI as `openapi focus get/list/delete`, pending live
+OAuth validation.
 
 ## Habit Endpoints
 
@@ -147,7 +147,9 @@ The page also documents the habit data models:
 - `OpenHabitCheckinData`
 - `OpenHabitCheckin`
 
-This is another strong candidate for future official-channel support.
+This is now wrapped in DidaCLI as
+`openapi habit list/get/create/update/checkin/checkins`, pending live OAuth
+validation.
 
 ## Definitions Covered By The Page
 
@@ -197,12 +199,12 @@ The most defensible architecture remains:
 2. Official MCP as the clean token-based official channel
 3. Official OpenAPI as a future OAuth-based channel for selected resources
 
-The best near-term official OpenAPI adoption candidates are:
+The current first-class official OpenAPI command surface covers:
 
-- focus
-- habits
 - project get/list/data
-- task get/create/update/complete/delete/move
+- task get/create/update/complete/delete/move/completed/filter
+- focus get/list/delete
+- habit list/get/create/update/checkin/checkins
 
 The least urgent official OpenAPI work is broad account-level functionality,
 because that is where the private Web API is currently much more capable.

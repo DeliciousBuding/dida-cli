@@ -37,6 +37,9 @@ DIDA365_TOKEN=... dida official doctor --json
 
 # Official OpenAPI: OAuth REST
 dida openapi doctor --json
+dida openapi project list --json
+dida openapi habit list --json
+dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}' --dry-run --json
 ```
 
 ## Discover Before Writing

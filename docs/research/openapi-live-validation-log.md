@@ -26,8 +26,9 @@ not accept the OAuth client secret as a bearer token.
 | Project list | implemented, not fully live-verified | `openapi project list` exists. | Run after token persistence succeeds. |
 | Project get/data | implemented, not fully live-verified | `openapi project get` and `openapi project data` exist. | Run after project list succeeds. |
 | Task endpoint family | implemented, not fully live-verified | `openapi task get/create/update/complete/delete/move/completed/filter` exist. | Run read smoke after project list succeeds; write smoke only with disposable task. |
-| Focus endpoint family | documented only | Official docs define focus get/list/delete. | Implement after OAuth project list succeeds. |
-| Habit endpoint family | documented only | Official docs define habit CRUD and check-ins. | Implement after OAuth project list succeeds. |
+| Focus endpoint family | implemented, not fully live-verified | `openapi focus get/list/delete` exist with `--dry-run` for delete. | Run read smoke after token persistence succeeds; delete only a known disposable focus record. |
+| Habit endpoint family | implemented, not fully live-verified | `openapi habit list/get/create/update/checkin/checkins` exist with `--dry-run` for writes. | Run read smoke after token persistence succeeds; write smoke only with disposable habit/check-in data. |
+| Local dry-run without OAuth token | passed | `openapi task create --dry-run`, `openapi focus delete --dry-run`, and `openapi habit checkin --dry-run` return JSON previews without a saved token. | Keep this behavior so agents can preview writes before asking the user to complete OAuth. |
 
 ## Safe Live Test Plan
 

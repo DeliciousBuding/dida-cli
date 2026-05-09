@@ -149,6 +149,88 @@ func (c *Client) FilterTasks(ctx context.Context, payload map[string]any) ([]map
 	return out, nil
 }
 
+func (c *Client) Focus(ctx context.Context, focusID string, focusType string) (map[string]any, error) {
+	var out map[string]any
+	path := "/focus/" + url.PathEscape(focusID) + "?type=" + url.QueryEscape(focusType)
+	if err := c.Do(ctx, http.MethodGet, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) Focuses(ctx context.Context, from string, to string, focusType string) ([]map[string]any, error) {
+	var out []map[string]any
+	values := url.Values{}
+	values.Set("from", from)
+	values.Set("to", to)
+	values.Set("type", focusType)
+	if err := c.Do(ctx, http.MethodGet, "/focus?"+values.Encode(), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) DeleteFocus(ctx context.Context, focusID string, focusType string) (map[string]any, error) {
+	var out map[string]any
+	path := "/focus/" + url.PathEscape(focusID) + "?type=" + url.QueryEscape(focusType)
+	if err := c.Do(ctx, http.MethodDelete, path, nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) Habits(ctx context.Context) ([]map[string]any, error) {
+	var out []map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/habit", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) Habit(ctx context.Context, habitID string) (map[string]any, error) {
+	var out map[string]any
+	if err := c.Do(ctx, http.MethodGet, "/habit/"+url.PathEscape(habitID), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) CreateHabit(ctx context.Context, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/habit", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) UpdateHabit(ctx context.Context, habitID string, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/habit/"+url.PathEscape(habitID), payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) UpsertHabitCheckin(ctx context.Context, habitID string, payload map[string]any) (map[string]any, error) {
+	var out map[string]any
+	if err := c.doJSON(ctx, http.MethodPost, "/habit/"+url.PathEscape(habitID)+"/checkin", payload, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *Client) HabitCheckins(ctx context.Context, habitIDs string, from string, to string) ([]map[string]any, error) {
+	var out []map[string]any
+	values := url.Values{}
+	values.Set("habitIds", habitIDs)
+	values.Set("from", from)
+	values.Set("to", to)
+	if err := c.Do(ctx, http.MethodGet, "/habit/checkins?"+values.Encode(), nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *Client) doJSON(ctx context.Context, method string, path string, payload any, out any) error {
 	data, err := json.Marshal(payload)
 	if err != nil {

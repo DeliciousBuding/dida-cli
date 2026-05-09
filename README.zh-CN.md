@@ -131,6 +131,8 @@ dida openapi login --json
 dida openapi auth-url --json
 dida openapi exchange-code --code <code> --json
 dida openapi project list --json
+dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
+dida openapi habit list --json
 dida schema list --json
 dida agent context --json
 dida auth status --verify --json

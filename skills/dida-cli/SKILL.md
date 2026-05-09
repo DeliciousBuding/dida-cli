@@ -172,8 +172,18 @@ dida official focus list --start-time 2026-05-01T00:00:00+08:00 --end-time 2026-
 
 Use official OpenAPI only through `dida openapi ...`. It is OAuth-based and
 does not accept MCP `dp_...` tokens or Web API cookies as bearer tokens.
+
+```bash
+dida openapi doctor --json
+dida openapi project list --json
+dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
+dida openapi habit list --json
+dida openapi habit checkin <habit-id> --args-json "{\"stamp\":20260407,\"value\":1}" --dry-run --json
+```
+
 Do not delete focus records unless the operator has identified a disposable
-record; `dida official focus delete` requires `--yes`.
+record; both `dida official focus delete` and `dida openapi focus delete`
+require `--yes`.
 
 ## Account Metadata
 

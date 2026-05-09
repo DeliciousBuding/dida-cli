@@ -38,6 +38,10 @@ func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		return runOpenAPIProject(args[1:], jsonOut, stdout, stderr)
 	case "task":
 		return runOpenAPITask(args[1:], jsonOut, stdout, stderr)
+	case "focus":
+		return runOpenAPIFocus(args[1:], jsonOut, stdout, stderr)
+	case "habit":
+		return runOpenAPIHabit(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("openapi", fmt.Sprintf("unknown openapi command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -308,6 +312,9 @@ func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wri
 	if len(args) == 0 {
 		return failTyped("openapi task", "validation", "usage: dida openapi task get|create|update|complete|delete|move|completed|filter", "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
+	if handled, code := runOpenAPITaskDryRun(args, jsonOut, stdout, stderr); handled {
+		return code
+	}
 	token, err := openapi.LoadToken()
 	if err != nil {
 		return failTyped("openapi task "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
@@ -427,6 +434,224 @@ func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wri
 	}
 }
 
+func runOpenAPIFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 {
+		return failTyped("openapi focus", "validation", "usage: dida openapi focus get|list|delete", "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+	if args[0] == "delete" && openAPIHasFlag(args[1:], "--dry-run") {
+		focusID, focusType, _, _, err := parseOpenAPIFocusDeleteFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi focus delete", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi focus delete", Data: map[string]any{"dry_run": true, "focus_id": focusID, "type": focusType}})
+	}
+	token, err := openapi.LoadToken()
+	if err != nil {
+		return failTyped("openapi focus "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
+	}
+	client := openapi.NewClient(token.AccessToken)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	switch args[0] {
+	case "get":
+		focusID, focusType, err := parseOpenAPIFocusGetFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi focus get", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		focus, err := client.Focus(ctx, focusID, focusType)
+		if err != nil {
+			return failTyped("openapi focus get", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi focus get", Data: map[string]any{"focus": focus}})
+	case "list":
+		from, to, focusType, err := parseOpenAPIFocusListFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi focus list", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		focuses, err := client.Focuses(ctx, from, to, focusType)
+		if err != nil {
+			return failTyped("openapi focus list", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi focus list", Meta: map[string]any{"count": len(focuses)}, Data: map[string]any{"focuses": focuses}})
+	case "delete":
+		focusID, focusType, dryRun, yes, err := parseOpenAPIFocusDeleteFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi focus delete", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi focus delete", Data: map[string]any{"dry_run": true, "focus_id": focusID, "type": focusType}})
+		}
+		if !yes {
+			return failTyped("openapi focus delete", "confirmation_required", "openapi focus delete requires --yes", "preview first with --dry-run", jsonOut, stdout, stderr)
+		}
+		result, err := client.DeleteFocus(ctx, focusID, focusType)
+		if err != nil {
+			return failTyped("openapi focus delete", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi focus delete", Data: map[string]any{"result": result}})
+	default:
+		return failTyped("openapi focus", "validation", fmt.Sprintf("unknown openapi focus command %q", args[0]), "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+}
+
+func runOpenAPIHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 {
+		return failTyped("openapi habit", "validation", "usage: dida openapi habit list|get|create|update|checkin|checkins", "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+	if handled, code := runOpenAPIHabitDryRun(args, jsonOut, stdout, stderr); handled {
+		return code
+	}
+	token, err := openapi.LoadToken()
+	if err != nil {
+		return failTyped("openapi habit "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
+	}
+	client := openapi.NewClient(token.AccessToken)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	switch args[0] {
+	case "list":
+		habits, err := client.Habits(ctx)
+		if err != nil {
+			return failTyped("openapi habit list", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi habit list", Meta: map[string]any{"count": len(habits)}, Data: map[string]any{"habits": habits}})
+	case "get":
+		habitID, err := parseOpenAPISingleID(args[1:], "habit")
+		if err != nil {
+			return failTyped("openapi habit get", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		habit, err := client.Habit(ctx, habitID)
+		if err != nil {
+			return failTyped("openapi habit get", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi habit get", Data: map[string]any{"habit": habit}})
+	case "create":
+		payload, dryRun, err := parseOpenAPIJSONWriteFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi habit create", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi habit create", Data: map[string]any{"dry_run": true, "payload": payload}})
+		}
+		habit, err := client.CreateHabit(ctx, payload)
+		if err != nil {
+			return failTyped("openapi habit create", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi habit create", Data: map[string]any{"habit": habit}})
+	case "update":
+		habitID, payload, dryRun, err := parseOpenAPIIDJSONWriteFlags(args[1:], "habit")
+		if err != nil {
+			return failTyped("openapi habit update", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi habit update", Data: map[string]any{"dry_run": true, "habit_id": habitID, "payload": payload}})
+		}
+		habit, err := client.UpdateHabit(ctx, habitID, payload)
+		if err != nil {
+			return failTyped("openapi habit update", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi habit update", Data: map[string]any{"habit": habit}})
+	case "checkin":
+		habitID, payload, dryRun, err := parseOpenAPIIDJSONWriteFlags(args[1:], "habit")
+		if err != nil {
+			return failTyped("openapi habit checkin", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if dryRun {
+			return writeJSON(stdout, envelope{OK: true, Command: "openapi habit checkin", Data: map[string]any{"dry_run": true, "habit_id": habitID, "payload": payload}})
+		}
+		checkin, err := client.UpsertHabitCheckin(ctx, habitID, payload)
+		if err != nil {
+			return failTyped("openapi habit checkin", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi habit checkin", Data: map[string]any{"checkin": checkin}})
+	case "checkins":
+		habitIDs, from, to, err := parseOpenAPIHabitCheckinsFlags(args[1:])
+		if err != nil {
+			return failTyped("openapi habit checkins", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		checkins, err := client.HabitCheckins(ctx, habitIDs, from, to)
+		if err != nil {
+			return failTyped("openapi habit checkins", "api", err.Error(), "", jsonOut, stdout, stderr)
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi habit checkins", Meta: map[string]any{"count": len(checkins)}, Data: map[string]any{"checkins": checkins}})
+	default:
+		return failTyped("openapi habit", "validation", fmt.Sprintf("unknown openapi habit command %q", args[0]), "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+}
+
+func runOpenAPITaskDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
+	if !openAPIHasFlag(args[1:], "--dry-run") {
+		return false, 0
+	}
+	switch args[0] {
+	case "create":
+		payload, _, err := parseOpenAPIJSONWriteFlags(args[1:])
+		if err != nil {
+			return true, failTyped("openapi task create", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi task create", Data: map[string]any{"dry_run": true, "payload": payload}})
+	case "update":
+		taskID, payload, _, err := parseOpenAPITaskUpdateFlags(args[1:])
+		if err != nil {
+			return true, failTyped("openapi task update", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		if _, ok := payload["id"]; !ok {
+			payload["id"] = taskID
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi task update", Data: map[string]any{"dry_run": true, "task_id": taskID, "payload": payload}})
+	case "complete":
+		projectID, taskID, _, err := parseOpenAPITaskTargetWriteFlags(args[1:], false)
+		if err != nil {
+			return true, failTyped("openapi task complete", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi task complete", Data: map[string]any{"dry_run": true, "project_id": projectID, "task_id": taskID}})
+	case "delete":
+		projectID, taskID, _, err := parseOpenAPITaskTargetWriteFlags(args[1:], true)
+		if err != nil {
+			return true, failTyped("openapi task delete", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi task delete", Data: map[string]any{"dry_run": true, "project_id": projectID, "task_id": taskID}})
+	case "move":
+		payload, _, err := parseOpenAPIAnyJSONWriteFlags(args[1:])
+		if err != nil {
+			return true, failTyped("openapi task move", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi task move", Data: map[string]any{"dry_run": true, "payload": payload}})
+	default:
+		return false, 0
+	}
+}
+
+func runOpenAPIHabitDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
+	if !openAPIHasFlag(args[1:], "--dry-run") {
+		return false, 0
+	}
+	switch args[0] {
+	case "create":
+		payload, _, err := parseOpenAPIJSONWriteFlags(args[1:])
+		if err != nil {
+			return true, failTyped("openapi habit create", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi habit create", Data: map[string]any{"dry_run": true, "payload": payload}})
+	case "update":
+		habitID, payload, _, err := parseOpenAPIIDJSONWriteFlags(args[1:], "habit")
+		if err != nil {
+			return true, failTyped("openapi habit update", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi habit update", Data: map[string]any{"dry_run": true, "habit_id": habitID, "payload": payload}})
+	case "checkin":
+		habitID, payload, _, err := parseOpenAPIIDJSONWriteFlags(args[1:], "habit")
+		if err != nil {
+			return true, failTyped("openapi habit checkin", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+		}
+		return true, writeJSON(stdout, envelope{OK: true, Command: "openapi habit checkin", Data: map[string]any{"dry_run": true, "habit_id": habitID, "payload": payload}})
+	default:
+		return false, 0
+	}
+}
+
 func parseOpenAPIAuthURLFlags(args []string) (string, string, string, error) {
 	redirectURI := "http://127.0.0.1:17890/callback"
 	scope := openapi.DefaultScopes
@@ -534,6 +759,163 @@ func parseOpenAPITaskUpdateFlags(args []string) (string, map[string]any, bool, e
 	taskID := args[0]
 	payload, dryRun, err := parseOpenAPIJSONWriteFlags(args[1:])
 	return taskID, payload, dryRun, err
+}
+
+func parseOpenAPIFocusGetFlags(args []string) (string, string, error) {
+	if len(args) == 0 {
+		return "", "", fmt.Errorf("usage: dida openapi focus get <focus-id> --type 0|1")
+	}
+	focusID := args[0]
+	focusType := "0"
+	for i := 1; i < len(args); i++ {
+		switch args[i] {
+		case "--type":
+			if i+1 >= len(args) {
+				return "", "", fmt.Errorf("--type requires 0 or 1")
+			}
+			focusType = args[i+1]
+			i++
+		default:
+			return "", "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if focusType != "0" && focusType != "1" {
+		return "", "", fmt.Errorf("--type must be 0 or 1")
+	}
+	return focusID, focusType, nil
+}
+
+func parseOpenAPIFocusListFlags(args []string) (string, string, string, error) {
+	from := ""
+	to := ""
+	focusType := "0"
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--from":
+			if i+1 >= len(args) {
+				return "", "", "", fmt.Errorf("--from requires a value")
+			}
+			from = args[i+1]
+			i++
+		case "--to":
+			if i+1 >= len(args) {
+				return "", "", "", fmt.Errorf("--to requires a value")
+			}
+			to = args[i+1]
+			i++
+		case "--type":
+			if i+1 >= len(args) {
+				return "", "", "", fmt.Errorf("--type requires 0 or 1")
+			}
+			focusType = args[i+1]
+			i++
+		default:
+			return "", "", "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if from == "" {
+		return "", "", "", fmt.Errorf("missing required --from")
+	}
+	if to == "" {
+		return "", "", "", fmt.Errorf("missing required --to")
+	}
+	if focusType != "0" && focusType != "1" {
+		return "", "", "", fmt.Errorf("--type must be 0 or 1")
+	}
+	return from, to, focusType, nil
+}
+
+func parseOpenAPIFocusDeleteFlags(args []string) (string, string, bool, bool, error) {
+	focusID, focusType, err := parseOpenAPIFocusGetFlags(argsWithoutBooleans(args, "--dry-run", "--yes"))
+	if err != nil {
+		return "", "", false, false, err
+	}
+	return focusID, focusType, openAPIHasFlag(args, "--dry-run"), openAPIHasFlag(args, "--yes"), nil
+}
+
+func parseOpenAPISingleID(args []string, name string) (string, error) {
+	if len(args) != 1 {
+		return "", fmt.Errorf("usage: dida openapi %s get <%s-id>", name, name)
+	}
+	return args[0], nil
+}
+
+func parseOpenAPIIDJSONWriteFlags(args []string, name string) (string, map[string]any, bool, error) {
+	if len(args) == 0 {
+		return "", nil, false, fmt.Errorf("usage: dida openapi %s <command> <%s-id> --args-json <json> [--dry-run]", name, name)
+	}
+	id := args[0]
+	payload, dryRun, err := parseOpenAPIJSONWriteFlags(args[1:])
+	return id, payload, dryRun, err
+}
+
+func parseOpenAPIHabitCheckinsFlags(args []string) (string, string, string, error) {
+	habitIDs := ""
+	from := ""
+	to := ""
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--habit-ids", "--habits":
+			if i+1 >= len(args) {
+				return "", "", "", fmt.Errorf("%s requires a comma-separated value", args[i])
+			}
+			habitIDs = args[i+1]
+			i++
+		case "--from":
+			if i+1 >= len(args) {
+				return "", "", "", fmt.Errorf("--from requires YYYYMMDD")
+			}
+			from = args[i+1]
+			i++
+		case "--to":
+			if i+1 >= len(args) {
+				return "", "", "", fmt.Errorf("--to requires YYYYMMDD")
+			}
+			to = args[i+1]
+			i++
+		default:
+			return "", "", "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if habitIDs == "" {
+		return "", "", "", fmt.Errorf("missing required --habit-ids")
+	}
+	if from == "" {
+		return "", "", "", fmt.Errorf("missing required --from")
+	}
+	if to == "" {
+		return "", "", "", fmt.Errorf("missing required --to")
+	}
+	return habitIDs, from, to, nil
+}
+
+func argsWithoutBooleans(args []string, names ...string) []string {
+	out := make([]string, 0, len(args))
+	for _, arg := range args {
+		if containsString(names, arg) {
+			continue
+		}
+		out = append(out, arg)
+	}
+	return out
+}
+
+func containsString(values []string, value string) bool {
+	for _, item := range values {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
+func openAPIHasFlag(args []string, flag string) bool {
+	for _, arg := range args {
+		if arg == flag {
+			return true
+		}
+	}
+	return false
 }
 
 func parseOpenAPIJSONReadFlags(args []string) (map[string]any, error) {

@@ -874,3 +874,55 @@ func TestOpenAPIJSONWriteFlags(t *testing.T) {
 		t.Fatalf("payload = %#v dryRun = %v", payload, dryRun)
 	}
 }
+
+func TestOpenAPIFocusFlagParsing(t *testing.T) {
+	from, to, focusType, err := parseOpenAPIFocusListFlags([]string{"--from", "2026-04-01T00:00:00+0800", "--to", "2026-04-02T00:00:00+0800", "--type", "1"})
+	if err != nil {
+		t.Fatalf("parseOpenAPIFocusListFlags() error = %v", err)
+	}
+	if from == "" || to == "" || focusType != "1" {
+		t.Fatalf("values = %q %q %q", from, to, focusType)
+	}
+
+	focusID, focusType, dryRun, yes, err := parseOpenAPIFocusDeleteFlags([]string{"f1", "--type", "0", "--dry-run", "--yes"})
+	if err != nil {
+		t.Fatalf("parseOpenAPIFocusDeleteFlags() error = %v", err)
+	}
+	if focusID != "f1" || focusType != "0" || !dryRun || !yes {
+		t.Fatalf("values = %q %q %v %v", focusID, focusType, dryRun, yes)
+	}
+}
+
+func TestOpenAPIHabitFlagParsing(t *testing.T) {
+	habitID, payload, dryRun, err := parseOpenAPIIDJSONWriteFlags([]string{"h1", "--args-json", "{\"stamp\":20260407}", "--dry-run"}, "habit")
+	if err != nil {
+		t.Fatalf("parseOpenAPIIDJSONWriteFlags() error = %v", err)
+	}
+	if habitID != "h1" || payload["stamp"] != float64(20260407) || !dryRun {
+		t.Fatalf("values = %q %#v %v", habitID, payload, dryRun)
+	}
+
+	habitIDs, from, to, err := parseOpenAPIHabitCheckinsFlags([]string{"--habit-ids", "h1,h2", "--from", "20260401", "--to", "20260407"})
+	if err != nil {
+		t.Fatalf("parseOpenAPIHabitCheckinsFlags() error = %v", err)
+	}
+	if habitIDs != "h1,h2" || from != "20260401" || to != "20260407" {
+		t.Fatalf("values = %q %q %q", habitIDs, from, to)
+	}
+}
+
+func TestOpenAPIDryRunDoesNotRequireToken(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "habit", "checkin", "h1", "--args-json", "{\"stamp\":20260407}", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run() code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("decode stdout: %v", err)
+	}
+	if payload["ok"] != true {
+		t.Fatalf("payload = %#v", payload)
+	}
+}

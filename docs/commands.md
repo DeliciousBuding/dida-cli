@@ -76,6 +76,9 @@ dida openapi task delete --project <project-id> --task <task-id> --yes --json
 dida openapi task move --args-json "[{\"fromProjectId\":\"<from>\",\"toProjectId\":\"<to>\",\"taskId\":\"<task-id>\"}]" --dry-run --json
 dida openapi task completed --args-json "{\"projectIds\":[\"<project-id>\"]}" --json
 dida openapi task filter --args-json "{\"projectIds\":[\"<project-id>\"],\"status\":[0]}" --json
+dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
+dida openapi habit list --json
+dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407 --json
 dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json
@@ -267,6 +270,27 @@ These commands use the official MCP channel and require `DIDA365_TOKEN`.
 Use `dida official show <tool-name> --json` to inspect the exact upstream
 schema before passing larger `--args-json` payloads. Web API habit and Pomodoro
 commands remain separate under `dida habit` and `dida pomo`.
+
+## Official OpenAPI Focus And Habit
+
+```bash
+dida openapi focus get <focus-id> --type 0 --json
+dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
+dida openapi focus delete <focus-id> --type 0 --dry-run --json
+dida openapi focus delete <focus-id> --type 0 --yes --json
+
+dida openapi habit list --json
+dida openapi habit get <habit-id> --json
+dida openapi habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\",\"goal\":1}" --dry-run --json
+dida openapi habit update <habit-id> --args-json "{\"name\":\"Read more\"}" --dry-run --json
+dida openapi habit checkin <habit-id> --args-json "{\"stamp\":20260407,\"value\":1,\"goal\":1}" --dry-run --json
+dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407 --json
+```
+
+These commands use the official OAuth OpenAPI channel and require a saved
+OpenAPI access token from `dida openapi login`. Focus `--type` follows the
+official API values: `0` for Pomodoro and `1` for Timing. Habit and focus write
+commands support `--dry-run`; focus delete requires `--yes` when executed.
 
 ## Account Metadata
 

@@ -52,8 +52,8 @@ They are intentionally not interchangeable.
 | Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | implemented | Requires saved OAuth access token for final live smoke. |
 | Task CRUD | `/open/v1/task...` | `openapi task get/create/update/complete/delete/move` | implemented | Requires saved OAuth access token and disposable live task for write smoke. |
 | Task query | `/open/v1/task/completed`, `/open/v1/task/filter` | `openapi task completed/filter` | implemented | Requires saved OAuth access token for read smoke. |
-| Focus | `/open/v1/focus...` | none | documented | Implement after OAuth read path is verified. |
-| Habit | `/open/v1/habit...` | none | documented | Implement after OAuth read path is verified. |
+| Focus | `/open/v1/focus...` | `openapi focus get/list/delete` | implemented | Requires saved OAuth access token for read smoke; delete only a disposable record. |
+| Habit | `/open/v1/habit...` | `openapi habit list/get/create/update/checkin/checkins` | implemented | Requires saved OAuth access token; writes need disposable habit/check-in data. |
 
 ## Current Priority
 
@@ -61,5 +61,5 @@ They are intentionally not interchangeable.
 2. Live-smoke `official focus list` because it is a bounded read.
 3. Live-smoke MCP project and task wrappers because they improve agent context without
    private Web API risk.
-4. Keep OpenAPI focus/habit wrappers blocked until OAuth token persistence is
-   proven on the current account.
+4. Live-smoke OpenAPI project/task/focus/habit wrappers once OAuth token
+   persistence is proven on the current account.

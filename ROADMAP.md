@@ -44,7 +44,10 @@ As of the current main branch:
   - callback listener
   - code exchange
   - token persistence
-  - `project list`
+  - project wrappers
+  - task wrappers
+  - focus wrappers
+  - habit wrappers
 - docs already include:
   - API coverage matrix
   - Web API notes
@@ -417,7 +420,7 @@ Top five next tasks:
 2. Live-smoke official MCP project, habit, and focus wrappers where a safe target exists
 3. Capture a successful Web API task activity request with a Pro account or trace
 4. Map attachment metadata and download/upload flows from real Web API evidence
-5. Promote the next high-value MCP/OpenAPI wrappers only after live auth is available
+5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available
 
 ## Done Means Done
 

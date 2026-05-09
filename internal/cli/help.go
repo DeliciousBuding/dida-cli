@@ -104,6 +104,15 @@ Usage:
   dida openapi task move --args-json <json-array> [--dry-run] [--json]
   dida openapi task completed --args-json <json> [--json]
   dida openapi task filter --args-json <json> [--json]
+  dida openapi focus get <focus-id> --type 0|1 [--json]
+  dida openapi focus list --from TIME --to TIME --type 0|1 [--json]
+  dida openapi focus delete <focus-id> --type 0|1 --yes [--dry-run] [--json]
+  dida openapi habit list [--json]
+  dida openapi habit get <habit-id> [--json]
+  dida openapi habit create --args-json <json> [--dry-run] [--json]
+  dida openapi habit update <habit-id> --args-json <json> [--dry-run] [--json]
+  dida openapi habit checkin <habit-id> --args-json <json> [--dry-run] [--json]
+  dida openapi habit checkins --habit-ids <ids> --from YYYYMMDD --to YYYYMMDD [--json]
 
 These commands use the official OAuth-based OpenAPI channel.
 They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.
