@@ -84,16 +84,16 @@ Implemented and documented:
 - `openapi login --browser` now validates loopback callback URLs, honors local
   `--redirect-uri`, and fails fast with one JSON error when callback setup is
   invalid.
+- 2026-05-10 live OAuth verification succeeded: `openapi listen-callback`
+  received a real callback, `openapi exchange-code` saved an OAuth token, and
+  `dida openapi status --json` plus `dida openapi project list --json`
+  succeeded against the current account.
 
 Not complete:
 
-- Full OAuth browser approval has not been live-verified on the current account.
-- Project/task/focus/habit live calls require a saved OAuth access token.
-- Write smokes require disposable live resources.
-- 2026-05-10 recheck after `v0.1.16`: `openapi doctor --json` still reports
-  saved client config but no OAuth token. The next action remains configuring
-  the developer app redirect URL to `http://127.0.0.1:17890/callback`, then
-  running `dida openapi login --browser --json`.
+- `project get/data`, task reads, focus reads, and habit reads still need final
+  live smoke against the saved OAuth token.
+- OpenAPI write smokes still need disposable live resources.
 
 ## Distribution Audit
 
@@ -141,27 +141,27 @@ Remaining:
 
 ## Current Blocking Preconditions
 
-1. OpenAPI developer app redirect URL configured to match local callback.
-2. Successful OpenAPI OAuth approval to save an access token.
-3. Pro account or trace for task activity detail.
-4. Disposable files/tasks/projects for task-level attachment and write-flow smoke tests.
-5. Disposable targets for Official MCP known-id habit/focus reads and habit/focus write smoke.
+1. Pro account or trace for task activity detail.
+2. Disposable files/tasks/projects for task-level attachment and write-flow smoke tests.
+3. Disposable targets for Official MCP known-id habit/focus reads and habit/focus write smoke.
+4. Disposable OpenAPI tasks/projects/habits/focus records for write smokes.
 
 2026-05-10 recheck:
 
 - Web API cookie auth still verifies successfully.
 - Official MCP still connects, but habit list and a one-year focus range return
   empty results on the current account.
+- OpenAPI OAuth token is now saved locally and `openapi project list --json`
+  succeeds on the current account.
 - Attachment quota still reports no available daily upload quota, so additional
   upload smokes need quota reset or a disposable account with available quota.
 
 ## Next Best Actions
 
-1. Configure the developer app redirect URL, then complete
-   `dida openapi login --browser --json`.
-2. Live-smoke `dida openapi project list --json` after OAuth token persistence.
-3. Live-smoke remaining Official MCP read filters with narrow queries, then
+1. Live-smoke OpenAPI `project get/data`, then bounded task/focus/habit reads
+   with the saved OAuth token.
+2. Live-smoke remaining Official MCP read filters with narrow queries, then
    writes only with disposable targets.
-4. Capture task-level Web API attachment download/preview and association flows.
-5. Keep `docs/api-coverage.md`, `docs/research/*`, schema, skill, and README
+3. Capture task-level Web API attachment download/preview and association flows.
+4. Keep `docs/api-coverage.md`, `docs/research/*`, schema, skill, and README
    synchronized with every new command.

@@ -285,6 +285,10 @@ This channel is not complete until a real OAuth flow is verified live.
   and returns immediate JSON errors when the callback listener cannot be
   configured. Unit tests cover callback normalization and invalid callback
   shapes.
+- 2026-05-10: end-to-end OpenAPI OAuth succeeded on the current account via
+  `listen-callback`, `exchange-code`, `status`, and `project list`; the
+  remaining OpenAPI work is now resource-family live coverage and disposable
+  write smoke.
 
 Acceptance:
 
@@ -480,7 +484,7 @@ Before claiming an API surface is done:
 
 If another agent takes over, the best sequence is:
 
-1. Finish OpenAPI live OAuth verification
+1. Live-smoke remaining OpenAPI read families and disposable writes
 2. Live-smoke remaining known-id official MCP reads and safe write dry-run surfaces
 3. Close Web API read gaps
 4. Map Web API write gaps with evidence
@@ -490,11 +494,11 @@ If another agent takes over, the best sequence is:
 
 Top five next tasks:
 
-1. Complete browser authorization for `openapi login` after the developer app redirect URL is configured, then live-smoke OpenAPI resources
+1. Live-smoke OpenAPI `project get/data`, task, focus, and habit reads with the saved OAuth token
 2. Create or identify disposable official MCP habit/focus targets for known-id reads
 3. Capture a successful Web API task activity request with a Pro account or trace
 4. Capture a reversible task-level attachment association trace, then decide whether to expose task attachment upload/download commands
-5. Live-smoke official OpenAPI project, task, focus, and habit wrappers after OAuth is available
+5. Live-smoke disposable OpenAPI writes after read coverage is closed
 
 ## Done Means Done
 

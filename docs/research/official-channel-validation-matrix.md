@@ -54,10 +54,10 @@ They are intentionally not interchangeable.
 | --- | --- | --- | --- | --- |
 | Client config | local OAuth app credentials | `openapi client status/set/clear` | implemented | Stores client id/secret locally for OAuth commands; secret is accepted through stdin and not printed. |
 | OAuth URL | `GET https://dida365.com/oauth/authorize` | `openapi auth-url` | implemented | Generates authorization URL from env or saved client credentials. |
-| Callback listener | local HTTP callback | `openapi listen-callback` | implemented | Needs end-to-end browser approval smoke. |
-| Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | implemented | Invalid-code test confirmed client authentication path; real code still needed. |
-| Interactive login | OAuth URL + listener + token exchange | `openapi login` | implemented | Needs full live OAuth approval and persisted token verification. |
-| Project list | `GET /open/v1/project` | `openapi project list` | implemented | Requires saved OAuth access token for final live smoke. |
+| Callback listener | local HTTP callback | `openapi listen-callback` | live-verified | 2026-05-10 listener received a real callback with `code` and matching `state`. |
+| Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | live-verified | 2026-05-10 real callback code exchange saved a bearer token locally. |
+| Interactive login | OAuth URL + listener + token exchange | `openapi login` | live-verified | OAuth browser approval, callback handling, and token persistence are now proven on the current account. |
+| Project list | `GET /open/v1/project` | `openapi project list` | live-verified | 2026-05-10 live smoke succeeded and returned six projects from the current account. |
 | Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | implemented | Requires saved OAuth access token for final live smoke. |
 | Task CRUD | `/open/v1/task...` | `openapi task get/create/update/complete/delete/move` | implemented | Requires saved OAuth access token and disposable live task for write smoke. |
 | Task query | `/open/v1/task/completed`, `/open/v1/task/filter` | `openapi task completed/filter` | implemented | Requires saved OAuth access token for read smoke. |
@@ -66,9 +66,8 @@ They are intentionally not interchangeable.
 
 ## Current Priority
 
-1. Live-verify `openapi login` with a real authorization code.
+1. Live-smoke remaining OpenAPI `project get/data`, `task`, `focus`, and `habit` reads with the saved OAuth token.
 2. Create or identify disposable MCP habit/focus records before known-id read
    or destructive smoke tests.
 3. Live-smoke remaining MCP habit/focus writes only after disposable targets exist.
-4. Live-smoke OpenAPI project/task/focus/habit wrappers once OAuth token
-   persistence is proven on the current account.
+4. Live-smoke OpenAPI writes only on disposable projects, tasks, habits, or focus records.
