@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -155,6 +156,12 @@ func TestOpenAPIDoctorIncludesRedirectAndNextActions(t *testing.T) {
 	}
 	if !strings.Contains(next[0].(string), "openapi client set") {
 		t.Fatalf("first next action = %v", next[0])
+	}
+	if !slices.ContainsFunc(next, func(action any) bool {
+		text, ok := action.(string)
+		return ok && strings.Contains(text, "openapi login --browser --json")
+	}) {
+		t.Fatalf("next actions missing browser login guidance: %v", next)
 	}
 }
 

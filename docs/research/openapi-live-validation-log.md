@@ -37,7 +37,7 @@ not accept the OAuth client secret as a bearer token.
 1. Run `dida openapi doctor --json`.
 2. Configure the developer app OAuth redirect URL to the reported
    `default_redirect_uri`.
-3. Run `dida openapi login --json` and complete browser approval.
+3. Run `dida openapi login --browser --json` and complete browser approval.
 4. Confirm `dida openapi status --json` reports a saved access token without
    printing token material.
 5. Run `dida openapi project list --json`.

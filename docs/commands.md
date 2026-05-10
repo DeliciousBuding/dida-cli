@@ -137,7 +137,7 @@ work.
 
 For OpenAPI OAuth setup, read `default_redirect_uri`, `default_scope`, and
 `next` from `dida openapi doctor --json`. Configure the developer app redirect
-URL to that exact URI before running `dida openapi login --json`.
+URL to that exact URI before running `dida openapi login --browser --json`.
 
 Use `official call` primarily for read-only exploration and schema-backed
 probes. For writes, prefer first-class `official task/habit/focus ... --dry-run`
@@ -352,7 +352,7 @@ These commands use the official OAuth OpenAPI channel and require a saved
 OpenAPI access token from `dida openapi login`. Focus `--type` follows the
 official API values: `0` for Pomodoro and `1` for Timing. Habit and focus write
 commands support `--dry-run`; focus delete requires `--yes` when executed.
-`dida openapi login --json` emits one final JSON envelope after browser
+`dida openapi login --browser --json` emits one final JSON envelope after browser
 authorization completes. For manual no-browser OAuth, use `dida openapi
 auth-url --json` and `dida openapi listen-callback --json`.
 `dida openapi client set` stores the OAuth client id and secret locally; use

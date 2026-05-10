@@ -178,7 +178,7 @@ func openAPIDoctorNextActions(clientIDAvailable bool, clientSecretAvailable bool
 	}
 	if !tokenAvailable {
 		actions = append(actions, "configure the developer app OAuth redirect URL as "+defaultOpenAPIRedirectURI())
-		actions = append(actions, "dida openapi login --json")
+		actions = append(actions, "dida openapi login --browser --json")
 	}
 	if tokenAvailable {
 		actions = append(actions, "dida openapi project list --json")
