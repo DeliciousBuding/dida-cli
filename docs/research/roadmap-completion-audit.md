@@ -115,6 +115,8 @@ Implemented:
 - Homebrew formula install path logic was checked against the release archive
   layout: assets unpack under a top-level `dida_v..._<os>_<arch>/` directory,
   so the formula locates the nested `dida` binary before `bin.install`.
+- Scoop `extract_dir` was checked against the Windows release zip layout:
+  `dida.exe` lives under `dida_v..._windows_<arch>/`.
 - winget submission notes exist under `packaging/winget/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
