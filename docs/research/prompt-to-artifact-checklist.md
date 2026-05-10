@@ -88,8 +88,8 @@ Recently run successfully:
 - Web API comment attachment upload/create was implemented as
   `comment create --file <path>` after reversible live evidence confirmed
   multipart field `file`, upload response keys, comment attach payload,
-  read-back, and cleanup; later repeat upload smoke is currently blocked by
-  exhausted attachment quota on the observed account
+  read-back, and cleanup; later successful repeat smoke used available quota,
+  and additional upload smokes now require quota to reset or another account
 - Web API task activity raw probes on 2026-05-10 confirmed the surface remains
   blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
@@ -111,7 +111,7 @@ Skipped or blocked verification:
 - Official OpenAPI live smoke: saved client config is present, but no OAuth
   access token is present
 - Web API task activity detail: current account receives `need_pro`
-- Web API repeat comment attachment upload: current account reports
+- Additional Web API comment attachment upload: current account reports
   `underQuota=false` and `dailyLimit=0`, so new upload smokes require quota to
   reset or another disposable account with available quota
 
