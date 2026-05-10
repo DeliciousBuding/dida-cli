@@ -80,18 +80,18 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 - Windows stores the downloaded binary as `bin/dida.exe`
 - Unix-like systems store the downloaded binary as `bin/dida-bin` so the
   wrapper is not overwritten
-- local Windows smoke tests installed `v0.1.15` from GitHub Releases in a
+- local Windows smoke tests installed `v0.1.16` from GitHub Releases in a
   temporary copy and verified `node bin/dida version` plus
   `node bin/dida doctor --json`
-- local WSL Linux smoke tests installed `v0.1.15` from GitHub Releases in a
+- local WSL Linux smoke tests installed `v0.1.16` from GitHub Releases in a
   temporary copy and verified `node bin/dida version` plus
   `node bin/dida doctor --json`
-- local Windows latest smoke verified the npm installer can resolve `v0.1.15`
+- local Windows latest smoke verified the npm installer can resolve `v0.1.16`
   from release `checksums.txt` without the GitHub API, then run
   `node bin/dida version` and `node bin/dida doctor --json`
-- Windows `install.ps1` latest smoke installed `v0.1.15` from GitHub Releases
+- Windows `install.ps1` latest smoke installed `v0.1.16` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
-- WSL Linux `install.sh` latest smoke installed `v0.1.15` from GitHub Releases
+- WSL Linux `install.sh` latest smoke installed `v0.1.16` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
 
 Do not publish it until:
@@ -116,16 +116,16 @@ toolchain and may not match packaged release behavior.
 `packaging/` contains maintainer templates for package managers that generally
 live outside this repository:
 
-- `packaging/homebrew/dida.rb` pins `v0.1.15` macOS and Linux release archives
+- `packaging/homebrew/dida.rb` pins `v0.1.16` macOS and Linux release archives
   with checksums. The formula installs the binary from the release archive's
   top-level platform directory.
-- `packaging/scoop/dida.json` pins `v0.1.15` Windows amd64 and arm64 release
+- `packaging/scoop/dida.json` pins `v0.1.16` Windows amd64 and arm64 release
   archives with checksums.
 - `packaging/winget/README.md` records the future winget submission boundary
   without committing generated manifests prematurely.
 
 Static validation on Windows confirmed the Homebrew and Scoop template URLs
-and SHA-256 hashes match the `v0.1.15` release `checksums.txt` for all six
+and SHA-256 hashes match the `v0.1.16` release `checksums.txt` for all six
 release assets. Release archive listing checks confirmed Homebrew must install
 from the nested `dida_v.../dida` path and Scoop's `extract_dir` matches the
 Windows zip's top-level `dida_v..._windows_<arch>/` directory. Native

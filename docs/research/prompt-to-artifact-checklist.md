@@ -40,23 +40,23 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Explicit request | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Tag-push GitHub Release workflow | `.github/workflows/release.yml` | done | None for current workflow. |
-| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.15` assets | done | None. |
-| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.15` assets | done | None. |
-| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.15` assets | done | Native macOS install smoke is still unavailable. |
-| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.15` assets | done | None. |
-| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.15` | done | None. |
+| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.1.16` assets | done | None. |
+| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.16` assets | done | None. |
+| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.1.16` assets | done | Native macOS install smoke is still unavailable. |
+| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.1.16` assets | done | None. |
+| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.1.16` | done | None. |
 | Release notes include install methods | `.github/workflows/release.yml` release-notes step | done | None. |
-| `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed against `v0.1.15`; macOS native smoke pending. |
-| `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed against `v0.1.15`. |
+| `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed against `v0.1.16`; macOS native smoke pending. |
+| `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed against `v0.1.16`. |
 | `DIDA_VERSION`, `DIDA_INSTALL_DIR`, `DIDA_REPO` | `install.sh`, `install.ps1` | done | The npm skeleton supports `DIDA_VERSION` and `DIDA_REPO`; npm owns the package binary directory, so `DIDA_INSTALL_DIR` is intentionally limited to the standalone install scripts. |
 | Install runs `dida version` and `dida doctor --json` | `install.sh`, `install.ps1` | done | npm postinstall intentionally only downloads; wrapper commands are tested separately. |
 | README English Quickstart | `README.md`, `docs/quickstart.md` | done | Keep examples synchronized with command changes. |
 | README Chinese Quickstart | `README.zh-CN.md`, `docs/quickstart.zh-CN.md` | done | Keep examples synchronized with command changes. |
 | LLM/Agent quickstart | `docs/llm-quickstart.md` | done | Keep short and command-first. |
 | Agent warning not to paste cookies/tokens | `README.md`, `README.zh-CN.md`, `docs/quickstart*.md`, `docs/llm-quickstart.md` | done | None. |
-| npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows and WSL Linux against `v0.1.15`; latest resolution now uses release `checksums.txt` instead of the GitHub API; package is not published. |
-| Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.1.15`; no external tap or native install smoke yet. |
-| Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.1.15`; no external bucket or Scoop install smoke on this machine. |
+| npm installer skeleton | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | partial | Smoke-tested on Windows and WSL Linux against `v0.1.16`; latest resolution now uses release `checksums.txt` instead of the GitHub API; package is not published. |
+| Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.1.16`; no external tap or native install smoke yet. |
+| Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.1.16`; no external bucket or Scoop install smoke on this machine. |
 | winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final; `winget` exists locally but `wingetcreate` is unavailable. |
 
 ## Verification Evidence
@@ -75,13 +75,13 @@ Recently run successfully:
   `official task batch-add`, `official task batch-update`,
   `official task get --project`,
   `official task complete-project`, followed by Web API `task delete` cleanup
-- Windows `install.ps1` latest smoke against `v0.1.15`
-- WSL Linux `install.sh` latest smoke against `v0.1.15`
-- Windows npm installer smoke against `v0.1.15`
-- WSL Linux npm installer smoke against `v0.1.15`
-- Windows npm latest smoke against `v0.1.15` using release
+- Windows `install.ps1` latest smoke against `v0.1.16`
+- WSL Linux `install.sh` latest smoke against `v0.1.16`
+- Windows npm installer smoke against `v0.1.16`
+- WSL Linux npm installer smoke against `v0.1.16`
+- Windows npm latest smoke against `v0.1.16` using release
   `latest/download/checksums.txt` instead of the GitHub API
-- Installed `v0.1.15` binary OpenAPI client config smoke:
+- Installed `v0.1.16` binary OpenAPI client config smoke:
   `openapi client set/status/clear`
 - Web API `auth status --verify`, `agent context`, `attachment quota`, and
   empty `comment list` live reads on 2026-05-10
@@ -96,10 +96,10 @@ Recently run successfully:
   blocked or unstable rather than command-ready
 - Scoop manifest JSON parse
 - Homebrew/Scoop template URL and checksum static validation against
-  `v0.1.15/checksums.txt`
+  `v0.1.16/checksums.txt`
 - Homebrew formula install path checked against release archive layout
 - Scoop `extract_dir` checked against Windows release zip layout
-- release checksum comparison against `v0.1.15/checksums.txt`
+- release checksum comparison against `v0.1.16/checksums.txt`
 
 Skipped or blocked verification:
 
