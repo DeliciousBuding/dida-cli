@@ -79,6 +79,8 @@ Recently run successfully:
 - WSL Linux `install.sh` latest smoke against `v0.1.15`
 - Windows npm installer smoke against `v0.1.15`
 - WSL Linux npm installer smoke against `v0.1.15`
+- Windows npm latest smoke against `v0.1.15` using release
+  `latest/download/checksums.txt` instead of the GitHub API
 - Installed `v0.1.15` binary OpenAPI client config smoke:
   `openapi client set/status/clear`
 - Web API `auth status --verify`, `agent context`, `attachment quota`, and
@@ -95,6 +97,8 @@ Recently run successfully:
 - Scoop manifest JSON parse
 - Homebrew/Scoop template URL and checksum static validation against
   `v0.1.15/checksums.txt`
+- Homebrew formula install path checked against release archive layout
+- Scoop `extract_dir` checked against Windows release zip layout
 - release checksum comparison against `v0.1.15/checksums.txt`
 
 Skipped or blocked verification:
