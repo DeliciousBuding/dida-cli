@@ -30,7 +30,7 @@ func runFolder(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 func runFolderList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("folder list", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+		return failTyped("folder list", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
 	}
 	data := map[string]any{"folders": view.ProjectGroups}
 	meta := map[string]any{"count": len(view.ProjectGroups)}

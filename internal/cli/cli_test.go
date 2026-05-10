@@ -175,6 +175,9 @@ func TestSyncMissingAuthJSON(t *testing.T) {
 	if !strings.Contains(stdout.String(), "missing cookie auth") {
 		t.Fatalf("stdout missing auth hint: %s", stdout.String())
 	}
+	if !strings.Contains(stdout.String(), "dida auth login --browser --json") {
+		t.Fatalf("stdout missing browser login guidance: %s", stdout.String())
+	}
 	if stderr.Len() != 0 {
 		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
 	}

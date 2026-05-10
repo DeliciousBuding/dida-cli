@@ -64,7 +64,7 @@ func runAgentContext(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	}
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("agent context", "auth", err.Error(), "run: dida auth login", jsonOut, stdout, stderr)
+		return failTyped("agent context", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
 	}
 	data, meta := buildAgentContext(view, opts, time.Now())
 	if jsonOut {
