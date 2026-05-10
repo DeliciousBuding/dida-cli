@@ -82,6 +82,7 @@ Usage:
 
 These commands use the official dida365 MCP server. DIDA365_TOKEN takes
 precedence over the saved token config.
+Prefer first-class wrappers for writes; official call has no dry-run layer.
 `))
 }
 

@@ -194,6 +194,10 @@ dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --dry-run --j
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
 
+Treat `dida official call` as a read-oriented exploration escape hatch. It has
+no dry-run layer, so do not use it for write-capable MCP tools unless the
+operator explicitly approves that specific tool and payload.
+
 Use official OpenAPI only through `dida openapi ...`. It is OAuth-based and
 does not accept MCP `dp_...` tokens or Web API cookies as bearer tokens.
 

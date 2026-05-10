@@ -136,6 +136,11 @@ For OpenAPI OAuth setup, read `default_redirect_uri`, `default_scope`, and
 `next` from `dida openapi doctor --json`. Configure the developer app redirect
 URL to that exact URI before running `dida openapi login --json`.
 
+Use `official call` primarily for read-only exploration and schema-backed
+probes. For writes, prefer first-class `official task/habit/focus ... --dry-run`
+wrappers or get explicit operator approval; `official call` itself has no
+dry-run layer.
+
 ## Tasks
 
 ```bash

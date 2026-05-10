@@ -110,6 +110,8 @@ dida task delete <task-id> --project <project-id> --yes --json
 - Do not ask the user to paste cookies or tokens into chat.
 - Do not use official MCP tokens as OpenAPI bearer tokens.
 - Do not use Web API cookies as official OpenAPI tokens.
+- Do not use `dida official call` for write-capable MCP tools unless the user
+  explicitly approves that exact tool and payload; it has no dry-run layer.
 - If Official MCP auth is missing, ask the user to run `dida official token set --token-stdin --json` locally.
 - If OpenAPI client config is missing, ask the user to run `dida openapi client set --id <client-id> --secret-stdin --json` locally.
 - Do not create live disposable habits just to test Official MCP/OpenAPI habit

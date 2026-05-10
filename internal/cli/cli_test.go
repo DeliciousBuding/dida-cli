@@ -1588,6 +1588,8 @@ func TestCompanionSkillMentionsAgentCriticalCommands(t *testing.T) {
 		"dida openapi logout --json",
 		"dida raw get /path --api-version v1|v2 --json",
 		"Never ask the user to paste cookies",
+		"official call",
+		"no dry-run layer",
 		"no habit delete tool",
 	}
 	for _, want := range required {
