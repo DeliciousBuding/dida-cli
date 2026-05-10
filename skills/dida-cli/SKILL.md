@@ -116,15 +116,19 @@ Use high-level resource commands before raw API probes:
 ```bash
 dida project create --name "Inbox review" --dry-run --json
 dida project update <project-id> --name "New name" --dry-run --json
+dida project delete <project-id> --dry-run --json
 dida project delete <project-id> --yes --json
 
 dida folder create --name "Work" --dry-run --json
 dida folder update <folder-id> --name "Work archive" --dry-run --json
+dida folder delete <folder-id> --dry-run --json
 dida folder delete <folder-id> --yes --json
 
 dida tag create planning --color "#147d4f" --dry-run --json
 dida tag rename planning planning-next --dry-run --json
+dida tag merge old-tag new-tag --dry-run --json
 dida tag merge old-tag new-tag --yes --json
+dida tag delete old-tag --dry-run --json
 dida tag delete old-tag --yes --json
 ```
 
@@ -173,6 +177,7 @@ local official token:
 ```bash
 dida official doctor --json
 dida official token status --json
+dida official token clear --json
 dida official show get_focuses_by_time --json
 dida official project list --json
 dida official project data <project-id> --json
@@ -194,7 +199,9 @@ does not accept MCP `dp_...` tokens or Web API cookies as bearer tokens.
 
 ```bash
 dida openapi doctor --json
+dida openapi status --json
 dida openapi client status --json
+dida openapi logout --json
 dida openapi project list --json
 dida openapi project create --args-json "{\"name\":\"Project\",\"viewMode\":\"list\",\"kind\":\"TASK\"}" --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
@@ -256,6 +263,7 @@ Example error shape:
 Use raw reads only when a high-level command is missing:
 
 ```bash
+dida raw get /path --api-version v1|v2 --json
 dida raw get /batch/check/0 --json
 dida raw get /user/preferences/settings --json
 dida raw get /attachment/isUnderQuota --api-version v1 --json

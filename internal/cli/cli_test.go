@@ -1566,3 +1566,30 @@ func TestCommandReferenceMentionsSchemaCommands(t *testing.T) {
 		}
 	}
 }
+
+func TestCompanionSkillMentionsAgentCriticalCommands(t *testing.T) {
+	path := filepath.Join("..", "..", "skills", "dida-cli", "SKILL.md")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	text := string(data)
+	required := []string{
+		"dida schema list --json",
+		"dida agent context --outline --json",
+		"dida project delete <project-id> --dry-run --json",
+		"dida folder delete <folder-id> --dry-run --json",
+		"dida tag merge old-tag new-tag --dry-run --json",
+		"dida tag delete old-tag --dry-run --json",
+		"dida official token clear --json",
+		"dida openapi status --json",
+		"dida openapi logout --json",
+		"dida raw get /path --api-version v1|v2 --json",
+		"Never ask the user to paste cookies",
+	}
+	for _, want := range required {
+		if !strings.Contains(text, want) {
+			t.Fatalf("skills/dida-cli/SKILL.md missing %q", want)
+		}
+	}
+}
