@@ -1533,3 +1533,14 @@ func TestWriteSubcommandHelpDoesNotMutateOrRequireAuth(t *testing.T) {
 		})
 	}
 }
+
+func TestDryRunSchemasAdvertiseDryRunFlag(t *testing.T) {
+	for _, schema := range didaCommandSchemas() {
+		if !schema.DryRun {
+			continue
+		}
+		if !strings.Contains(schema.Command, "--dry-run") {
+			t.Fatalf("schema %s is dry-run capable but command omits --dry-run: %s", schema.ID, schema.Command)
+		}
+	}
+}
