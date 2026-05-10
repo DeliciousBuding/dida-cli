@@ -1492,3 +1492,44 @@ func TestHighTrafficSubcommandHelpDoesNotValidateFlags(t *testing.T) {
 		})
 	}
 }
+
+func TestWriteSubcommandHelpDoesNotMutateOrRequireAuth(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	cases := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{name: "project create", args: []string{"project", "create", "--help"}, want: "dida project create --name"},
+		{name: "project delete", args: []string{"project", "delete", "--help"}, want: "dida project delete <project-id>"},
+		{name: "folder create", args: []string{"folder", "create", "--help"}, want: "dida folder create --name"},
+		{name: "tag create", args: []string{"tag", "create", "--help"}, want: "dida tag create <name>"},
+		{name: "column create", args: []string{"column", "create", "--help"}, want: "dida column create --project"},
+		{name: "official task write", args: []string{"official", "task", "batch-add", "--help"}, want: "dida official task batch-add"},
+		{name: "official habit write", args: []string{"official", "habit", "checkin", "--help"}, want: "dida official habit checkin"},
+		{name: "official focus delete", args: []string{"official", "focus", "delete", "--help"}, want: "dida official focus delete"},
+		{name: "openapi project write", args: []string{"openapi", "project", "create", "--help"}, want: "dida openapi project create"},
+		{name: "openapi task write", args: []string{"openapi", "task", "move", "--help"}, want: "dida openapi task move"},
+		{name: "openapi habit write", args: []string{"openapi", "habit", "checkin", "--help"}, want: "dida openapi habit checkin"},
+		{name: "openapi focus delete", args: []string{"openapi", "focus", "delete", "--help"}, want: "dida openapi focus delete"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(tc.args, "test-version", &stdout, &stderr)
+			if code != 0 {
+				t.Fatalf("Run() code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want empty", stderr.String())
+			}
+			text := stdout.String()
+			if !strings.Contains(text, tc.want) {
+				t.Fatalf("stdout missing %q: %s", tc.want, text)
+			}
+			if strings.Contains(text, "missing") || strings.Contains(text, "open ") {
+				t.Fatalf("help output looks like validation/auth error: %s", text)
+			}
+		})
+	}
+}

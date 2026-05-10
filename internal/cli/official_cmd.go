@@ -403,7 +403,7 @@ func printOfficialProjectHelp(stdout io.Writer) {
 }
 
 func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+	if len(args) == 0 || hasHelpFlag(args) {
 		printOfficialTaskHelp(stdout)
 		return 0
 	}
@@ -809,7 +809,7 @@ func parseOfficialIntCSV(value string) ([]int, error) {
 }
 
 func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+	if len(args) == 0 || hasHelpFlag(args) {
 		printOfficialHabitHelp(stdout)
 		return 0
 	}
@@ -1108,7 +1108,7 @@ func parseOfficialDateStamp(value string, flag string) (int, error) {
 }
 
 func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+	if len(args) == 0 || hasHelpFlag(args) {
 		printOfficialFocusHelp(stdout)
 		return 0
 	}

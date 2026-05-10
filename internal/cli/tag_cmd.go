@@ -9,7 +9,7 @@ import (
 )
 
 func runTag(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+	if len(args) == 0 || hasHelpFlag(args) {
 		printTagHelp(stdout)
 		return 0
 	}

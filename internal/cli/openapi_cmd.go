@@ -427,8 +427,9 @@ func runOpenAPIListenCallback(args []string, jsonOut bool, stdout io.Writer, std
 }
 
 func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 {
-		return failTyped("openapi project", "validation", "usage: dida openapi project list|get|data|create|update|delete", "run: dida openapi --help", jsonOut, stdout, stderr)
+	if len(args) == 0 || hasHelpFlag(args) {
+		printOpenAPIHelp(stdout)
+		return 0
 	}
 	if handled, code := runOpenAPIProjectDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
@@ -531,8 +532,9 @@ func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.
 }
 
 func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 {
-		return failTyped("openapi task", "validation", "usage: dida openapi task get|create|update|complete|delete|move|completed|filter", "run: dida openapi --help", jsonOut, stdout, stderr)
+	if len(args) == 0 || hasHelpFlag(args) {
+		printOpenAPIHelp(stdout)
+		return 0
 	}
 	if handled, code := runOpenAPITaskDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
@@ -657,8 +659,9 @@ func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wri
 }
 
 func runOpenAPIFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 {
-		return failTyped("openapi focus", "validation", "usage: dida openapi focus get|list|delete", "run: dida openapi --help", jsonOut, stdout, stderr)
+	if len(args) == 0 || hasHelpFlag(args) {
+		printOpenAPIHelp(stdout)
+		return 0
 	}
 	if args[0] == "delete" && openAPIHasFlag(args[1:], "--dry-run") {
 		focusID, focusType, _, _, err := parseOpenAPIFocusDeleteFlags(args[1:])
@@ -718,8 +721,9 @@ func runOpenAPIFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 }
 
 func runOpenAPIHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 {
-		return failTyped("openapi habit", "validation", "usage: dida openapi habit list|get|create|update|checkin|checkins", "run: dida openapi --help", jsonOut, stdout, stderr)
+	if len(args) == 0 || hasHelpFlag(args) {
+		printOpenAPIHelp(stdout)
+		return 0
 	}
 	if handled, code := runOpenAPIHabitDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
