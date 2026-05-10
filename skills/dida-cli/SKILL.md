@@ -38,6 +38,20 @@ before choosing a command. If `authRequired` is true, verify the matching
 channel auth first; do not assume a Web API cookie can satisfy official MCP or
 OpenAPI commands.
 
+## Pick The Channel
+
+Choose the channel by job, not by habit:
+
+| Job | Prefer | Notes |
+| --- | --- | --- |
+| First account read for an Agent | `dida agent context --outline --json` | Web API one-call context pack; lowest repeated-token cost. |
+| Normal task/project/folder/tag/comment work | Web API first-class commands | Broadest web-app coverage, compact reads, dry-run writes, `--yes` deletes. |
+| Official task/project validation with token auth | `dida official ...` | Uses Official MCP; `DIDA365_TOKEN` or saved official token config only. |
+| Habit/focus resource work | Official MCP or `dida openapi ...` | Prefer official surfaces; current live smokes may need disposable habit/focus records. |
+| Public OAuth REST validation | `dida openapi ...` | Requires saved OAuth client config and access token; MCP tokens do not apply. |
+| Web-app-only metadata | Web API reads | Settings, comments, sharing, calendar, templates, stats, trash, closed history, and search. |
+| Unknown private write flow | No command yet | Document evidence first; do not tunnel writes through raw calls. |
+
 ## Read Context
 
 Prefer the one-call context pack. Use outline mode first when IDs and compact

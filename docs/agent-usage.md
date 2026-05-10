@@ -23,6 +23,20 @@ Use `dida schema show <id> --json` when you need the exact command contract for
 a write or less common resource. The schema command is local, auth-free, and
 lists whether `--dry-run`, `--yes`, or `--compact` applies.
 
+## Channel Choice
+
+Pick the channel by job:
+
+| Job | Prefer | Notes |
+| --- | --- | --- |
+| First account read | `dida agent context --outline --json` | Web API context pack with compact task refs. |
+| Normal task/project/folder/tag/comment work | Web API first-class commands | Broadest coverage, dry-run writes, explicit `--yes` deletes. |
+| Official token-based task/project validation | `dida official ...` | Uses `DIDA365_TOKEN` or saved official token config, not browser cookies. |
+| Habit/focus work | Official MCP or `dida openapi ...` | Prefer official surfaces; live write tests need disposable records. |
+| Public OAuth REST validation | `dida openapi ...` | Requires OpenAPI OAuth access token. |
+| Web-app-only metadata | Web API reads | Settings, sharing, calendar, templates, stats, trash, search, closed history. |
+| Unknown private write flow | No command yet | Document endpoint, payload, response, rollback, and live evidence first. |
+
 ## Context Pack
 
 Prefer the one-call context pack. Use outline mode first when an agent only
@@ -109,7 +123,8 @@ Use `dida sync checkpoint <checkpoint> --json` when an agent needs deletions, or
 ## Official Channels
 
 Use `dida official ...` only for the official MCP channel. It requires
-`DIDA365_TOKEN` and is separate from browser-cookie Web API auth.
+`DIDA365_TOKEN` or saved official token config and is separate from
+browser-cookie Web API auth.
 
 ```bash
 dida official tools --limit 20 --json

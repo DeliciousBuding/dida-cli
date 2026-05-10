@@ -27,7 +27,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Requirement | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Web API channel is explicit | `README.md`, `docs/commands.md`, `docs/api-coverage.md`, `docs/research/api-channel-inventory.md` | done | Private Web API remains drift-prone by design. |
-| Agent channel selection is documented | `docs/research/api-channel-inventory.md` | done | The inventory now includes job-to-channel selection, auth separation rules, and blocker exit criteria. |
+| Agent channel selection is documented | `docs/research/api-channel-inventory.md`, `docs/agent-usage.md`, `skills/dida-cli/SKILL.md` | done | The inventory, agent guide, and repo skill now include job-to-channel selection, auth separation rules, and blocker exit criteria or safe-use notes. |
 | Web API read coverage is documented | `docs/api-coverage.md`, `docs/research/webapi-gap-catalog.md` | partial | Task activity detail still blocked by `need_pro`; task-level attachment and private write flows need more evidence. |
 | Web API commands prefer JSON and compact output | `internal/cli/*`, `docs/commands.md`, `README.md` | done | `agent context --outline` adds task id references plus a deduplicated `taskIndex` for lower-token agent reads; continue adding compact output when new noisy reads are promoted. |
 | Official MCP channel is explicit | `docs/research/official-mcp-tool-crosswalk.md`, `docs/research/official-mcp-vs-webapi.md` | done | Token-based health, tools, project get/data, task get/query/search/undone/filter, habit list/sections, and focus list were live-smoked on 2026-05-10. |
