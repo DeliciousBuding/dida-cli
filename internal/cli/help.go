@@ -58,6 +58,7 @@ Global options:
 func printAuthHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
+  dida auth login --browser [--timeout 180] [--json]
   dida auth login [--json]
   dida auth status [--json]
   dida auth status --verify [--json]
@@ -169,14 +170,14 @@ deduplicated taskIndex.
 func printAuthLoginHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida auth login [--json]
   dida auth login --browser [--timeout 180] [--json]
-
-This prints a browser login guide. Complete Dida365/WeChat/QR login in the browser,
-then import only the resulting cookie named 't' with:
-  dida auth cookie set --token-stdin
+  dida auth login [--json]
 
 With --browser, the CLI opens a visible browser, waits for cookie 't', and saves it automatically.
+
+Without --browser, this prints a manual login guide. Complete Dida365/WeChat/QR login in the browser,
+then import only the resulting cookie named 't' with:
+  dida auth cookie set --token-stdin
 `))
 }
 

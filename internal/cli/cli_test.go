@@ -3,6 +3,7 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -130,6 +131,9 @@ func TestAuthStatusVerifyMissingAuthFailsJSON(t *testing.T) {
 	errPayload := payload["error"].(map[string]any)
 	if errPayload["type"] != "auth" {
 		t.Fatalf("error.type = %v, want auth", errPayload["type"])
+	}
+	if !strings.Contains(fmt.Sprint(errPayload["hint"]), "dida auth login --browser --json") {
+		t.Fatalf("error.hint missing browser login guidance: %v", errPayload["hint"])
 	}
 }
 

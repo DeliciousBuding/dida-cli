@@ -211,7 +211,7 @@ func verifyCookieAuth() map[string]any {
 		return client.FullSync(ctx)
 	})
 	if err != nil {
-		return map[string]any{"ok": false, "message": err.Error(), "hint": "refresh the Dida365 't' cookie with: dida auth login"}
+		return map[string]any{"ok": false, "message": err.Error(), "hint": "refresh the Dida365 't' cookie with: dida auth login --browser --json"}
 	}
 	payload := syncPayloadValue(result)
 	return map[string]any{

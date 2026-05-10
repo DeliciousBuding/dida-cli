@@ -90,6 +90,10 @@ Not complete:
 - Full OAuth browser approval has not been live-verified on the current account.
 - Project/task/focus/habit live calls require a saved OAuth access token.
 - Write smokes require disposable live resources.
+- 2026-05-10 recheck after `v0.1.16`: `openapi doctor --json` still reports
+  saved client config but no OAuth token. The next action remains configuring
+  the developer app redirect URL to `http://127.0.0.1:17890/callback`, then
+  running `dida openapi login --browser --json`.
 
 ## Distribution Audit
 
@@ -142,6 +146,14 @@ Remaining:
 3. Pro account or trace for task activity detail.
 4. Disposable files/tasks/projects for task-level attachment and write-flow smoke tests.
 5. Disposable targets for Official MCP known-id habit/focus reads and habit/focus write smoke.
+
+2026-05-10 recheck:
+
+- Web API cookie auth still verifies successfully.
+- Official MCP still connects, but habit list and a one-year focus range return
+  empty results on the current account.
+- Attachment quota still reports no available daily upload quota, so additional
+  upload smokes need quota reset or a disposable account with available quota.
 
 ## Next Best Actions
 

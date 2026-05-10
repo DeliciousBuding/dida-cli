@@ -9,15 +9,17 @@ Use `--compact` or `--brief` on task-heavy reads when an agent only needs IDs, t
 ```bash
 dida doctor --verify --json
 dida auth login --browser --json
-dida auth login --json
 dida auth cookie set --token-stdin
 dida auth status --verify --json
 dida auth logout --json
 ```
 
 Credentials are stored in `~/.dida-cli/`. Full cookie values are never printed.
-Cookie import through `--token` is disabled by default; use `--token-stdin` so
-the cookie does not enter shell history.
+Prefer `dida auth login --browser --json` for normal setup. `dida auth login
+--json` remains a manual fallback that prints the login URL and then expects
+cookie import through `dida auth cookie set --token-stdin`. Cookie import
+through `--token` is disabled by default; use `--token-stdin` so the cookie does
+not enter shell history.
 
 ## Schema
 
