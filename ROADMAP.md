@@ -62,12 +62,12 @@ As of the current main branch:
   - Web API gap catalog
   - MCP tool crosswalk
 - distribution is live:
-  - `v0.1.14` GitHub Release exists
+  - `v0.1.15` GitHub Release exists
   - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the latest `v0.1.14` release asset on Windows
-  - installed `v0.1.14` binary has smoke-tested `openapi client set/status/clear`
-  - `install.sh` has been smoke-tested against the latest `v0.1.14` release asset on Linux/amd64
-  - npm installer skeleton has been smoke-tested against `v0.1.14` on Windows
+  - `install.ps1` has been smoke-tested against the latest `v0.1.15` release asset on Windows
+  - installed `v0.1.15` binary has smoke-tested `openapi client set/status/clear`
+  - `install.sh` has been smoke-tested against the latest `v0.1.15` release asset on Linux/amd64
+  - npm installer skeleton has been smoke-tested against `v0.1.15` on Windows
     and WSL Linux
   - package manager templates exist under `packaging/` for Homebrew and Scoop;
     winget is documented as a future submission
@@ -395,7 +395,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.1.14`; release workflow uses Node 24-compatible action major versions.
+Status: implemented and smoke-tested through `v0.1.15`; release workflow uses Node 24-compatible action major versions.
 
 ### F2. Install Scripts
 
@@ -407,9 +407,10 @@ Status: implemented and smoke-tested through `v0.1.14`; release workflow uses No
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; Windows `install.ps1` and WSL Linux `install.sh` latest
-smokes passed against `v0.1.14`. The installed-binary OpenAPI client config
-smoke passed against `v0.1.14`.
+Status: implemented; Windows `install.ps1` latest smoke passed against
+`v0.1.15`, and WSL Linux `install.sh` latest smoke passed against
+`v0.1.15`. The installed-binary OpenAPI client config
+smoke passed against `v0.1.15`.
 
 ### F3. npm Installer
 
@@ -418,7 +419,7 @@ smoke passed against `v0.1.14`.
 - postinstall downloads matching GitHub Release binary
 - `bin/dida` forwards to the downloaded binary
 
-Status: skeleton smoke-tested on Windows and WSL Linux against `v0.1.14`; do
+Status: skeleton smoke-tested on Windows and WSL Linux against `v0.1.15`; do
 not publish until package ownership, final npm scope, macOS smoke, and
 publishing policy are confirmed.
 
@@ -429,7 +430,7 @@ publishing policy are confirmed.
 - both should reference GitHub Release assets and checksums
 
 Status: templates added under `packaging/`; not published to an external tap or
-bucket yet. Static URL/hash validation against `v0.1.14/checksums.txt` passed
+bucket yet. Static URL/hash validation against `v0.1.15/checksums.txt` passed
 for Homebrew and Scoop templates; native package-manager install smoke remains
 pending.
 
