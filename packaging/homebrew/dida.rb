@@ -25,7 +25,10 @@ class Dida < Formula
   end
 
   def install
-    bin.install "dida"
+    binary = Dir["**/dida"].find { |path| File.file?(path) }
+    odie "dida binary not found in release archive" unless binary
+
+    bin.install binary => "dida"
   end
 
   test do

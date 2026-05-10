@@ -112,6 +112,9 @@ Implemented:
   pinned to `v0.1.15` release assets and checksums.
 - Homebrew and Scoop template URL/hash static validation passed against the
   `v0.1.15` release `checksums.txt` for all six release assets.
+- Homebrew formula install path logic was checked against the release archive
+  layout: assets unpack under a top-level `dida_v..._<os>_<arch>/` directory,
+  so the formula locates the nested `dida` binary before `bin.install`.
 - winget submission notes exist under `packaging/winget/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.

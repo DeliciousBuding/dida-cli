@@ -112,7 +112,8 @@ toolchain and may not match packaged release behavior.
 live outside this repository:
 
 - `packaging/homebrew/dida.rb` pins `v0.1.15` macOS and Linux release archives
-  with checksums.
+  with checksums. The formula installs the binary from the release archive's
+  top-level platform directory.
 - `packaging/scoop/dida.json` pins `v0.1.15` Windows amd64 and arm64 release
   archives with checksums.
 - `packaging/winget/README.md` records the future winget submission boundary
@@ -120,8 +121,10 @@ live outside this repository:
 
 Static validation on Windows confirmed the Homebrew and Scoop template URLs
 and SHA-256 hashes match the `v0.1.15` release `checksums.txt` for all six
-release assets. Native `brew`/`scoop` install smoke is still pending because
-those package managers are not available in the current environment.
+release assets. A release archive listing check confirmed the Homebrew formula
+must install from the nested `dida_v.../dida` path. Native `brew`/`scoop`
+install smoke is still pending because those package managers are not available
+in the current environment.
 `winget` is available, but `wingetcreate` is not installed, so winget manifest
 generation and local validation remain deferred.
 
