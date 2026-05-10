@@ -112,6 +112,8 @@ dida task delete <task-id> --project <project-id> --yes --json
 - Do not use Web API cookies as official OpenAPI tokens.
 - If Official MCP auth is missing, ask the user to run `dida official token set --token-stdin --json` locally.
 - If OpenAPI client config is missing, ask the user to run `dida openapi client set --id <client-id> --secret-stdin --json` locally.
+- Do not create live disposable habits just to test Official MCP/OpenAPI habit
+  writes unless the user has approved a cleanup or archive procedure.
 - Do not run destructive commands without `--yes`.
 - Do not use raw probes for writes; DidaCLI intentionally supports only raw
   read probes.

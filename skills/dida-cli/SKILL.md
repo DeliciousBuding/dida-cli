@@ -216,9 +216,11 @@ dida openapi client set --id <client-id> --secret-stdin --json
 ```
 
 Preview official habit writes and focus deletes with `--dry-run` first. Do not
-delete focus records unless the operator has identified a disposable record;
-live `dida official focus delete` and `dida openapi focus delete` require
-`--yes`.
+create live disposable habits only to validate the wrapper unless the operator
+has approved a cleanup or archive procedure; the official MCP surface exposes
+habit create/update/check-in but no habit delete tool. Do not delete focus
+records unless the operator has identified a disposable record; live
+`dida official focus delete` and `dida openapi focus delete` require `--yes`.
 
 ## Account Metadata
 
