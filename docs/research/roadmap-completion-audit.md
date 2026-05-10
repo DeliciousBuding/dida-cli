@@ -100,6 +100,8 @@ Implemented:
 - `checksums.txt` is attached.
 - Windows installer latest smoke passed against `v0.1.16`.
 - WSL Linux installer latest smoke passed against `v0.1.16`.
+- The global PATH `dida` binary was upgraded through the latest installer to
+  `v0.1.16` and smoke-tested outside the repository.
 - Linux/amd64 `install.sh` smoke passed against `v0.1.16` under WSL.
 - Installed `v0.1.16` binary smoke passed for `version`, `doctor --json`, and
   `openapi client set/status/clear`.

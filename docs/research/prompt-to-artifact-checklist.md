@@ -77,6 +77,9 @@ Recently run successfully:
   `official task complete-project`, followed by Web API `task delete` cleanup
 - Windows `install.ps1` latest smoke against `v0.1.16`
 - WSL Linux `install.sh` latest smoke against `v0.1.16`
+- Global PATH `dida` upgraded through `install.ps1` latest to `v0.1.16`;
+  repository-external smokes passed for `version`, `schema show official.call`,
+  `openapi doctor`, and Web API `task list`
 - Windows npm installer smoke against `v0.1.16`
 - WSL Linux npm installer smoke against `v0.1.16`
 - Windows npm latest smoke against `v0.1.16` using release
