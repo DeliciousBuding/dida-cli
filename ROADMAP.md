@@ -153,9 +153,12 @@ Current evidence:
   `docs/research/webapi-attachment-flow-notes.md`
 - `comment create --file <path>` is implemented and covered by schema, docs,
   dry-run tests, multipart request-shape tests, and reversible live evidence
-- the CLI checks attachment quota before upload; the current observed account
-  later reached `underQuota=false`, so future live upload smokes need available
-  attachment quota
+- 2026-05-10 repeat smoke verified the comment attachment path with an
+  available quota, a 1x1 PNG, read-back through `comment list`, comment delete,
+  and disposable task cleanup
+- the CLI checks attachment quota before upload; future live upload smokes need
+  available attachment quota and should use a known-supported file type such as
+  PNG unless testing the file matrix explicitly
 - task-level upload and render/download path shapes are now bundle-mapped:
   `/api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` and
   `/api/v1/attachment/{projectId}/{taskId}/{attachmentId}` with optional

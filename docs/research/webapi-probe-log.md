@@ -23,7 +23,7 @@ payload dumps, or local browser exports here.
 | Trash pagination | `GET /project/all/trash/page?from={cursor}` | working | Live-smoked on 2026-05-10. First page returns `next=20`; `from=20` returns the next page and `next=40`. `type=task` returned HTTP 500 and should not be sent. |
 | Search | Web indexed search endpoint | working | Compact mode avoids large content blobs by default. |
 | Attachment quota | legacy v1 attachment quota endpoints | working | 2026-05-10 live read returned `underQuota=true` and a numeric daily limit. |
-| Comment attachment upload | `POST /api/v1/attachment/upload/comment/{projectId}/{taskId}` | working | 2026-05-10 reversible live probe confirmed multipart field `file`, successful PNG response keys, comment `attachments: [{id}]`, read-back through `comment list`, and cleanup. |
+| Comment attachment upload | `POST /api/v1/attachment/upload/comment/{projectId}/{taskId}` | working | 2026-05-10 reversible live probes confirmed multipart field `file`, successful PNG response keys, comment `attachments: [{id}]`, read-back through `comment list`, and cleanup. A repeat smoke with a 1x1 PNG created a disposable task, created a comment with one attachment, read it back, then deleted both the comment and task. |
 
 ## Failed Or Incomplete Probes
 

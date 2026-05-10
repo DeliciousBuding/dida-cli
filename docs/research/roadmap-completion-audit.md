@@ -34,7 +34,9 @@ Not complete:
 
 - Task activity detail is blocked by `need_pro` on the current account.
 - Comment attachment upload/create is implemented through
-  `comment create --file <path>` after reversible live evidence. Task-level
+  `comment create --file <path>` after reversible live evidence, including a
+  2026-05-10 repeat smoke with a 1x1 PNG, read-back, comment delete, and
+  disposable task cleanup. Task-level
   upload plus render/download path shapes are bundle-mapped, but task-level
   association/persistence, file limits, and orphan cleanup still need a
   reversible trace.
