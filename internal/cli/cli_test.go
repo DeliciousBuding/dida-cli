@@ -1464,3 +1464,31 @@ func TestOpenAPIDryRunDoesNotRequireToken(t *testing.T) {
 		t.Fatalf("payload = %#v", payload)
 	}
 }
+
+func TestHighTrafficSubcommandHelpDoesNotValidateFlags(t *testing.T) {
+	cases := []struct {
+		name string
+		args []string
+		want string
+	}{
+		{name: "task create", args: []string{"task", "create", "--help"}, want: "dida task create --project"},
+		{name: "task delete", args: []string{"task", "delete", "--help"}, want: "dida task delete <task-id>"},
+		{name: "comment create", args: []string{"comment", "create", "--help"}, want: "dida comment create --project"},
+		{name: "comment delete", args: []string{"comment", "delete", "--help"}, want: "dida comment delete --project"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(tc.args, "test-version", &stdout, &stderr)
+			if code != 0 {
+				t.Fatalf("Run() code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want empty", stderr.String())
+			}
+			if !strings.Contains(stdout.String(), tc.want) {
+				t.Fatalf("stdout missing %q: %s", tc.want, stdout.String())
+			}
+		})
+	}
+}

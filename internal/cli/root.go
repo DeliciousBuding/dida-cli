@@ -96,3 +96,12 @@ func consumeJSONFlag(args []string) (bool, []string) {
 	}
 	return jsonOut, out
 }
+
+func hasHelpFlag(args []string) bool {
+	for _, arg := range args {
+		if arg == "-h" || arg == "--help" {
+			return true
+		}
+	}
+	return false
+}
