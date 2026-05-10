@@ -204,7 +204,7 @@ func TestOpenAPILoginBrowserOpenFailureReturnsAuthorizationURL(t *testing.T) {
 	defer func() { openBrowser = original }()
 
 	var stdout, stderr bytes.Buffer
-	code := Run([]string{"openapi", "login", "--json", "--timeout", "1"}, "test-version", &stdout, &stderr)
+	code := Run([]string{"openapi", "login", "--json", "--timeout", "1", "--port", "17999"}, "test-version", &stdout, &stderr)
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
 	}
@@ -228,6 +228,28 @@ func TestOpenAPILoginBrowserOpenFailureReturnsAuthorizationURL(t *testing.T) {
 	}
 	if !strings.Contains(fmt.Sprint(errPayload["hint"]), "authorization_url") {
 		t.Fatalf("error.hint missing manual auth URL guidance: %v", errPayload["hint"])
+	}
+}
+
+func TestOpenAPILoginNoOpenPrintsManualURLGuidance(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "client-id")
+	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "client-secret")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "login", "--no-open", "--timeout", "1", "--port", "17998"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	text := stdout.String()
+	for _, want := range []string{
+		"Listening for OAuth callback on 127.0.0.1:17998",
+		"Open this URL in a browser and finish authorization:",
+		"https://dida365.com/oauth/authorize?",
+		"After authorization, keep this terminal open until the callback is received.",
+	} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("stdout missing %q: %s", want, text)
+		}
 	}
 }
 

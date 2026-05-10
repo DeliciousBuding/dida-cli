@@ -266,8 +266,14 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		}
 	}
 	if !jsonOut {
-		fmt.Fprintln(stdout, "Open this URL in a browser and finish authorization:")
+		fmt.Fprintf(stdout, "Listening for OAuth callback on %s\n", addr)
+		if noOpen {
+			fmt.Fprintln(stdout, "Open this URL in a browser and finish authorization:")
+		} else {
+			fmt.Fprintln(stdout, "Browser launch was requested. If no window appears, open this URL manually:")
+		}
 		fmt.Fprintln(stdout, authURL)
+		fmt.Fprintln(stdout, "After authorization, keep this terminal open until the callback is received.")
 	}
 	select {
 	case result := <-codeCh:
@@ -1390,9 +1396,9 @@ func openBrowserURL(target string) error {
 	switch runtime.GOOS {
 	case "windows":
 		commands := []*exec.Cmd{
-			exec.Command("cmd", "/c", "start", "", target),
-			exec.Command("rundll32", "url.dll,FileProtocolHandler", target),
 			exec.Command("powershell", "-NoProfile", "-Command", "Start-Process", target),
+			exec.Command("rundll32", "url.dll,FileProtocolHandler", target),
+			exec.Command("cmd", "/c", "start", "", "\""+target+"\""),
 		}
 		var errs []string
 		for _, cmd := range commands {
