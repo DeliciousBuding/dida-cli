@@ -77,6 +77,7 @@ Recently run successfully:
   `official task complete-project`, followed by Web API `task delete` cleanup
 - Windows `install.ps1` latest smoke against `v0.1.16`
 - WSL Linux `install.sh` latest smoke against `v0.1.16`
+- Windows and WSL Linux pinned `DIDA_VERSION=v0.1.16` install smoke passed
 - Global PATH `dida` upgraded through `install.ps1` latest to `v0.1.16`;
   repository-external smokes passed for `version`, `schema show official.call`,
   `openapi doctor`, and Web API `task list`

@@ -100,6 +100,7 @@ Implemented:
 - `checksums.txt` is attached.
 - Windows installer latest smoke passed against `v0.1.16`.
 - WSL Linux installer latest smoke passed against `v0.1.16`.
+- Pinned `DIDA_VERSION=v0.1.16` install smoke passed on Windows and WSL Linux.
 - The global PATH `dida` binary was upgraded through the latest installer to
   `v0.1.16` and smoke-tested outside the repository.
 - Linux/amd64 `install.sh` smoke passed against `v0.1.16` under WSL.
