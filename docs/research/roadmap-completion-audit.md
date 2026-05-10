@@ -88,11 +88,16 @@ Implemented and documented:
   received a real callback, `openapi exchange-code` saved an OAuth token, and
   `dida openapi status --json` plus `dida openapi project list --json`
   succeeded against the current account.
+- 2026-05-10 follow-up live read smokes succeeded for `openapi project get`,
+  `openapi project data`, project-scoped `openapi task get`, bounded
+  `openapi task filter`, bounded `openapi task completed`, bounded
+  `openapi focus list` for type 0 and type 1, and `openapi habit list`.
+  Private task and project payloads were not committed.
 
 Not complete:
 
-- `project get/data`, task reads, focus reads, and habit reads still need final
-  live smoke against the saved OAuth token.
+- Known-id OpenAPI `habit get` and `focus get` remain blocked by current
+  account state: `habit list` and bounded focus ranges returned empty lists.
 - OpenAPI write smokes still need disposable live resources.
 
 ## Distribution Audit
@@ -151,15 +156,16 @@ Remaining:
 - Web API cookie auth still verifies successfully.
 - Official MCP still connects, but habit list and a one-year focus range return
   empty results on the current account.
-- OpenAPI OAuth token is now saved locally and `openapi project list --json`
-  succeeds on the current account.
+- OpenAPI OAuth token is now saved locally. Project list/get/data, task
+  get/filter/completed, focus list, and habit list read smokes succeeded on the
+  current account.
 - Attachment quota still reports no available daily upload quota, so additional
   upload smokes need quota reset or a disposable account with available quota.
 
 ## Next Best Actions
 
-1. Live-smoke OpenAPI `project get/data`, then bounded task/focus/habit reads
-   with the saved OAuth token.
+1. Create disposable OpenAPI task/project/habit/focus targets and live-smoke
+   write paths with cleanup.
 2. Live-smoke remaining Official MCP read filters with narrow queries, then
    writes only with disposable targets.
 3. Capture task-level Web API attachment download/preview and association flows.

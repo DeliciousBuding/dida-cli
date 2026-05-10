@@ -58,16 +58,16 @@ They are intentionally not interchangeable.
 | Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | live-verified | 2026-05-10 real callback code exchange saved a bearer token locally. |
 | Interactive login | OAuth URL + listener + token exchange | `openapi login` | live-verified | OAuth browser approval, callback handling, and token persistence are now proven on the current account. |
 | Project list | `GET /open/v1/project` | `openapi project list` | live-verified | 2026-05-10 live smoke succeeded and returned six projects from the current account. |
-| Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | implemented | Requires saved OAuth access token for final live smoke. |
-| Task CRUD | `/open/v1/task...` | `openapi task get/create/update/complete/delete/move` | implemented | Requires saved OAuth access token and disposable live task for write smoke. |
-| Task query | `/open/v1/task/completed`, `/open/v1/task/filter` | `openapi task completed/filter` | implemented | Requires saved OAuth access token for read smoke. |
-| Focus | `/open/v1/focus...` | `openapi focus get/list/delete` | implemented | Requires saved OAuth access token for read smoke; delete only a disposable record. |
-| Habit | `/open/v1/habit...` | `openapi habit list/get/create/update/checkin/checkins` | implemented | Requires saved OAuth access token; writes need disposable habit/check-in data. |
+| Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | live-verified | 2026-05-10 live smoke succeeded against a project discovered through `openapi project list`; private project data was not committed. |
+| Task CRUD | `/open/v1/task...` | `openapi task get/create/update/complete/delete/move` | partially live-verified | 2026-05-10 project-scoped `task get` succeeded. Write commands require disposable live tasks before final smoke. |
+| Task query | `/open/v1/task/completed`, `/open/v1/task/filter` | `openapi task completed/filter` | live-verified | 2026-05-10 bounded `completed` and `filter` reads succeeded with count-only evidence recorded. |
+| Focus | `/open/v1/focus...` | `openapi focus get/list/delete` | partially live-verified | 2026-05-10 bounded `focus list` succeeded for type 0 and type 1, returning empty lists. Known-id `get` and `delete` need disposable focus records. |
+| Habit | `/open/v1/habit...` | `openapi habit list/get/create/update/checkin/checkins` | partially live-verified | 2026-05-10 `habit list` succeeded and returned an empty list. Known-id reads and writes need disposable habit data. |
 
 ## Current Priority
 
-1. Live-smoke remaining OpenAPI `project get/data`, `task`, `focus`, and `habit` reads with the saved OAuth token.
-2. Create or identify disposable MCP habit/focus records before known-id read
+1. Create or identify disposable MCP and OpenAPI habit/focus records before known-id read
    or destructive smoke tests.
-3. Live-smoke remaining MCP habit/focus writes only after disposable targets exist.
-4. Live-smoke OpenAPI writes only on disposable projects, tasks, habits, or focus records.
+2. Live-smoke remaining MCP habit/focus writes only after disposable targets exist.
+3. Live-smoke OpenAPI writes only on disposable projects, tasks, habits, or focus records.
+4. Keep count-only or schema-only evidence in tracked docs; keep private payloads local.
