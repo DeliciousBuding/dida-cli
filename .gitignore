@@ -2,6 +2,7 @@
 /dist/
 coverage.out
 *.exe
+npm/bin/dida-bin
 
 .env
 .env.*
