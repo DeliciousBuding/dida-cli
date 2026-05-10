@@ -76,6 +76,8 @@ Known status:
 - 2026-05-10 raw CLI probes against a real task returned HTTP 500 with
   `errorCode=need_pro` in the body snippet for the no-query form, `skip=0`, and
   `skip=0&lastId=`
+- a later 2026-05-10 repeat probe against another active task still returned
+  HTTP 500 with `errorCode=need_pro`
 
 Current implication:
 
