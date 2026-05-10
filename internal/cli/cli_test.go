@@ -782,6 +782,20 @@ func TestBuildAgentContextOutlineDeduplicatesTasks(t *testing.T) {
 	}
 }
 
+func TestAgentContextHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"agent", "context", "--help"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty", stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "--outline") {
+		t.Fatalf("help missing --outline: %s", stdout.String())
+	}
+}
+
 func TestResourceCreateDryRunJSON(t *testing.T) {
 	cases := [][]string{
 		{"project", "create", "--name", "Smoke", "--dry-run", "--json"},

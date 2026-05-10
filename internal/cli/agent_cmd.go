@@ -54,6 +54,10 @@ func runAgent(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) i
 }
 
 func runAgentContext(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help") {
+		printAgentHelp(stdout)
+		return 0
+	}
 	opts, err := parseAgentContextFlags(args)
 	if err != nil {
 		return failTyped("agent context", "validation", err.Error(), "run: dida agent --help", jsonOut, stdout, stderr)
