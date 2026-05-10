@@ -1,18 +1,18 @@
 {
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Agent-first CLI for Dida365 and TickTick.",
   "homepage": "https://github.com/DeliciousBuding/dida-cli",
   "license": "MIT",
   "architecture": {
     "64bit": {
-      "url": "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.13/dida_v0.1.13_windows_amd64.zip",
-      "hash": "6f210958ac47b6e4c18bc23fcb511604f4bbe2d6583adecf23dcc1736d6c627f",
-      "extract_dir": "dida_v0.1.13_windows_amd64"
+      "url": "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.14/dida_v0.1.14_windows_amd64.zip",
+      "hash": "3cfd4587eea407ee700c3857a4215c7a5d7fd4bc9091bf20a1cfdcc1f17f04e6",
+      "extract_dir": "dida_v0.1.14_windows_amd64"
     },
     "arm64": {
-      "url": "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.13/dida_v0.1.13_windows_arm64.zip",
-      "hash": "bba89a89aa82bb951fa403bbb9817ba0cc95bb622b2fcbb96be34e790178597f",
-      "extract_dir": "dida_v0.1.13_windows_arm64"
+      "url": "https://github.com/DeliciousBuding/dida-cli/releases/download/v0.1.14/dida_v0.1.14_windows_arm64.zip",
+      "hash": "dc062338e227a723fe7ea4c5133d45535af31d2d1e27df93d8ff22cb21f7372f",
+      "extract_dir": "dida_v0.1.14_windows_arm64"
     }
   },
   "bin": "dida.exe",
