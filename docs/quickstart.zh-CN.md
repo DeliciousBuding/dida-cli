@@ -119,6 +119,9 @@ dida openapi habit checkin <habit-id> --args-json '{"stamp":20260407,"value":1}'
 也可以继续使用 `DIDA365_OPENAPI_CLIENT_ID` 和
 `DIDA365_OPENAPI_CLIENT_SECRET`；环境变量优先于本地保存的 client 配置。
 
+如果你需要一份从开发者后台配置到本地回调的完整操作说明，见
+[openapi-setup.zh-CN.md](openapi-setup.zh-CN.md)。
+
 ## 常用读取
 
 ```bash

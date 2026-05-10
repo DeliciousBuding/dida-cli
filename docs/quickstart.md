@@ -126,6 +126,9 @@ You may also use `DIDA365_OPENAPI_CLIENT_ID` and
 `DIDA365_OPENAPI_CLIENT_SECRET`; environment variables take precedence over the
 saved client config.
 
+For the full operator setup path, including where to register the redirect URL
+and how to run the manual callback flow, see [openapi-setup.md](openapi-setup.md).
+
 ## Common Reads
 
 ```bash

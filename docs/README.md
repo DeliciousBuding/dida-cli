@@ -8,6 +8,8 @@ This directory is the maintained documentation entrypoint for DidaCLI.
 | --- | --- | --- |
 | Users | [quickstart.md](quickstart.md) | Install, verify, authenticate, and run common commands. |
 | Chinese users | [quickstart.zh-CN.md](quickstart.zh-CN.md) | 中文快速开始。 |
+| OpenAPI operators | [openapi-setup.md](openapi-setup.md) | Configure `client_id`, `client_secret`, redirect URL, and OAuth login. |
+| 中文 OpenAPI 配置 | [openapi-setup.zh-CN.md](openapi-setup.zh-CN.md) | 官方 OpenAPI 设置与回调指南。 |
 | LLM / Agent operators | [llm-quickstart.md](llm-quickstart.md) | Short JSON-first command path for agents. |
 | Contributors | [commands.md](commands.md) | Command reference and safety rules. |
 | Maintainers | [distribution.md](distribution.md) | Release and package-manager distribution plan. |
@@ -20,7 +22,7 @@ DidaCLI intentionally keeps three channels separate:
 | --- | --- | --- | --- |
 | Web API | Browser cookie `t` | Broadest Dida365 account coverage | Primary working channel. |
 | Official MCP | `DIDA365_TOKEN` or saved local token config | Official task/project/habit/focus tools | Token-based reads and task writes are live-smoked; habit/focus known-id writes need disposable targets. |
-| Official OpenAPI | OAuth access token | Official REST project/task/focus/habit endpoints | Implemented locally; live resource calls need completed browser OAuth. |
+| Official OpenAPI | OAuth access token | Official REST project/task/focus/habit endpoints | OAuth login and `project list` are live-verified; more resource families still need full live smoke. |
 
 ## Coverage And Evidence
 

@@ -117,6 +117,7 @@ go build -o bin/dida ./cmd/dida
 Full guides:
 
 - [Quickstart](docs/quickstart.md)
+- [OpenAPI Setup](docs/openapi-setup.md)
 - [LLM / Agent Quickstart](docs/llm-quickstart.md)
 - [Documentation Index](docs/README.md)
 - [Distribution](docs/distribution.md)

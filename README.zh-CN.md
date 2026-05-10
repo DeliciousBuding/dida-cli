@@ -115,6 +115,7 @@ go build -o bin/dida ./cmd/dida
 完整文档：
 
 - [快速开始](docs/quickstart.zh-CN.md)
+- [OpenAPI 设置指南](docs/openapi-setup.zh-CN.md)
 - [LLM / Agent Quickstart](docs/llm-quickstart.md)
 - [文档索引](docs/README.md)
 - [分发说明](docs/distribution.md)
