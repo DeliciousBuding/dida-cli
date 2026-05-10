@@ -32,7 +32,7 @@ Observed auth flow:
 
 Important implication for DidaCLI:
 
-- this channel should be treated as a future OAuth-based third channel
+- this channel is the OAuth-based third channel for documented REST resources
 - it should not be modeled as a drop-in replacement for Web API cookie auth
 - it should not be conflated with the official MCP `DIDA365_TOKEN=dp_...` flow
 
@@ -195,7 +195,7 @@ does not give us the broader surface we already rely on for:
 - raw search across multiple resource types
 - closed history and many web-only operational views
 
-So even if OAuth support is added later, the official OpenAPI still should not
+So even with OAuth support in DidaCLI, the official OpenAPI still should not
 replace the Web API as the broadest coverage channel.
 
 ## Practical DidaCLI Direction
@@ -204,7 +204,7 @@ The most defensible architecture remains:
 
 1. Web API first for breadth of coverage
 2. Official MCP as the clean token-based official channel
-3. Official OpenAPI as a future OAuth-based channel for selected resources
+3. Official OpenAPI as the documented OAuth REST channel for selected resources
 
 The current first-class official OpenAPI command surface covers:
 
