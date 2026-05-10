@@ -38,6 +38,7 @@ Commands:
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
   schema       List machine-readable command contracts
+  channel      Explain API channel selection and auth boundaries
   project      Project discovery and CRUD
   folder       Project folder CRUD
   tag          Tag discovery and CRUD
@@ -450,6 +451,16 @@ Usage:
 
 Schema output is local and does not require auth. Use it to discover command
 contracts, safety flags, endpoint coverage, and compact-output support.
+`))
+}
+
+func printChannelHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida channel list [--json]
+
+Channel output is local and does not require auth. Use it to choose between
+Web API, Official MCP, and Official OpenAPI without mixing auth models.
 `))
 }
 

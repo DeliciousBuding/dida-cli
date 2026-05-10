@@ -81,6 +81,7 @@ dida auth login --browser --json
 dida doctor --verify --json
 dida agent context --outline --json
 dida schema list --json
+dida channel list --json
 ```
 
 ### Official Channels
@@ -142,6 +143,7 @@ dida openapi project create --args-json '{"name":"Project","viewMode":"list","ki
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi habit list --json
 dida schema list --json
+dida channel list --json
 dida agent context --json
 dida auth status --verify --json
 dida sync all --json
@@ -188,6 +190,7 @@ Recommended first-pass context:
 ```bash
 dida doctor --json
 dida schema list --json
+dida channel list --json
 dida agent context --json
 dida auth status --verify --json
 ```

@@ -74,6 +74,7 @@ deduplicated `taskIndex`.
 dida schema list --json
 dida schema show task.create --json
 dida schema show openapi.login --json
+dida channel list --json
 ```
 
 Inspect schema before generated writes. It tells agents which commands support

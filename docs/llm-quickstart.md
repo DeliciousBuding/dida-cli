@@ -9,6 +9,7 @@ chat.
 ```bash
 dida doctor --json
 dida schema list --json
+dida channel list --json
 dida agent context --outline --json
 ```
 

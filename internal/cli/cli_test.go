@@ -66,6 +66,30 @@ func TestDoctorVerifyMissingAuthIncludesDiagnosticData(t *testing.T) {
 	}
 }
 
+func TestChannelListJSONDoesNotRequireAuth(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"channel", "list", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "channel list" {
+		t.Fatalf("command = %v, want channel list", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	channels := data["channels"].([]any)
+	if len(channels) != 3 {
+		t.Fatalf("channels len = %d, want 3", len(channels))
+	}
+	if !strings.Contains(stdout.String(), "official-openapi") {
+		t.Fatalf("channel list missing official-openapi: %s", stdout.String())
+	}
+}
+
 func TestJSONFlagWithoutCommandReturnsError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"--json"}, "test-version", &stdout, &stderr)

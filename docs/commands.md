@@ -28,12 +28,15 @@ dida schema list --json
 dida schema show task.create --json
 dida schema show column.create --json
 dida schema show openapi.login --json
+dida channel list --json
 ```
 
 Schema output is local and does not require auth. It exposes command IDs,
 command strings, status, auth requirements, Web API endpoints, `--dry-run`
 support, destructive confirmation requirements, and compact-output support for
 agents that need to choose the safest command without reading the full README.
+Channel output is also local and explains when to use Web API, Official MCP, or
+Official OpenAPI without mixing auth models.
 
 ## Agent Context
 
