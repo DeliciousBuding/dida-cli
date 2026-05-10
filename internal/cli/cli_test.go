@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -1541,6 +1542,27 @@ func TestDryRunSchemasAdvertiseDryRunFlag(t *testing.T) {
 		}
 		if !strings.Contains(schema.Command, "--dry-run") {
 			t.Fatalf("schema %s is dry-run capable but command omits --dry-run: %s", schema.ID, schema.Command)
+		}
+	}
+}
+
+func TestCommandReferenceMentionsSchemaCommands(t *testing.T) {
+	path := filepath.Join("..", "..", "docs", "commands.md")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	text := string(data)
+	for _, schema := range didaCommandSchemas() {
+		prefix := schema.Command
+		if idx := strings.Index(prefix, " <"); idx >= 0 {
+			prefix = prefix[:idx]
+		}
+		if idx := strings.Index(prefix, " --"); idx >= 0 {
+			prefix = prefix[:idx]
+		}
+		if !strings.Contains(text, prefix) {
+			t.Fatalf("docs/commands.md does not mention schema %s command prefix %q", schema.ID, prefix)
 		}
 	}
 }

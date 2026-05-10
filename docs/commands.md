@@ -59,6 +59,7 @@ dida project list --json
 dida official doctor --json
 dida official token status --json
 dida official token set --token-stdin --json
+dida official token clear --json
 dida official tools --limit 20 --json
 dida official show list_projects --json
 dida official call list_projects --json
@@ -79,6 +80,8 @@ dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --dry-run --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 dida openapi doctor --json
+dida openapi status --json
+dida openapi logout --json
 dida openapi client status --json
 dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi auth-url --json
@@ -321,6 +324,8 @@ batch commands support local `--dry-run` previews without a token; remove
 dida openapi client status --json
 dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi client clear --json
+dida openapi status --json
+dida openapi logout --json
 
 dida openapi focus get <focus-id> --type 0 --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
@@ -377,6 +382,7 @@ dida sync checkpoint <checkpoint> --json
 ## Raw Read-Only Probe
 
 ```bash
+dida raw get /path --api-version v1|v2 --json
 dida raw get /batch/check/0 --json
 dida raw get /user/preferences/settings --json
 dida raw get /attachment/isUnderQuota --api-version v1 --json
