@@ -68,13 +68,16 @@ dida agent context --outline --json
 ## Schema 发现
 
 ```bash
+dida schema list --compact --json
 dida schema list --json
 dida schema show task.create --json
 dida schema show openapi.login --json
 dida channel list --json
 ```
 
-生成写操作前先查 schema。它会告诉 Agent 哪些命令支持 `--dry-run`、`--yes` 和紧凑输出。
+生成写操作前先查 compact schema。它会告诉 Agent 哪些命令支持
+`--dry-run`、`--yes` 和紧凑输出。需要完整细节时再用 `schema show`；
+需要带 HTTP surface 和 notes 的完整本地索引时用 `schema list --json`。
 
 ## 官方 MCP
 
@@ -154,5 +157,5 @@ dida task delete <task-id> --project <project-id> --yes --json
 ## Agent 提示
 
 本节面向 LLM/Agent 使用。优先使用 JSON 输出；写操作前先查
-`dida schema list --json`；生成的写入先跑 `--dry-run`；不要要求用户把
+`dida schema list --compact --json`；生成的写入先跑 `--dry-run`；不要要求用户把
 cookie 或 token 发到聊天里。

@@ -446,11 +446,12 @@ Only GET is supported for raw calls.
 func printSchemaHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida schema list [--json]
+  dida schema list [--compact|--brief] [--json]
   dida schema show <schema-id> [--json]
 
 Schema output is local and does not require auth. Use it to discover command
 contracts, safety flags, endpoint coverage, and compact-output support.
+Use --compact for a lower-token command index, then schema show for details.
 `))
 }
 

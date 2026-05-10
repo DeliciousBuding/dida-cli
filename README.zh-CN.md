@@ -79,7 +79,7 @@ dida doctor --json
 dida auth login --browser --json
 dida doctor --verify --json
 dida agent context --outline --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 ```
 
@@ -98,7 +98,7 @@ Web API、官方 MCP、官方 OpenAPI 是三套不同认证通道，不要混用
 ### Agent 提示
 
 本节面向 LLM/Agent 使用。优先使用 JSON 输出；写操作前先查
-`dida schema list --json`；生成的写入先跑 `--dry-run`；不要要求用户把
+`dida schema list --compact --json`；生成的写入先跑 `--dry-run`；不要要求用户把
 cookie 或 token 发到聊天里。
 
 ### 从源码安装
@@ -140,7 +140,7 @@ dida openapi project list --json
 dida openapi project create --args-json '{"name":"Project","viewMode":"list","kind":"TASK"}' --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi habit list --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --json
 dida auth status --verify --json
@@ -182,7 +182,7 @@ dida tag create planning --dry-run --json
 
 ```bash
 dida doctor --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --json
 dida auth status --verify --json

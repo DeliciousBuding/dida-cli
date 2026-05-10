@@ -6,7 +6,7 @@ Use this guide when DidaCLI is called from Hermes, Codex, Claude Code, or anothe
 
 ```bash
 dida doctor --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --outline --json
 dida auth status --verify --json

@@ -80,7 +80,7 @@ Optional installer environment variables:
 dida auth login --browser --json
 dida doctor --verify --json
 dida agent context --outline --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 ```
 
@@ -100,7 +100,7 @@ reuse cookies or tokens across channels.
 ### Agent Note
 
 This section is optimized for LLM/Agent operators. Prefer JSON commands,
-inspect `dida schema list --json` before writes, preview generated writes with
+inspect `dida schema list --compact --json` before writes, preview generated writes with
 `--dry-run`, and never ask the user to paste cookies or tokens into chat.
 
 ### Install From Source
@@ -142,7 +142,7 @@ dida openapi project list --json
 dida openapi project create --args-json '{"name":"Project","viewMode":"list","kind":"TASK"}' --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi habit list --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --json
 dida auth status --verify --json
@@ -189,7 +189,7 @@ Recommended first-pass context:
 
 ```bash
 dida doctor --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --json
 dida auth status --verify --json

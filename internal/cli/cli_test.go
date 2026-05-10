@@ -561,6 +561,32 @@ func TestSchemaListJSONDoesNotRequireAuth(t *testing.T) {
 	}
 }
 
+func TestSchemaListCompactJSONOmitsHeavyFields(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"schema", "list", "--compact", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	meta := payload["meta"].(map[string]any)
+	if meta["compact"] != true {
+		t.Fatalf("meta.compact = %v, want true", meta["compact"])
+	}
+	text := stdout.String()
+	for _, forbidden := range []string{`"http"`, `"notes"`, `"title"`, `"aliases"`} {
+		if strings.Contains(text, forbidden) {
+			t.Fatalf("compact schema leaked %s: %s", forbidden, text)
+		}
+	}
+	if !strings.Contains(text, `"id": "task.create"`) || !strings.Contains(text, `"dryRun": true`) {
+		t.Fatalf("compact schema missing command safety fields: %s", text)
+	}
+}
+
 func TestSchemaShowTaskCreateJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"schema", "show", "task.create", "--json"}, "test-version", &stdout, &stderr)
@@ -1615,7 +1641,7 @@ func TestCompanionSkillMentionsAgentCriticalCommands(t *testing.T) {
 	}
 	text := string(data)
 	required := []string{
-		"dida schema list --json",
+		"dida schema list --compact --json",
 		"dida agent context --outline --json",
 		"dida project delete <project-id> --dry-run --json",
 		"dida folder delete <folder-id> --dry-run --json",

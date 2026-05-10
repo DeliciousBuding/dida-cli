@@ -71,14 +71,17 @@ deduplicated `taskIndex`.
 ## Schema Discovery
 
 ```bash
+dida schema list --compact --json
 dida schema list --json
 dida schema show task.create --json
 dida schema show openapi.login --json
 dida channel list --json
 ```
 
-Inspect schema before generated writes. It tells agents which commands support
-`--dry-run`, `--yes`, and compact output.
+Inspect compact schema before generated writes. It tells agents which commands
+support `--dry-run`, `--yes`, and compact output. Use `schema show` for full
+command details, or full `schema list --json` when you need the complete local
+index with HTTP surfaces and notes.
 
 ## Official MCP
 
@@ -161,5 +164,5 @@ dida task delete <task-id> --project <project-id> --yes --json
 ## Agent Note
 
 This section is optimized for LLM/Agent operators. Prefer JSON commands,
-inspect `dida schema list --json` before writes, preview generated writes with
+inspect `dida schema list --compact --json` before writes, preview generated writes with
 `--dry-run`, and never ask the user to paste cookies or tokens into chat.

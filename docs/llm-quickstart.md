@@ -8,7 +8,7 @@ chat.
 
 ```bash
 dida doctor --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --outline --json
 ```
@@ -61,7 +61,7 @@ OpenAPI bearer token.
 ## Discover Before Writing
 
 ```bash
-dida schema list --json
+dida schema list --compact --json
 dida schema show task.create --json
 dida schema show task.delete --json
 ```

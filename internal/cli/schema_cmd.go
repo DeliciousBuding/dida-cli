@@ -22,6 +22,18 @@ type commandSchema struct {
 	Notes                string   `json:"notes,omitempty"`
 }
 
+type compactCommandSchema struct {
+	ID                   string `json:"id"`
+	Resource             string `json:"resource"`
+	Operation            string `json:"operation"`
+	Command              string `json:"command"`
+	Status               string `json:"status"`
+	AuthRequired         bool   `json:"authRequired"`
+	DryRun               bool   `json:"dryRun"`
+	ConfirmationRequired bool   `json:"confirmationRequired"`
+	Compact              bool   `json:"compact"`
+}
+
 func runSchema(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
 		printSchemaHelp(stdout)
@@ -29,7 +41,7 @@ func runSchema(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 	}
 	switch args[0] {
 	case "list":
-		return runSchemaList(jsonOut, stdout)
+		return runSchemaList(args[1:], jsonOut, stdout)
 	case "show":
 		if len(args) < 2 {
 			return fail("schema show", "missing schema id", jsonOut, stdout, stderr)
@@ -40,10 +52,16 @@ func runSchema(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 	}
 }
 
-func runSchemaList(jsonOut bool, stdout io.Writer) int {
+func runSchemaList(args []string, jsonOut bool, stdout io.Writer) int {
 	schemas := didaCommandSchemas()
-	meta := map[string]any{"count": len(schemas)}
-	data := map[string]any{"schemas": schemas}
+	compact := hasFlag(args, "--compact") || hasFlag(args, "--brief")
+	meta := map[string]any{"count": len(schemas), "compact": compact}
+	data := map[string]any{}
+	if compact {
+		data["schemas"] = compactCommandSchemas(schemas)
+	} else {
+		data["schemas"] = schemas
+	}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "schema list", Meta: meta, Data: data})
 	}
@@ -52,6 +70,24 @@ func runSchemaList(jsonOut bool, stdout io.Writer) int {
 		fmt.Fprintf(stdout, "%-24s  %-9s  %-10s  %s\n", schema.ID, schema.Status, schema.Resource, schema.Command)
 	}
 	return 0
+}
+
+func compactCommandSchemas(schemas []commandSchema) []compactCommandSchema {
+	out := make([]compactCommandSchema, len(schemas))
+	for i, schema := range schemas {
+		out[i] = compactCommandSchema{
+			ID:                   schema.ID,
+			Resource:             schema.Resource,
+			Operation:            schema.Operation,
+			Command:              schema.Command,
+			Status:               schema.Status,
+			AuthRequired:         schema.AuthRequired,
+			DryRun:               schema.DryRun,
+			ConfirmationRequired: schema.ConfirmationRequired,
+			Compact:              schema.Compact,
+		}
+	}
+	return out
 }
 
 func runSchemaShow(id string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -75,6 +111,8 @@ func didaCommandSchemas() []commandSchema {
 		{ID: "auth.login", Title: "Browser or manual cookie login", Resource: "auth", Operation: "auth", Command: "dida auth login --browser --json", Status: "stable", AuthRequired: false, Notes: "Stores only the Dida365 t cookie under the local config directory."},
 		{ID: "auth.status", Title: "Check local auth", Resource: "auth", Operation: "read", Command: "dida auth status --verify --json", HTTP: []string{"GET /batch/check/0"}, Status: "stable", AuthRequired: false},
 		{ID: "doctor", Title: "Check CLI, config, auth, and optional endpoint health", Resource: "system", Operation: "read", Command: "dida doctor --verify --json", HTTP: []string{"GET /batch/check/0 when --verify is set"}, Status: "stable", AuthRequired: false, Notes: "Without --verify this command is local-only and reports network_check: not_run."},
+		{ID: "schema.list", Title: "List local command contracts", Resource: "schema", Operation: "read", Command: "dida schema list --compact --json", Status: "stable", AuthRequired: false, Compact: true, Notes: "Local-only command index. Use schema show for full details, HTTP surfaces, and notes."},
+		{ID: "schema.show", Title: "Show one local command contract", Resource: "schema", Operation: "read", Command: "dida schema show <schema-id> --json", Status: "stable", AuthRequired: false, Notes: "Local-only detailed schema for one command."},
 		{ID: "channel.list", Title: "Explain API channel selection and auth boundaries", Resource: "channel", Operation: "read", Command: "dida channel list --json", Status: "stable", AuthRequired: false, Notes: "Local-only guide for choosing Web API, Official MCP, or Official OpenAPI without mixing auth models."},
 		{ID: "official.doctor", Title: "Check official dida365 MCP channel", Resource: "official", Operation: "read", Command: "dida official doctor --json", HTTP: []string{"POST https://mcp.dida365.com initialize", "POST https://mcp.dida365.com tools/list"}, Status: "stable", AuthRequired: false, Notes: "Requires DIDA365_TOKEN or saved local official token config."},
 		{ID: "official.tokenStatus", Title: "Check saved official MCP token config", Resource: "official", Operation: "auth", Command: "dida official token status --json", Status: "stable", AuthRequired: false, Notes: "Reports whether DIDA365_TOKEN or saved local token config is available without printing the full token."},

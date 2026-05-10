@@ -13,7 +13,7 @@ Run these before doing useful work:
 
 ```bash
 dida doctor --json
-dida schema list --json
+dida schema list --compact --json
 dida channel list --json
 dida agent context --outline --json
 dida auth status --verify --json
