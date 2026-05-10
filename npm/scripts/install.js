@@ -42,29 +42,40 @@ function requestBuffer(url) {
   });
 }
 
-async function latestVersion() {
-  const data = await requestBuffer(`https://api.github.com/repos/${repo}/releases/latest`);
-  return JSON.parse(data.toString("utf8")).tag_name;
-}
-
 function sha256(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("hex");
 }
 
 async function main() {
-  const resolvedVersion = version || await latestVersion();
   const osName = platformName();
   const arch = archName();
   const ext = osName === "windows" ? "zip" : "tar.gz";
   const exe = osName === "windows" ? "dida.exe" : "dida";
   const installedExe = osName === "windows" ? "dida.exe" : "dida-bin";
-  const asset = `dida_${resolvedVersion}_${osName}_${arch}.${ext}`;
-  const base = `https://github.com/${repo}/releases/download/${resolvedVersion}`;
+  let resolvedVersion = version;
+  let base = version
+    ? `https://github.com/${repo}/releases/download/${version}`
+    : `https://github.com/${repo}/releases/latest/download`;
+  const checksums = await requestBuffer(`${base}/checksums.txt`);
+  let asset = "";
 
-  const [archive, checksums] = await Promise.all([
-    requestBuffer(`${base}/${asset}`),
-    requestBuffer(`${base}/checksums.txt`)
-  ]);
+  if (resolvedVersion) {
+    asset = `dida_${resolvedVersion}_${osName}_${arch}.${ext}`;
+  } else {
+    const suffix = `_${osName}_${arch}.${ext}`;
+    asset = checksums.toString("utf8").split(/\r?\n/)
+      .map((line) => line.trim().split(/\s+/)[1])
+      .find((name) => name && name.startsWith("dida_v") && name.endsWith(suffix));
+    if (asset) {
+      const match = asset.match(new RegExp(`^dida_(v[^_]+)_${osName}_${arch}\\.${ext.replace(".", "\\.")}$`));
+      if (match) resolvedVersion = match[1];
+    }
+  }
+  if (!resolvedVersion || !asset) {
+    throw new Error(`could not resolve latest release asset for ${osName}/${arch}`);
+  }
+
+  const archive = await requestBuffer(`${base}/${asset}`);
   const line = checksums.toString("utf8").split(/\r?\n/).find((item) => item.endsWith(`  ${asset}`));
   if (!line) throw new Error(`checksum not found for ${asset}`);
   const expected = line.split(/\s+/)[0].toLowerCase();

@@ -10,7 +10,7 @@ cloning the repository. GitHub Releases are the canonical binary source.
 | GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS. |
 | `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`; latest resolution uses release checksum assets instead of the GitHub API. |
 | `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables; latest resolution uses release checksum assets instead of the GitHub API. |
-| npm installer package | Smoke-tested skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries. Not published yet. |
+| npm installer package | Smoke-tested skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries; latest resolution also uses release checksum assets. Not published yet. |
 | `go install` | Developer fallback | Works when Go is installed, but does not use release archives. |
 
 ## Planned Channels
@@ -74,6 +74,8 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 
 - package name placeholder: `@vectorcontrol/dida-cli`
 - postinstall downloads the matching GitHub Release archive
+- latest release resolution reads `checksums.txt` from `latest/download`
+  instead of using the GitHub API
 - `bin/dida` is the stable Node wrapper
 - Windows stores the downloaded binary as `bin/dida.exe`
 - Unix-like systems store the downloaded binary as `bin/dida-bin` so the
@@ -84,6 +86,9 @@ The `npm/` directory is a package skeleton for a future npm distribution:
 - local WSL Linux smoke tests installed `v0.1.15` from GitHub Releases in a
   temporary copy and verified `node bin/dida version` plus
   `node bin/dida doctor --json`
+- local Windows latest smoke verified the npm installer can resolve `v0.1.15`
+  from release `checksums.txt` without the GitHub API, then run
+  `node bin/dida version` and `node bin/dida doctor --json`
 - Windows `install.ps1` latest smoke installed `v0.1.15` from GitHub Releases
   and verified `dida version` plus the installer's `dida doctor --json` check
 - WSL Linux `install.sh` latest smoke installed `v0.1.15` from GitHub Releases
