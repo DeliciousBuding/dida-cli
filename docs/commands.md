@@ -59,11 +59,8 @@ dida project list --json
 dida official doctor --json
 dida official token status --json
 dida official token set --token-stdin --json
-dida official token clear --json
 dida official tools --limit 20 --json
 dida official show list_projects --json
-dida official call list_projects --json
-dida official call list_undone_tasks_by_time_query --args-json "{\"query_command\":\"today\"}" --json
 dida official project list --json
 dida official project get <project-id> --json
 dida official project data <project-id> --json
@@ -131,6 +128,12 @@ dida user status --json
 dida user profile --json
 dida user sessions --limit 10 --json
 ```
+
+Use `dida official token clear --json` only when intentionally removing the
+saved local official MCP token. Use `dida official call ...` primarily for
+read-only exploration after checking `dida official show <tool-name> --json`;
+prefer first-class `official project/task/habit/focus` wrappers for normal
+work.
 
 For OpenAPI OAuth setup, read `default_redirect_uri`, `default_scope`, and
 `next` from `dida openapi doctor --json`. Configure the developer app redirect

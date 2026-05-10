@@ -177,7 +177,6 @@ local official token:
 ```bash
 dida official doctor --json
 dida official token status --json
-dida official token clear --json
 dida official show get_focuses_by_time --json
 dida official project list --json
 dida official project data <project-id> --json
@@ -193,6 +192,9 @@ dida official habit get <habit-id> --json
 dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --dry-run --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
+
+Use `dida official token clear --json` only when the operator explicitly wants
+to remove the saved local official MCP token.
 
 Treat `dida official call` as a read-oriented exploration escape hatch. It has
 no dry-run layer, so do not use it for write-capable MCP tools unless the
