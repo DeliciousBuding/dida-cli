@@ -214,20 +214,20 @@ Priority list:
 6. `batch_update_tasks` - implemented as `official task batch-update`
 7. `get_task_by_id` - implemented as `official task get`
 8. `get_task_in_project` - implemented as `official task get --project`
-9. `filter_tasks`
-10. `list_undone_tasks_by_date`
-11. `search_task`
+9. `filter_tasks` - implemented as `official task filter`
+10. `list_undone_tasks_by_date` - implemented as `official task undone`
+11. `search_task` - implemented as `official task search`
 12. `list_undone_tasks_by_time_query` - implemented as `official task query`
 13. `list_habits` - implemented as `official habit list`
 14. `list_habit_sections` - implemented as `official habit sections`
-15. `get_habit`
-16. `create_habit`
-17. `update_habit`
-18. `upsert_habit_checkins`
+15. `get_habit` - implemented as `official habit get`
+16. `create_habit` - implemented as `official habit create`
+17. `update_habit` - implemented as `official habit update`
+18. `upsert_habit_checkins` - implemented as `official habit checkin`
 19. `get_habit_checkins` - implemented as `official habit checkins`
-20. `get_focus`
-21. `get_focuses_by_time`
-22. `delete_focus`
+20. `get_focus` - implemented as `official focus get`
+21. `get_focuses_by_time` - implemented as `official focus list`
+22. `delete_focus` - implemented as `official focus delete`
 
 Acceptance:
 
