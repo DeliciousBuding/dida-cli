@@ -48,7 +48,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | Release notes include install methods | `.github/workflows/release.yml` release-notes step | done | None. |
 | `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed against `v0.1.15`; macOS native smoke pending. |
 | `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed against `v0.1.15`. |
-| `DIDA_VERSION`, `DIDA_INSTALL_DIR`, `DIDA_REPO` | `install.sh`, `install.ps1`, `npm/scripts/install.js` | done | npm uses `DIDA_INSTALL_DIR` only for local smoke isolation when invoked directly; package installs into package `bin/`. |
+| `DIDA_VERSION`, `DIDA_INSTALL_DIR`, `DIDA_REPO` | `install.sh`, `install.ps1` | done | The npm skeleton supports `DIDA_VERSION` and `DIDA_REPO`; npm owns the package binary directory, so `DIDA_INSTALL_DIR` is intentionally limited to the standalone install scripts. |
 | Install runs `dida version` and `dida doctor --json` | `install.sh`, `install.ps1` | done | npm postinstall intentionally only downloads; wrapper commands are tested separately. |
 | README English Quickstart | `README.md`, `docs/quickstart.md` | done | Keep examples synchronized with command changes. |
 | README Chinese Quickstart | `README.zh-CN.md`, `docs/quickstart.zh-CN.md` | done | Keep examples synchronized with command changes. |
