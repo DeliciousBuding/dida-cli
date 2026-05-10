@@ -60,3 +60,22 @@ and JSON every time.
 No remaining official MCP task/project/habit/focus tool currently justifies a
 new first-class wrapper without fresh usage evidence. Keep `official call` for
 rare tools and use `official show <tool-name> --json` before broad payloads.
+
+## Live Write Boundaries
+
+Do not create disposable habits only to unblock validation unless a cleanup path
+has been proven first. The official MCP tool list currently exposes
+`create_habit`, `update_habit`, and `upsert_habit_checkins`, but no habit delete
+tool. `update_habit` includes broad status and archived-time fields, yet their
+rollback semantics are not documented enough to treat them as safe cleanup.
+
+For habit live smokes, prefer this order:
+
+1. Use an existing user-approved disposable habit, then run `official habit get`.
+2. Test `official habit checkin --dry-run` before any live check-in.
+3. Only run live create/update/check-in after a user-approved cleanup or archive
+   procedure is documented.
+
+For focus live smokes, only use `official focus delete` against a known
+disposable focus record. The wrapper correctly requires `--yes`, but the command
+is still destructive.
