@@ -34,6 +34,13 @@ type compactCommandSchema struct {
 	Compact              bool   `json:"compact"`
 }
 
+type schemaListOptions struct {
+	Compact   bool
+	Resource  string
+	Operation string
+	Status    string
+}
+
 func runSchema(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
 		printSchemaHelp(stdout)
@@ -41,7 +48,7 @@ func runSchema(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 	}
 	switch args[0] {
 	case "list":
-		return runSchemaList(args[1:], jsonOut, stdout)
+		return runSchemaList(args[1:], jsonOut, stdout, stderr)
 	case "show":
 		if len(args) < 2 {
 			return fail("schema show", "missing schema id", jsonOut, stdout, stderr)
@@ -52,12 +59,25 @@ func runSchema(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 	}
 }
 
-func runSchemaList(args []string, jsonOut bool, stdout io.Writer) int {
+func runSchemaList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	opts, err := parseSchemaListOptions(args)
+	if err != nil {
+		return failTyped("schema list", "validation", err.Error(), "run: dida schema list --compact --json", jsonOut, stdout, stderr)
+	}
 	schemas := didaCommandSchemas()
-	compact := hasFlag(args, "--compact") || hasFlag(args, "--brief")
-	meta := map[string]any{"count": len(schemas), "compact": compact}
+	schemas = filterCommandSchemas(schemas, opts)
+	meta := map[string]any{"count": len(schemas), "compact": opts.Compact}
+	if opts.Resource != "" {
+		meta["resource"] = opts.Resource
+	}
+	if opts.Operation != "" {
+		meta["operation"] = opts.Operation
+	}
+	if opts.Status != "" {
+		meta["status"] = opts.Status
+	}
 	data := map[string]any{}
-	if compact {
+	if opts.Compact {
 		data["schemas"] = compactCommandSchemas(schemas)
 	} else {
 		data["schemas"] = schemas
@@ -70,6 +90,57 @@ func runSchemaList(args []string, jsonOut bool, stdout io.Writer) int {
 		fmt.Fprintf(stdout, "%-24s  %-9s  %-10s  %s\n", schema.ID, schema.Status, schema.Resource, schema.Command)
 	}
 	return 0
+}
+
+func parseSchemaListOptions(args []string) (schemaListOptions, error) {
+	opts := schemaListOptions{}
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--compact", "--brief":
+			opts.Compact = true
+		case "--resource":
+			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "-") {
+				return opts, fmt.Errorf("--resource requires a value")
+			}
+			opts.Resource = args[i+1]
+			i++
+		case "--operation":
+			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "-") {
+				return opts, fmt.Errorf("--operation requires a value")
+			}
+			opts.Operation = args[i+1]
+			i++
+		case "--status":
+			if i+1 >= len(args) || strings.HasPrefix(args[i+1], "-") {
+				return opts, fmt.Errorf("--status requires a value")
+			}
+			opts.Status = args[i+1]
+			i++
+		default:
+			return opts, fmt.Errorf("unknown schema list option %q", args[i])
+		}
+	}
+	return opts, nil
+}
+
+func filterCommandSchemas(schemas []commandSchema, opts schemaListOptions) []commandSchema {
+	if opts.Resource == "" && opts.Operation == "" && opts.Status == "" {
+		return schemas
+	}
+	out := make([]commandSchema, 0, len(schemas))
+	for _, schema := range schemas {
+		if opts.Resource != "" && schema.Resource != opts.Resource {
+			continue
+		}
+		if opts.Operation != "" && schema.Operation != opts.Operation {
+			continue
+		}
+		if opts.Status != "" && schema.Status != opts.Status {
+			continue
+		}
+		out = append(out, schema)
+	}
+	return out
 }
 
 func compactCommandSchemas(schemas []commandSchema) []compactCommandSchema {

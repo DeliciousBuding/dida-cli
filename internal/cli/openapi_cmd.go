@@ -23,6 +23,8 @@ const (
 	defaultOpenAPICallbackPort = 17890
 )
 
+var openBrowser = openBrowserURL
+
 func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
 		printOpenAPIHelp(stdout)
@@ -248,7 +250,20 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	server := &http.Server{Handler: mux}
 	go func() { _ = server.Serve(listener) }()
 	if !noOpen {
-		_ = openBrowserURL(authURL)
+		if err := openBrowser(authURL); err != nil {
+			_ = server.Close()
+			details := map[string]any{
+				"authorization_url": authURL,
+				"redirect_uri":      redirectURI,
+				"listen_address":    addr,
+				"next": []string{
+					"open authorization_url manually in a local browser",
+					"confirm the developer app redirect URL exactly matches " + redirectURI,
+					"or run `dida openapi auth-url --json` and `dida openapi listen-callback --json` as a manual two-step flow",
+				},
+			}
+			return failTypedDetails("openapi login", "browser", fmt.Sprintf("open local browser: %v", err), "open error.details.authorization_url manually or use the manual OAuth commands in error.details.next", details, jsonOut, stdout, stderr)
+		}
 	}
 	if !jsonOut {
 		fmt.Fprintln(stdout, "Open this URL in a browser and finish authorization:")
@@ -1372,14 +1387,25 @@ func defaultOpenAPIRedirectURI() string {
 }
 
 func openBrowserURL(target string) error {
-	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", target)
+		commands := []*exec.Cmd{
+			exec.Command("cmd", "/c", "start", "", target),
+			exec.Command("rundll32", "url.dll,FileProtocolHandler", target),
+			exec.Command("powershell", "-NoProfile", "-Command", "Start-Process", target),
+		}
+		var errs []string
+		for _, cmd := range commands {
+			if err := cmd.Start(); err == nil {
+				return nil
+			} else {
+				errs = append(errs, err.Error())
+			}
+		}
+		return fmt.Errorf("%s", strings.Join(errs, "; "))
 	case "darwin":
-		cmd = exec.Command("open", target)
+		return exec.Command("open", target).Start()
 	default:
-		cmd = exec.Command("xdg-open", target)
+		return exec.Command("xdg-open", target).Start()
 	}
-	return cmd.Start()
 }

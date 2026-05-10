@@ -193,6 +193,44 @@ func TestOpenAPIDoctorIncludesRedirectAndNextActions(t *testing.T) {
 	}
 }
 
+func TestOpenAPILoginBrowserOpenFailureReturnsAuthorizationURL(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "client-id")
+	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "client-secret")
+	original := openBrowser
+	openBrowser = func(target string) error {
+		return fmt.Errorf("simulated browser launch failure for %s", target)
+	}
+	defer func() { openBrowser = original }()
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "login", "--json", "--timeout", "1"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "openapi login" || payload["ok"] != false {
+		t.Fatalf("payload = %#v", payload)
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "browser" {
+		t.Fatalf("error.type = %v, want browser", errPayload["type"])
+	}
+	details := errPayload["details"].(map[string]any)
+	if _, ok := details["authorization_url"].(string); !ok || details["authorization_url"] == "" {
+		t.Fatalf("details.authorization_url = %#v", details["authorization_url"])
+	}
+	if !strings.Contains(fmt.Sprint(errPayload["hint"]), "authorization_url") {
+		t.Fatalf("error.hint missing manual auth URL guidance: %v", errPayload["hint"])
+	}
+}
+
 func TestSyncMissingAuthJSON(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
@@ -584,6 +622,53 @@ func TestSchemaListCompactJSONOmitsHeavyFields(t *testing.T) {
 	}
 	if !strings.Contains(text, `"id": "task.create"`) || !strings.Contains(text, `"dryRun": true`) {
 		t.Fatalf("compact schema missing command safety fields: %s", text)
+	}
+}
+
+func TestSchemaListFiltersByResourceAndOperation(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"schema", "list", "--resource", "task", "--operation", "write", "--compact", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	meta := payload["meta"].(map[string]any)
+	if meta["resource"] != "task" || meta["operation"] != "write" {
+		t.Fatalf("meta filters = %#v", meta)
+	}
+	data := payload["data"].(map[string]any)
+	schemas := data["schemas"].([]any)
+	if len(schemas) == 0 {
+		t.Fatalf("expected task write schemas")
+	}
+	for _, item := range schemas {
+		schema := item.(map[string]any)
+		if schema["resource"] != "task" || schema["operation"] != "write" {
+			t.Fatalf("unexpected filtered schema: %#v", schema)
+		}
+	}
+}
+
+func TestSchemaListRejectsUnknownOption(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"schema", "list", "--surprise", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
 	}
 }
 
