@@ -240,7 +240,7 @@ func runOpenAPILogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		case codeCh <- callbackResult{code: r.URL.Query().Get("code"), state: r.URL.Query().Get("state")}:
 		default:
 		}
-		_, _ = w.Write([]byte("DidaCLI OpenAPI callback received. You can return to the terminal."))
+		writeOpenAPICallbackPage(w, "Authorization received", "DidaCLI received the OpenAPI callback. Return to the terminal to finish token exchange.")
 	})
 	addr := fmt.Sprintf("%s:%d", host, port)
 	listener, err := net.Listen("tcp", addr)
@@ -427,7 +427,7 @@ func runOpenAPIListenCallback(args []string, jsonOut bool, stdout io.Writer, std
 		case codeCh <- values:
 		default:
 		}
-		_, _ = w.Write([]byte("OpenAPI callback received. You can return to the CLI."))
+		writeOpenAPICallbackPage(w, "Callback received", "The OAuth callback reached DidaCLI. Return to the terminal window to continue.")
 	})
 	server := &http.Server{Addr: fmt.Sprintf("%s:%d", host, port), Handler: mux}
 	go func() { _ = server.ListenAndServe() }()
@@ -1390,6 +1390,104 @@ func parseOpenAPILoginFlags(args []string) (string, string, string, string, int,
 
 func defaultOpenAPIRedirectURI() string {
 	return fmt.Sprintf("http://%s:%d/callback", defaultOpenAPICallbackHost, defaultOpenAPICallbackPort)
+}
+
+func writeOpenAPICallbackPage(w http.ResponseWriter, title string, message string) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = fmt.Fprintf(w, `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DidaCLI OAuth</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #111827;
+      --muted: #4b5563;
+      --border: #dbe3f0;
+      --accent: #0f766e;
+      --accent-soft: #ccfbf1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top left, #dbeafe 0, transparent 32%%),
+        radial-gradient(circle at bottom right, #ccfbf1 0, transparent 30%%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    }
+    .panel {
+      width: min(560px, 100%%);
+      padding: 28px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: 0 18px 48px rgba(15, 23, 42, 0.10);
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 14px 0 10px;
+      font-size: 28px;
+      line-height: 1.15;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .actions {
+      margin-top: 22px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--text);
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+    }
+    .hint {
+      margin-top: 16px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <span class="badge">DidaCLI OAuth</span>
+    <h1>%s</h1>
+    <p>%s</p>
+    <div class="actions">
+      <button type="button" onclick="window.close()">Close this page</button>
+    </div>
+    <p class="hint">If this window does not close automatically, switch back to the terminal and continue there.</p>
+  </main>
+</body>
+</html>`, title, message)
 }
 
 func openBrowserURL(target string) error {
