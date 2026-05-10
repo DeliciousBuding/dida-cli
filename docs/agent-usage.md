@@ -7,7 +7,7 @@ Use this guide when DidaCLI is called from Hermes, Codex, Claude Code, or anothe
 ```bash
 dida doctor --json
 dida schema list --json
-dida agent context --json
+dida agent context --outline --json
 dida auth status --verify --json
 ```
 
@@ -25,9 +25,11 @@ lists whether `--dry-run`, `--yes`, or `--compact` applies.
 
 ## Context Pack
 
-Prefer the one-call context pack:
+Prefer the one-call context pack. Use outline mode first when an agent only
+needs IDs and compact task fields:
 
 ```bash
+dida agent context --outline --json
 dida agent context --json
 ```
 
@@ -51,6 +53,9 @@ dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05
 ```
 
 Prefer `--compact` for broad task reads. It keeps IDs, titles, dates, priority, status, columns, and tags while omitting large descriptions, checklist items, reminders, and raw payloads. Use full JSON only when you need those fields for a specific task.
+Use `agent context --outline` when token budget matters; it replaces repeated
+task objects in today/upcoming/quadrants with task id references and a
+deduplicated `taskIndex`.
 
 ## Safe Writes
 

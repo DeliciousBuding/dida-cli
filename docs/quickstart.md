@@ -60,10 +60,13 @@ dida auth cookie set --token-stdin
 
 ```bash
 dida agent context --json
+dida agent context --outline --json
 ```
 
 This gives agents a compact account context: projects, folders, tags, filters,
 today, upcoming, and quadrants.
+Use `--outline` for a lower-token variant with task id references and a
+deduplicated `taskIndex`.
 
 ## Schema Discovery
 

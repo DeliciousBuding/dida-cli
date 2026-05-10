@@ -58,9 +58,12 @@ dida auth cookie set --token-stdin
 
 ```bash
 dida agent context --json
+dida agent context --outline --json
 ```
 
 这个命令会返回紧凑上下文：项目、文件夹、标签、过滤器、今日任务、未来任务和四象限。
+`--outline` 会把任务列表变成 task id 引用，并用去重的 `taskIndex`
+承载紧凑任务对象，适合 token 预算更紧的 Agent。
 
 ## Schema 发现
 

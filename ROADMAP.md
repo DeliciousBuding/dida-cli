@@ -27,6 +27,8 @@ The end state is not "one giant code dump". The end state is:
 As of the current main branch:
 
 - `webapi` is the primary implemented channel
+- `agent context --outline` provides a lower-token Web API context pack with
+  task id references and a deduplicated `taskIndex`
 - `webapi` has live-smoked trash pagination reads through
   `trash list --cursor/--limit --compact --json`
 - `official mcp` has:

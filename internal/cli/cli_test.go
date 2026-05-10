@@ -744,6 +744,44 @@ func TestBuildAgentContextCompact(t *testing.T) {
 	}
 }
 
+func TestBuildAgentContextOutlineDeduplicatesTasks(t *testing.T) {
+	now := time.Unix(1893456000, 0) // 2030-01-01T00:00:00Z
+	view := model.SyncView{
+		InboxID: "inbox",
+		Tasks: []model.Task{{
+			ID:        "t1",
+			ProjectID: "p1",
+			Title:     "Outline context",
+			DueUnix:   now.Add(time.Hour).Unix(),
+			Priority:  5,
+			Raw:       map[string]any{"large": true},
+		}},
+	}
+	data, meta := buildAgentContext(view, agentContextOptions{Days: 14, Limit: 50, Compact: true, Outline: true}, now)
+	if meta["outline"] != true || meta["taskIndex"] != 1 {
+		t.Fatalf("meta = %#v", meta)
+	}
+	today, ok := data["today"].([]string)
+	if !ok || len(today) != 1 || today[0] != "t1" {
+		t.Fatalf("today refs = %#v", data["today"])
+	}
+	index, ok := data["taskIndex"].(map[string]compactTask)
+	if !ok || index["t1"].Title != "Outline context" {
+		t.Fatalf("taskIndex = %#v", data["taskIndex"])
+	}
+	encoded, err := json.Marshal(data)
+	if err != nil {
+		t.Fatalf("marshal context: %v", err)
+	}
+	text := string(encoded)
+	if strings.Count(text, "Outline context") != 1 {
+		t.Fatalf("outline should include task title once, got: %s", text)
+	}
+	if strings.Contains(text, "raw") {
+		t.Fatalf("outline leaked raw payload: %s", text)
+	}
+}
+
 func TestResourceCreateDryRunJSON(t *testing.T) {
 	cases := [][]string{
 		{"project", "create", "--name", "Smoke", "--dry-run", "--json"},

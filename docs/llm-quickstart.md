@@ -9,7 +9,7 @@ chat.
 ```bash
 dida doctor --json
 dida schema list --json
-dida agent context --json
+dida agent context --outline --json
 ```
 
 If auth is missing or expired, tell the user to run this locally:

@@ -28,7 +28,7 @@ Build DidaCLI as a production-grade, agent-first Dida365/TickTick CLI:
 | --- | --- | --- | --- |
 | Web API channel is explicit | `README.md`, `docs/commands.md`, `docs/api-coverage.md`, `docs/research/api-channel-inventory.md` | done | Private Web API remains drift-prone by design. |
 | Web API read coverage is documented | `docs/api-coverage.md`, `docs/research/webapi-gap-catalog.md` | partial | Task activity detail still blocked by `need_pro`; task-level attachment and private write flows need more evidence. |
-| Web API commands prefer JSON and compact output | `internal/cli/*`, `docs/commands.md`, `README.md` | done | Continue adding compact output when new noisy reads are promoted. |
+| Web API commands prefer JSON and compact output | `internal/cli/*`, `docs/commands.md`, `README.md` | done | `agent context --outline` adds task id references plus a deduplicated `taskIndex` for lower-token agent reads; continue adding compact output when new noisy reads are promoted. |
 | Official MCP channel is explicit | `docs/research/official-mcp-tool-crosswalk.md`, `docs/research/official-mcp-vs-webapi.md` | done | Token-based health, tools, project get/data, task get/query/search/undone/filter, habit list/sections, and focus list were live-smoked on 2026-05-10. |
 | Official MCP high-value wrappers exist | `internal/cli/official_cmd.go`, `docs/research/official-mcp-wrapping-policy.md` | partial | Core task/project/habit/focus reads are live-smoked where safe IDs exist; task batch-add, batch-update, and complete-project were live-smoked with cleanup; habit writes and focus delete have local dry-run previews; current account has no habit or focus ids for known-id reads. |
 | Official OpenAPI channel is explicit | `docs/research/official-openapi-guide.md`, `docs/research/official-openapi-notes.md` | done | OAuth live approval is not complete on this machine. |
@@ -83,6 +83,8 @@ Recently run successfully:
   `openapi client set/status/clear`
 - Web API `auth status --verify`, `agent context`, `attachment quota`, and
   empty `comment list` live reads on 2026-05-10
+- Web API `agent context --outline --json` live read on 2026-05-10 with
+  deduplicated task index and task id references
 - Web API comment attachment upload/create was implemented as
   `comment create --file <path>` after reversible live evidence confirmed
   multipart field `file`, upload response keys, comment attach payload,

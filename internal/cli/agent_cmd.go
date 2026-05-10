@@ -12,6 +12,7 @@ type agentContextOptions struct {
 	Days    int
 	Limit   int
 	Compact bool
+	Outline bool
 }
 
 type agentProject struct {
@@ -28,6 +29,15 @@ type agentQuadrant struct {
 	Tasks       any    `json:"tasks"`
 	Count       int    `json:"count"`
 	Total       int    `json:"total"`
+}
+
+type agentQuadrantRefs struct {
+	ID          string   `json:"id"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	TaskIDs     []string `json:"taskIds"`
+	Count       int      `json:"count"`
+	Total       int      `json:"total"`
 }
 
 func runAgent(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -84,8 +94,13 @@ func parseAgentContextFlags(args []string) (agentContextOptions, error) {
 			i++
 		case "--compact", "--brief":
 			opts.Compact = true
+			opts.Outline = false
 		case "--full":
 			opts.Compact = false
+			opts.Outline = false
+		case "--outline", "--refs":
+			opts.Compact = true
+			opts.Outline = true
 		default:
 			return opts, fmt.Errorf("unknown flag %q", args[i])
 		}
@@ -98,10 +113,12 @@ func buildAgentContext(view model.SyncView, opts agentContextOptions, now time.T
 	upcomingAll := model.UpcomingTasks(view.Tasks, now, opts.Days)
 	today := limitTasks(todayAll, opts.Limit)
 	upcoming := limitTasks(upcomingAll, opts.Limit)
-	quadrants := buildAgentQuadrants(model.ActiveTasks(view.Tasks), opts)
+	active := model.ActiveTasks(view.Tasks)
+	quadrants := buildAgentQuadrants(active, opts)
 	data := map[string]any{
 		"inboxId":         view.InboxID,
 		"compact":         opts.Compact,
+		"outline":         opts.Outline,
 		"days":            opts.Days,
 		"limit":           opts.Limit,
 		"projects":        agentProjects(view.Projects),
@@ -113,6 +130,16 @@ func buildAgentContext(view model.SyncView, opts agentContextOptions, now time.T
 		"quadrants":       quadrants,
 		"recommendedNext": []string{"dida task get <task-id> --json", "dida schema show task.update --json"},
 	}
+	if opts.Outline {
+		quadrantRefs, quadrantTasks := buildAgentQuadrantRefs(active, opts)
+		indexTasks := append([]model.Task{}, today...)
+		indexTasks = append(indexTasks, upcoming...)
+		indexTasks = append(indexTasks, quadrantTasks...)
+		data["taskIndex"] = compactTaskIndex(indexTasks)
+		data["today"] = taskIDs(today)
+		data["upcoming"] = taskIDs(upcoming)
+		data["quadrants"] = quadrantRefs
+	}
 	meta := map[string]any{
 		"projects":      len(view.Projects),
 		"projectGroups": len(view.ProjectGroups),
@@ -123,7 +150,13 @@ func buildAgentContext(view model.SyncView, opts agentContextOptions, now time.T
 		"upcoming":      len(upcoming),
 		"upcomingTotal": len(upcomingAll),
 		"tasks":         len(view.Tasks),
-		"activeTasks":   len(model.ActiveTasks(view.Tasks)),
+		"activeTasks":   len(active),
+		"outline":       opts.Outline,
+	}
+	if opts.Outline {
+		if taskIndex, ok := data["taskIndex"].(map[string]compactTask); ok {
+			meta["taskIndex"] = len(taskIndex)
+		}
 	}
 	return data, meta
 }
@@ -149,6 +182,47 @@ func buildAgentQuadrants(tasks []model.Task, opts agentContextOptions) []agentQu
 			Count:       len(tasks),
 			Total:       len(bucket.Tasks),
 		})
+	}
+	return out
+}
+
+func buildAgentQuadrantRefs(tasks []model.Task, opts agentContextOptions) ([]agentQuadrantRefs, []model.Task) {
+	buckets := orderedQuadrants(buildQuadrants(tasks))
+	out := make([]agentQuadrantRefs, 0, len(buckets))
+	indexTasks := make([]model.Task, 0)
+	for _, bucket := range buckets {
+		tasks := limitTasks(bucket.Tasks, opts.Limit)
+		indexTasks = append(indexTasks, tasks...)
+		out = append(out, agentQuadrantRefs{
+			ID:          bucket.ID,
+			Name:        bucket.Name,
+			Description: bucket.Description,
+			TaskIDs:     taskIDs(tasks),
+			Count:       len(tasks),
+			Total:       len(bucket.Tasks),
+		})
+	}
+	return out, indexTasks
+}
+
+func taskIDs(tasks []model.Task) []string {
+	out := make([]string, 0, len(tasks))
+	for _, task := range tasks {
+		out = append(out, task.ID)
+	}
+	return out
+}
+
+func compactTaskIndex(tasks []model.Task) map[string]compactTask {
+	out := make(map[string]compactTask)
+	for _, task := range tasks {
+		if task.ID == "" {
+			continue
+		}
+		if _, exists := out[task.ID]; exists {
+			continue
+		}
+		out[task.ID] = compactTaskFromTask(task)
 	}
 	return out
 }

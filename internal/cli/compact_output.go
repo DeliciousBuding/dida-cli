@@ -23,20 +23,24 @@ func taskOutput(tasks []model.Task, compact bool) any {
 	}
 	out := make([]compactTask, 0, len(tasks))
 	for _, task := range tasks {
-		out = append(out, compactTask{
-			ID:          task.ID,
-			ProjectID:   task.ProjectID,
-			ProjectName: task.ProjectName,
-			ParentID:    task.ParentID,
-			Title:       task.Title,
-			DueDate:     task.DueDate,
-			StartDate:   task.StartDate,
-			Priority:    task.Priority,
-			Status:      task.Status,
-			ColumnID:    task.ColumnID,
-			Tags:        task.Tags,
-			Overdue:     task.Overdue,
-		})
+		out = append(out, compactTaskFromTask(task))
 	}
 	return out
+}
+
+func compactTaskFromTask(task model.Task) compactTask {
+	return compactTask{
+		ID:          task.ID,
+		ProjectID:   task.ProjectID,
+		ProjectName: task.ProjectName,
+		ParentID:    task.ParentID,
+		Title:       task.Title,
+		DueDate:     task.DueDate,
+		StartDate:   task.StartDate,
+		Priority:    task.Priority,
+		Status:      task.Status,
+		ColumnID:    task.ColumnID,
+		Tags:        task.Tags,
+		Overdue:     task.Overdue,
+	}
 }

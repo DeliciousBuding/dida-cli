@@ -156,10 +156,12 @@ DIDA365_OPENAPI_CLIENT_SECRET still take precedence when set.
 func printAgentHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
-  dida agent context [--days N] [--limit N] [--compact|--full] [--json]
+  dida agent context [--days N] [--limit N] [--compact|--full|--outline] [--json]
 
 Agent context performs one full sync and returns compact projects, folders,
 tags, filters, today, upcoming, and quadrant views in a single JSON envelope.
+Use --outline for a lower-token response with task id references and a
+deduplicated taskIndex.
 `))
 }
 

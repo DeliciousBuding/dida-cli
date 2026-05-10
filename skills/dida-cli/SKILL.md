@@ -14,7 +14,7 @@ Run these before doing useful work:
 ```bash
 dida doctor --json
 dida schema list --json
-dida agent context --json
+dida agent context --outline --json
 dida auth status --verify --json
 ```
 
@@ -40,9 +40,11 @@ OpenAPI commands.
 
 ## Read Context
 
-Prefer the one-call context pack:
+Prefer the one-call context pack. Use outline mode first when IDs and compact
+task fields are enough:
 
 ```bash
+dida agent context --outline --json
 dida agent context --json
 ```
 
@@ -77,7 +79,7 @@ dida search all --query <text> --limit 20 --json
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
 
-Use `--compact` or `--brief` on broad task reads to reduce agent context. Compact task output keeps operational fields and drops large text, checklist, reminder, and raw fields. Fetch full task JSON only when those larger fields are needed.
+Use `--compact` or `--brief` on broad task reads to reduce agent context. Compact task output keeps operational fields and drops large text, checklist, reminder, and raw fields. Use `agent context --outline` when repeated task objects would waste tokens; it returns today/upcoming/quadrants as task id references plus a deduplicated `taskIndex`. Fetch full task JSON only when those larger fields are needed.
 
 ## Task Writes
 

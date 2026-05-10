@@ -37,6 +37,7 @@ agents that need to choose the safest command without reading the full README.
 
 ```bash
 dida agent context --json
+dida agent context --outline --json
 dida agent context --days 30 --limit 100 --json
 dida agent context --full --json
 ```
@@ -46,6 +47,10 @@ projects, folders, tags, filters, today's tasks, upcoming tasks, and quadrant
 buckets. It is the preferred first read for automation because it avoids several
 separate sync calls. Compact mode is on by default; use `--full` only when large
 task text, checklist, reminder, and raw fields are needed.
+
+Use `--outline` when token budget matters. It keeps project/filter metadata,
+returns `today`, `upcoming`, and quadrant buckets as task id references, and
+adds a deduplicated `taskIndex` with compact task objects.
 
 ## Discovery
 
