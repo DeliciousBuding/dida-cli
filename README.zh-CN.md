@@ -236,6 +236,16 @@ DidaCLI 从一开始就为 AI Agent 工作流设计：
 | Codex | 参见 [docs/skill-installation.md](docs/skill-installation.md) |
 | Hermes | 参见 [docs/skill-installation.md](docs/skill-installation.md) |
 
+### Agent 安全须知
+
+使用 AI Agent 操作 DidaCLI 时，**你有责任审查和批准所有写操作**。关键安全边界：
+
+- **写入前先预览** — Agent 应在执行写操作前运行 `--dry-run`，审查生成的请求体后再移除 `--dry-run`。
+- **破坏性操作需确认** — `task delete`、`project delete`、`tag merge` 等操作需要 `--yes`。切勿盲目传入 `--yes`。
+- **Agent 操作失误由使用者负责** — 如果 Agent 错误地创建、修改或删除了任务/项目，DidaCLI 及其作者不承担任何责任。你控制 Agent，Agent 控制 CLI。
+- **Token 安全** — 切勿将 Cookie 或 Token 分享给 Agent 或在聊天中暴露。DidaCLI 仅在本地存储 Token，不会传输给任何第三方。
+- **限制 Agent 访问范围** — 建议使用独立的 Dida365 账号进行 Agent 实验，而非主账号。
+
 ## 文档
 
 - [快速开始](docs/quickstart.zh-CN.md) — 2 分钟上手
@@ -262,3 +272,5 @@ go build -o bin/dida ./cmd/dida
 ## 声明
 
 DidaCLI 是独立的第三方开源项目，与 [Dida365](https://dida365.com) / [TickTick](https://ticktick.com)（杭州随笔记网络技术有限公司）无关联、未获其授权或认可。本工具仅供个人学习与研究使用，不作任何担保，使用者须自行承担一切后果。
+
+**AI Agent 使用：** 当 DidaCLI 由 AI Agent（Claude、Codex、Hermes 等）操作时，人类操作者对所有操作承担全部责任。务必在执行前审查 Agent 生成的写操作，使用 `--dry-run` 预览。CLI 作者不对 Agent 操作导致的数据丢失、账号问题或意外修改承担任何责任。

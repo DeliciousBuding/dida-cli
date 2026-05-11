@@ -19,13 +19,23 @@ dida agent context --outline --json
 dida auth status --verify --json
 ```
 
-If auth is missing or expired, ask the operator to run:
+If auth is missing or expired, tell the operator to run:
 
 ```bash
-dida auth login --browser --json
+dida auth cookie set --token-stdin --json
 ```
 
 Never ask the user to paste cookies, browser tokens, or raw `t=` values into chat. If manual cookie import is unavoidable, tell the operator to run `dida auth cookie set --token-stdin` locally.
+
+## Safety Rules
+
+You MUST follow these rules when operating DidaCLI:
+
+1. **Always preview writes first** — Run `--dry-run` before any write command. Show the user the generated payload. Only remove `--dry-run` after the user confirms.
+2. **Never skip `--yes` on deletes** — Destructive operations (delete, merge) require `--yes`. Never add `--yes` without the user's explicit instruction.
+3. **You are an operator, not an owner** — You do not own the Dida365 account. Any data loss, modification, or account issue caused by your actions is the user's responsibility. Make this clear by always previewing before executing.
+4. **Do not chain destructive writes** — Never batch-delete or batch-modify without individual confirmation. One mistake in a batch write is hard to undo.
+5. **Treat tokens as secrets** — Never log, echo, or display cookie/token values. DidaCLI automatically redacts them; do not circumvent this.
 
 Use the local schema command when selecting a command or checking safety flags:
 

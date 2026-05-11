@@ -236,6 +236,16 @@ DidaCLI is built for AI agent workflows. Agents can:
 | Codex | See [docs/skill-installation.md](docs/skill-installation.md) |
 | Hermes | See [docs/skill-installation.md](docs/skill-installation.md) |
 
+### Agent Safety
+
+When using DidaCLI with AI agents, **you are responsible for reviewing and approving all write operations**. Key safety boundaries:
+
+- **Always preview first** — Agents should run `--dry-run` before any write. Review the generated payload before removing `--dry-run`.
+- **Destructive operations require confirmation** — `task delete`, `project delete`, `tag merge` etc. require `--yes`. Never pass `--yes` blindly.
+- **Agent mistakes are your responsibility** — If an agent creates, modifies, or deletes tasks/projects incorrectly, DidaCLI and its authors are not liable. You control the agent; the agent controls the CLI.
+- **Token security** — Never share cookies or tokens with agents or in chat. DidaCLI stores tokens locally only; it does not transmit them to any third party.
+- **Scope your agent's access** — Consider using a dedicated Dida365 account for agent experimentation, not your primary account.
+
 ## Documentation
 
 - [Quick Start](docs/quickstart.md) — Running in 2 minutes
@@ -263,3 +273,5 @@ go build -o bin/dida ./cmd/dida
 ## Disclaimer
 
 DidaCLI is an independent, third-party open-source project. It is **not** affiliated with, endorsed by, or connected to [Dida365](https://dida365.com) / [TickTick](https://ticktick.com) (杭州随笔记网络技术有限公司 / Hangzhou Suibiji Network Technology Co., Ltd.). Provided "as is" for personal learning and research purposes only. The author assumes no responsibility for any consequences arising from the use of this tool.
+
+**AI Agent usage:** When DidaCLI is operated by an AI agent (Claude, Codex, Hermes, etc.), the human operator is solely responsible for all actions performed. Always review agent-generated write operations before execution. Use `--dry-run` to preview. The CLI authors are not liable for data loss, account issues, or unintended modifications caused by agent actions.
