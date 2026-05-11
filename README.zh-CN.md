@@ -91,13 +91,13 @@ npm install -g @delicious233/dida-cli
 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
 
-### Homebrew（macOS / Linux）
+### Homebrew（macOS / Linux）— 即将上线
 
 ```bash
 brew install dida
 ```
 
-### Windows（Scoop）
+### Windows（Scoop）— 即将上线
 
 ```powershell
 scoop install dida
@@ -137,8 +137,9 @@ dida doctor --json
 ## 快速开始
 
 ```bash
-# 1. 浏览器登录（仅捕获 session cookie）
-dida auth login --browser --json
+# 1. 登录 — 在浏览器打开 dida365.com，登录后：
+dida auth cookie set --token-stdin --json
+# 提示时粘贴浏览器中名为 "t" 的 Cookie。
 
 # 2. 验证环境
 dida doctor --verify --json
@@ -146,13 +147,18 @@ dida doctor --verify --json
 # 3. 查看今日任务
 dida task today --json
 
-# 4. 创建任务（先用 --dry-run 预览）
-dida task create --project <id> --title "发布 v1" --dry-run --json
-dida task create --project <id> --title "发布 v1" --json
+# 4. 列出项目，获取 project ID
+dida project list --json
 
-# 5. 为 AI Agent 获取上下文
+# 5. 创建任务（先用 --dry-run 预览）
+dida task create --project <project-id> --title "发布 v1" --dry-run --json
+dida task create --project <project-id> --title "发布 v1" --json
+
+# 6. 为 AI Agent 获取上下文
 dida agent context --outline --json
 ```
+
+> **提示：** 如果安装了 Python，可以用 `dida auth login --browser --json` 自动捕获 Cookie。否则用上面的手动流程。
 
 ## 命令
 

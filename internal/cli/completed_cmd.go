@@ -47,7 +47,7 @@ func runCompleted(args []string, jsonOut bool, stdout io.Writer, stderr io.Write
 	}
 	tasks, err := loadCompletedTasks(from, to, limit)
 	if err != nil {
-		return failTyped(command, "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped(command, "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	view, _ := loadSyncView()
 	projectNames := map[string]string{}

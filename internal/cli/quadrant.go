@@ -41,7 +41,7 @@ func runQuadrantList(only string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	}
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("quadrant list", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("quadrant list", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	bucketMap := buildQuadrants(model.ActiveTasks(view.Tasks))
 	buckets := orderedQuadrants(bucketMap)

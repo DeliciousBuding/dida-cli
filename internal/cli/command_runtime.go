@@ -13,7 +13,7 @@ import (
 func executeMutation(fn func(context.Context, *webapi.Client) (map[string]any, error)) (map[string]any, error) {
 	token, err := auth.LoadCookieToken()
 	if err != nil {
-		return nil, fmt.Errorf("missing cookie auth; run: dida auth login --browser --json")
+		return nil, fmt.Errorf("missing cookie auth; run: dida auth cookie set --token-stdin --json")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -23,7 +23,7 @@ func executeMutation(fn func(context.Context, *webapi.Client) (map[string]any, e
 func executeRead(fn func(context.Context, *webapi.Client) (any, error)) (any, error) {
 	token, err := auth.LoadCookieToken()
 	if err != nil {
-		return nil, fmt.Errorf("missing cookie auth; run: dida auth login --browser --json")
+		return nil, fmt.Errorf("missing cookie auth; run: dida auth cookie set --token-stdin --json")
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

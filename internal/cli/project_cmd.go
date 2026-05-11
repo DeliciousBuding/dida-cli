@@ -43,7 +43,7 @@ func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 func runProjectList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("project list", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("project list", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	projects := stripProjectRaw(view.Projects)
 	data := map[string]any{"projects": projects}

@@ -43,10 +43,22 @@ dida doctor --verify --json
 
 The Web API channel uses the browser session cookie captured locally.
 
+Manual flow (works everywhere):
+
+```bash
+# Open dida365.com in your browser, sign in, then:
+dida auth cookie set --token-stdin --json
+# Paste the cookie named "t" when prompted.
+
+dida doctor --verify --json
+dida auth status --verify --json
+```
+
+Automated flow (requires Python):
+
 ```bash
 dida auth login --browser --json
 dida doctor --verify --json
-dida auth status --verify --json
 ```
 
 Do not paste cookies into chat or issue trackers. Manual cookie import, when

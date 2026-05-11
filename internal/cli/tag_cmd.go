@@ -34,7 +34,7 @@ func runTag(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int
 func runTagList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("tag list", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("tag list", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	data := map[string]any{"tags": view.Tags}
 	meta := map[string]any{"count": len(view.Tags)}

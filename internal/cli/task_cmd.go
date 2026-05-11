@@ -73,7 +73,7 @@ func runTaskList(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer
 	}
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("task list", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("task list", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	now := time.Now()
 	var tasks []model.Task
@@ -113,7 +113,7 @@ func runTaskSearch(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	}
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("task search", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("task search", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	tasks := model.SearchTasks(model.ActiveTasks(view.Tasks), query)
 	total := len(tasks)
@@ -136,7 +136,7 @@ func runTaskUpcoming(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	}
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("task upcoming", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("task upcoming", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	tasks := model.UpcomingTasks(view.Tasks, time.Now(), days)
 	total := len(tasks)
@@ -155,7 +155,7 @@ func runTaskUpcoming(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 func runTaskGet(taskID string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("task get", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("task get", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	task, ok := model.FindTask(view.Tasks, taskID)
 	if !ok {

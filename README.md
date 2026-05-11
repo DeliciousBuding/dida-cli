@@ -91,13 +91,13 @@ npm install -g @delicious233/dida-cli
 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
 
-### Homebrew (macOS / Linux)
+### Homebrew (macOS / Linux) — coming soon
 
 ```bash
 brew install dida
 ```
 
-### Windows (Scoop)
+### Windows (Scoop) — coming soon
 
 ```powershell
 scoop install dida
@@ -137,8 +137,9 @@ dida doctor --json
 ## Quick Start
 
 ```bash
-# 1. Login via browser (captures only the session cookie)
-dida auth login --browser --json
+# 1. Login — open dida365.com in your browser, sign in, then:
+dida auth cookie set --token-stdin --json
+# Paste your browser cookie named "t" when prompted.
 
 # 2. Verify everything works
 dida doctor --verify --json
@@ -146,13 +147,18 @@ dida doctor --verify --json
 # 3. View today's tasks
 dida task today --json
 
-# 4. Create a task (preview first with --dry-run)
-dida task create --project <id> --title "Ship v1" --dry-run --json
-dida task create --project <id> --title "Ship v1" --json
+# 4. List your projects to get a project ID
+dida project list --json
 
-# 5. Get context for AI agents
+# 5. Create a task (preview first with --dry-run)
+dida task create --project <project-id> --title "Ship v1" --dry-run --json
+dida task create --project <project-id> --title "Ship v1" --json
+
+# 6. Get context for AI agents
 dida agent context --outline --json
 ```
+
+> **Tip:** `dida auth login --browser --json` can capture the cookie automatically if Python is installed. Otherwise use the manual flow above.
 
 ## Commands
 

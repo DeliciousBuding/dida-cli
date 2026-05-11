@@ -21,7 +21,7 @@ func runFilter(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 func runFilterList(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	view, err := loadSyncView()
 	if err != nil {
-		return failTyped("filter list", "auth", err.Error(), "run: dida auth login --browser --json", jsonOut, stdout, stderr)
+		return failTyped("filter list", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	filters := view.Filters
 	if filters == nil {
