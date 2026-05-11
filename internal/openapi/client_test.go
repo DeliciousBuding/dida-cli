@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -208,5 +209,202 @@ func TestHabitEndpoints(t *testing.T) {
 		if requests[i] != want[i] {
 			t.Fatalf("request[%d] = %q, want %q", i, requests[i], want[i])
 		}
+	}
+}
+
+func TestCreateUpdateDeleteProject(t *testing.T) {
+	var requests []string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests = append(requests, r.Method+" "+r.URL.Path)
+		switch r.Method {
+		case http.MethodPost:
+			if r.URL.Path == "/project" {
+				_ = json.NewEncoder(w).Encode(map[string]any{"id": "p-new"})
+				return
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"id": "p1"})
+		case http.MethodDelete:
+			w.WriteHeader(http.StatusOK)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+
+	proj, err := client.CreateProject(context.Background(), map[string]any{"name": "New"})
+	if err != nil {
+		t.Fatalf("CreateProject() error = %v", err)
+	}
+	if proj["id"] != "p-new" {
+		t.Fatalf("CreateProject() = %#v", proj)
+	}
+
+	proj, err = client.UpdateProject(context.Background(), "p1", map[string]any{"name": "Renamed"})
+	if err != nil {
+		t.Fatalf("UpdateProject() error = %v", err)
+	}
+	if proj["id"] != "p1" {
+		t.Fatalf("UpdateProject() = %#v", proj)
+	}
+
+	if err := client.DeleteProject(context.Background(), "p1"); err != nil {
+		t.Fatalf("DeleteProject() error = %v", err)
+	}
+
+	want := []string{"POST /project", "POST /project/p1", "DELETE /project/p1"}
+	for i := range want {
+		if requests[i] != want[i] {
+			t.Fatalf("request[%d] = %q, want %q", i, requests[i], want[i])
+		}
+	}
+}
+
+func TestGetTask(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "GET /project/p1/task/t1" {
+			t.Fatalf("request = %s, want GET /project/p1/task/t1", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"id": "t1", "title": "Task"})
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	task, err := client.Task(context.Background(), "p1", "t1")
+	if err != nil {
+		t.Fatalf("Task() error = %v", err)
+	}
+	if task["id"] != "t1" || task["title"] != "Task" {
+		t.Fatalf("task = %#v", task)
+	}
+}
+
+func TestUpdateTask(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "POST /task/t1" {
+			t.Fatalf("request = %s, want POST /task/t1", got)
+		}
+		body, _ := io.ReadAll(r.Body)
+		var payload map[string]any
+		_ = json.Unmarshal(body, &payload)
+		if payload["title"] != "Updated" {
+			t.Fatalf("body title = %v", payload["title"])
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"id": "t1"})
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	task, err := client.UpdateTask(context.Background(), "t1", map[string]any{"title": "Updated"})
+	if err != nil {
+		t.Fatalf("UpdateTask() error = %v", err)
+	}
+	if task["id"] != "t1" {
+		t.Fatalf("task = %#v", task)
+	}
+}
+
+func TestMoveTasks(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "POST /task/move" {
+			t.Fatalf("request = %s, want POST /task/move", got)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"success": true})
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	result, err := client.MoveTasks(context.Background(), map[string]any{"taskIds": []string{"t1"}, "toProject": "p2"})
+	if err != nil {
+		t.Fatalf("MoveTasks() error = %v", err)
+	}
+	resultMap, _ := result.(map[string]any)
+	if resultMap["success"] != true {
+		t.Fatalf("result = %#v", result)
+	}
+}
+
+func TestCompletedTasks(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "POST /task/completed" {
+			t.Fatalf("request = %s, want POST /task/completed", got)
+		}
+		_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "t-done"}})
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	tasks, err := client.CompletedTasks(context.Background(), map[string]any{"projectId": "p1"})
+	if err != nil {
+		t.Fatalf("CompletedTasks() error = %v", err)
+	}
+	if len(tasks) != 1 || tasks[0]["id"] != "t-done" {
+		t.Fatalf("tasks = %#v", tasks)
+	}
+}
+
+func TestFilterTasks(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if got := r.Method + " " + r.URL.Path; got != "POST /task/filter" {
+			t.Fatalf("request = %s, want POST /task/filter", got)
+		}
+		_ = json.NewEncoder(w).Encode([]map[string]any{{"id": "t-filtered"}})
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	tasks, err := client.FilterTasks(context.Background(), map[string]any{"query": "today"})
+	if err != nil {
+		t.Fatalf("FilterTasks() error = %v", err)
+	}
+	if len(tasks) != 1 || tasks[0]["id"] != "t-filtered" {
+		t.Fatalf("tasks = %#v", tasks)
+	}
+}
+
+func TestDoRequiresToken(t *testing.T) {
+	client := NewClient("")
+	err := client.Do(context.Background(), "GET", "/test", nil, nil)
+	if err == nil {
+		t.Fatalf("Do() with empty token: error = nil")
+	}
+	if !strings.Contains(err.Error(), "missing openapi access token") {
+		t.Fatalf("error = %v", err)
+	}
+}
+
+func TestDoHandlesHTTPError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"error":"not found"}`))
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	err := client.Do(context.Background(), "GET", "/missing", nil, nil)
+	if err == nil {
+		t.Fatalf("Do() 404: error = nil")
+	}
+	if !strings.Contains(err.Error(), "404") {
+		t.Fatalf("error = %v, want 404", err)
+	}
+}
+
+func TestDoHandlesNilOutput(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.BaseURL = server.URL
+	if err := client.Do(context.Background(), "GET", "/test", nil, nil); err != nil {
+		t.Fatalf("Do() nil output: error = %v", err)
 	}
 }
