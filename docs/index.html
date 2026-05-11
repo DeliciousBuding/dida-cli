@@ -3,392 +3,338 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="DidaCLI is an agent-friendly command line client for Dida365 and TickTick task automation."
-    />
+    <meta name="description" content="DidaCLI is an agent-friendly command line client for Dida365 and TickTick task automation." />
     <title>DidaCLI - Agent-friendly Dida365 CLI</title>
+    <link rel="icon" href="../assets/dida-icon.png" />
     <style>
       :root {
-        color-scheme: light;
         --ink: #111827;
         --muted: #6b7280;
         --line: #e2e8f0;
         --paper: #f8fafc;
         --soft: #f1f5f9;
         --accent: #4772FA;
-        --accent-gold: #FFB000;
-        --accent-ink: #1e3a8a;
+        --gold: #FFB000;
         --terminal: #0c1425;
         --terminal-2: #111d33;
-        --white: #ffffff;
       }
 
-      * {
-        box-sizing: border-box;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
 
       body {
         margin: 0;
         background: var(--paper);
         color: var(--ink);
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
         line-height: 1.5;
       }
 
-      a {
-        color: inherit;
-        text-decoration: none;
-      }
+      a { color: inherit; text-decoration: none; }
 
+      /* ── Nav ── */
       .nav {
-        position: fixed;
-        z-index: 10;
-        top: 0;
-        left: 0;
-        right: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        position: fixed; z-index: 100;
+        inset: 0 0 auto 0;
+        display: flex; align-items: center; justify-content: space-between;
         padding: 18px clamp(20px, 5vw, 72px);
-        color: var(--white);
-        mix-blend-mode: difference;
+        background: rgba(8, 18, 48, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
       }
+      .brand { font-weight: 800; color: #fff; font-size: 17px; letter-spacing: -0.3px; }
+      .brand span { color: var(--gold); }
+      .nav-links { display: flex; gap: 22px; font-size: 14px; color: #8fa8d8; }
+      .nav-links a:hover { color: #fff; }
 
-      .brand {
-        font-weight: 800;
-        letter-spacing: 0;
-      }
-
-      .nav-links {
-        display: flex;
-        gap: 22px;
-        font-size: 14px;
-      }
-
+      /* ── Hero ── */
       .hero {
+        position: relative;
         min-height: 100svh;
         display: grid;
-        grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
+        grid-template-columns: minmax(0, 1fr) minmax(340px, 1.1fr);
         align-items: center;
-        gap: clamp(28px, 6vw, 92px);
-        padding: 96px clamp(20px, 5vw, 72px) 56px;
-        background:
-          radial-gradient(circle at 78% 18%, rgba(71, 114, 250, 0.18), transparent 30%),
-          linear-gradient(135deg, #081230 0%, #0c1a3d 42%, #f8fafc 42%, #f8fafc 100%);
+        gap: clamp(32px, 6vw, 80px);
+        padding: 110px clamp(24px, 5vw, 72px) 64px;
+        background: linear-gradient(180deg, #081230 0%, #0d1a3a 100%);
         overflow: hidden;
       }
-
-      .hero-copy {
-        color: var(--white);
-        max-width: 680px;
-        animation: rise 700ms ease-out both;
+      /* Animated radial glow */
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: 10%; left: 60%;
+        width: 700px; height: 700px;
+        background: radial-gradient(circle, rgba(71,114,250,0.20) 0%, transparent 65%);
+        border-radius: 50%;
+        animation: drift 8s ease-in-out infinite alternate;
+        pointer-events: none;
       }
+      .hero::after {
+        content: '';
+        position: absolute;
+        bottom: 5%; left: 10%;
+        width: 400px; height: 400px;
+        background: radial-gradient(circle, rgba(255,176,0,0.10) 0%, transparent 65%);
+        border-radius: 50%;
+        animation: drift 10s 2s ease-in-out infinite alternate-reverse;
+        pointer-events: none;
+      }
+
+      @keyframes drift {
+        from { transform: translate(0, 0) scale(1); }
+        to   { transform: translate(40px, -30px) scale(1.1); }
+      }
+
+      .hero-content { position: relative; z-index: 2; color: #fff; max-width: 640px; }
 
       .eyebrow {
-        margin: 0 0 18px;
-        font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
+        margin: 0 0 16px;
+        font-size: 12px; font-weight: 700;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
         color: #8fa8d8;
+        opacity: 0; animation: fadeUp 0.6s 0.1s ease forwards;
       }
 
-      h1 {
+      .hero h1 {
         margin: 0;
-        font-size: clamp(58px, 10vw, 132px);
-        line-height: 0.9;
-        letter-spacing: 0;
+        font-size: clamp(52px, 8vw, 110px);
+        line-height: 0.92;
+        letter-spacing: -3px;
+        opacity: 0; animation: fadeUp 0.6s 0.25s ease forwards;
       }
+      .hero h1 .gold { color: var(--gold); }
 
-      .subtitle {
-        margin: 26px 0 0;
-        max-width: 560px;
-        font-size: clamp(18px, 2.1vw, 25px);
-        color: #c8d8f8;
+      .hero .subtitle {
+        margin: 24px 0 0;
+        max-width: 520px;
+        font-size: clamp(16px, 1.9vw, 22px);
+        color: #a0b4d8;
+        opacity: 0; animation: fadeUp 0.6s 0.4s ease forwards;
       }
 
       .cta-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 34px;
+        display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px;
+        opacity: 0; animation: fadeUp 0.6s 0.55s ease forwards;
       }
 
-      .button {
-        display: inline-flex;
-        align-items: center;
-        min-height: 46px;
-        padding: 0 18px;
-        border: 1px solid rgba(255, 255, 255, 0.34);
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--white);
-        font-weight: 700;
-        transition:
-          transform 160ms ease,
-          background 160ms ease,
-          border-color 160ms ease;
+      @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
       }
 
-      .button.primary {
-        background: var(--accent);
-        color: #ffffff;
-        border-color: var(--accent);
+      /* Buttons */
+      .btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        min-height: 48px; padding: 0 20px;
+        border: none; border-radius: 10px;
+        font-weight: 700; font-size: 15px;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .btn:hover { transform: translateY(-2px); }
+      .btn:active { transform: translateY(0); }
+
+      .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 24px rgba(71,114,250,0.30); }
+      .btn-primary:hover { box-shadow: 0 8px 32px rgba(71,114,250,0.45); }
+      .btn-gold { background: var(--gold); color: #0a1535; box-shadow: 0 4px 24px rgba(255,176,0,0.25); }
+      .btn-gold:hover { box-shadow: 0 8px 32px rgba(255,176,0,0.40); }
+      .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.18); }
+
+      /* ── Terminal ── */
+      .terminal-wrap {
+        position: relative; z-index: 2;
+        opacity: 0; animation: terminalIn 0.8s 0.5s ease forwards;
+      }
+      @keyframes terminalIn {
+        from { opacity: 0; transform: translateY(28px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
       }
 
-      .button.gold {
-        background: var(--accent-gold);
-        color: #0a1535;
-        border-color: var(--accent-gold);
+      .terminal {
+        width: 100%;
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--terminal);
+        border: 1px solid rgba(71,114,250,0.18);
+        box-shadow:
+          0 2px 0 rgba(71,114,250,0.10),
+          0 20px 60px rgba(0,0,0,0.35),
+          0 0 0 1px rgba(255,255,255,0.03) inset;
       }
-
-      .button:hover {
-        transform: translateY(-2px);
-        background: rgba(255, 255, 255, 0.18);
-      }
-
-      .button.primary:hover {
-        background: #3a5fe0;
-      }
-
-      .button.gold:hover {
-        background: #e6a000;
-      }
-
-      .terminal-plane {
-        width: min(720px, 100%);
-        justify-self: end;
-        color: #c8d8f8;
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%),
-          var(--terminal);
-        border: 1px solid rgba(71, 114, 250, 0.2);
-        box-shadow: 0 34px 90px rgba(8, 18, 48, 0.35);
-        transform: rotate(-1deg);
-        animation: terminalIn 900ms 120ms ease-out both;
-      }
-
-      .terminal-head {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        height: 42px;
-        padding: 0 16px;
+      .terminal-bar {
+        display: flex; align-items: center; gap: 7px;
+        padding: 12px 16px;
         background: var(--terminal-2);
-        border-bottom: 1px solid rgba(71, 114, 250, 0.15);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
       }
+      .terminal-dot { width: 11px; height: 11px; border-radius: 50%; }
+      .terminal-dot.r { background: #ff5f57; }
+      .terminal-dot.y { background: #ffbd2e; }
+      .terminal-dot.g { background: #28c840; }
+      .terminal-title { flex: 1; text-align: center; font-size: 12px; color: #5a6680; font-family: monospace; }
 
-      .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #4772FA;
-      }
-
-      .dot:nth-child(2) {
-        background: #FFB000;
-      }
-
-      .dot:nth-child(3) {
-        background: #e06050;
-      }
-
-      pre {
+      .terminal pre {
         margin: 0;
-        padding: clamp(18px, 3vw, 34px);
-        overflow: auto;
-        font-family:
-          "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-        font-size: clamp(13px, 1.5vw, 16px);
-        line-height: 1.7;
+        padding: 24px clamp(18px, 2.5vw, 32px);
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: clamp(12.5px, 1.3vw, 15px);
+        line-height: 1.75;
+        color: #c8d8f8;
+        overflow-x: auto;
       }
 
-      .prompt {
-        color: #4772FA;
-      }
+      .prompt { color: var(--accent); user-select: none; }
+      .gutter { display: inline-block; width: 2ch; color: #3a4a6a; }
+      .key { color: #8fa8d8; }
+      .str { color: #FFB000; }
+      .dim { color: #3e5070; }
 
-      .json-key {
-        color: #8fa8d8;
+      /* Blinking cursor */
+      .cursor {
+        display: inline-block;
+        width: 8px; height: 17px;
+        background: var(--accent);
+        vertical-align: text-bottom;
+        animation: blink 1s step-end infinite;
       }
+      @keyframes blink { 50% { opacity: 0; } }
 
-      .json-val {
-        color: #FFB000;
-      }
-
+      /* ── Feature Grid ── */
       .section {
-        padding: clamp(70px, 10vw, 132px) clamp(20px, 5vw, 72px);
+        padding: clamp(72px, 10vw, 128px) clamp(24px, 5vw, 72px);
       }
-
-      .section.alt {
-        background: var(--soft);
+      .section.alt { background: var(--soft); }
+      .section-title {
+        margin: 0; font-size: clamp(32px, 5vw, 64px);
+        line-height: 1; letter-spacing: -1.5px;
       }
-
-      .section h2 {
-        margin: 0;
-        max-width: 820px;
-        font-size: clamp(36px, 6vw, 76px);
-        line-height: 0.98;
-        letter-spacing: 0;
-      }
-
       .section-lead {
-        margin: 20px 0 0;
-        max-width: 720px;
-        color: var(--muted);
-        font-size: 18px;
+        margin: 16px 0 0; max-width: 660px;
+        font-size: 17px; color: var(--muted);
       }
 
-      .feature-grid {
+      .features {
         display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(3, 1fr);
         gap: 1px;
-        margin-top: 54px;
+        margin-top: 48px;
         background: var(--line);
         border: 1px solid var(--line);
+        border-radius: 12px;
+        overflow: hidden;
       }
-
       .feature {
-        min-height: 230px;
-        padding: 28px;
-        background: var(--paper);
-        transition:
-          transform 180ms ease,
-          background 180ms ease;
+        padding: 32px 28px;
+        background: #fff;
+        transition: background 0.15s;
       }
-
-      .feature:hover {
-        transform: translateY(-4px);
-        background: #ffffff;
+      .feature:hover { background: #f8fafc; }
+      .feature-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; margin-bottom: 16px;
+        background: rgba(71,114,250,0.08);
+        color: var(--accent);
       }
+      .feature b { display: block; margin-bottom: 8px; font-size: 17px; }
+      .feature p { margin: 0; color: var(--muted); font-size: 14.5px; }
 
-      .feature b {
-        display: block;
-        margin-bottom: 12px;
-        font-size: 18px;
-      }
-
-      .feature p {
-        margin: 0;
-        color: var(--muted);
-      }
-
+      /* ── Workflow ── */
       .workflow {
         display: grid;
         grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
-        gap: clamp(32px, 7vw, 96px);
+        gap: clamp(40px, 7vw, 88px);
         align-items: start;
       }
-
-      .steps {
-        border-top: 1px solid var(--line);
-      }
-
+      .steps { border-top: 1px solid var(--line); }
       .step {
-        display: grid;
-        grid-template-columns: 80px 1fr;
-        gap: 20px;
-        padding: 24px 0;
+        display: grid; grid-template-columns: 64px 1fr;
+        gap: 16px; padding: 24px 0;
         border-bottom: 1px solid var(--line);
       }
-
-      .step span {
+      .step-num {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 15px;
+        background: rgba(71,114,250,0.08);
         color: var(--accent);
-        font-weight: 800;
       }
+      .step h4 { margin: 2px 0 4px; font-size: 16px; }
+      .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
 
-      .step p {
-        margin: 6px 0 0;
-        color: var(--muted);
-      }
-
-      .code-panel {
-        position: sticky;
-        top: 88px;
+      .code-sticky {
+        position: sticky; top: 80px;
+        border-radius: 14px;
+        overflow: hidden;
         background: var(--terminal);
-        color: #c8d8f8;
         border: 1px solid #1c2844;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
       }
 
+      /* ── Disclaimer ── */
+      .disclaimer {
+        padding: 40px clamp(24px, 5vw, 72px);
+        background: #081230;
+        text-align: center;
+        font-size: 13px;
+        color: #5a6a88;
+        border-top: 1px solid rgba(71,114,250,0.12);
+      }
+      .disclaimer a { color: #8fa8d8; }
+      .disclaimer a:hover { color: #fff; }
+      .disclaimer-inner {
+        max-width: 720px;
+        margin: 0 auto;
+        line-height: 1.8;
+      }
+      .disclaimer-brand {
+        font-weight: 700; color: #8fa8d8;
+      }
+      .disclaimer-divider {
+        display: block;
+        width: 40px; height: 2px;
+        background: rgba(71,114,250,0.25);
+        margin: 14px auto 16px;
+        border-radius: 1px;
+      }
+
+      /* ── Final CTA ── */
       .final {
         text-align: center;
         background: #081230;
-        color: var(--white);
+        color: #fff;
+      }
+      .final p { color: #a0b4d8; }
+      .final .cta-row { justify-content: center; opacity: 1; }
+
+      /* ── Scroll reveal ── */
+      .reveal {
+        opacity: 0;
+        transform: translateY(28px);
+        transition: opacity 0.7s ease, transform 0.7s ease;
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: translateY(0);
       }
 
-      .final h2,
-      .final p {
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .final p {
-        color: #c8d8f8;
-      }
-
-      @keyframes rise {
-        from {
-          opacity: 0;
-          transform: translateY(22px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      @keyframes terminalIn {
-        from {
-          opacity: 0;
-          transform: translateY(24px) rotate(-1deg) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) rotate(-1deg) scale(1);
-        }
-      }
-
-      @media (max-width: 860px) {
-        .nav {
-          position: absolute;
-          mix-blend-mode: normal;
-        }
-
-        .nav-links {
-          display: none;
-        }
-
-        .hero,
-        .workflow {
-          grid-template-columns: 1fr;
-        }
-
-        .hero {
-          background: linear-gradient(180deg, #081230 0%, #0c1a3d 56%, #f8fafc 56%);
-        }
-
-        .terminal-plane {
-          justify-self: stretch;
-        }
-
-        .feature-grid {
-          grid-template-columns: 1fr;
-        }
-
-        .code-panel {
-          position: static;
-        }
+      /* ── Responsive ── */
+      @media (max-width: 900px) {
+        .hero, .workflow { grid-template-columns: 1fr; }
+        .features { grid-template-columns: 1fr; }
+        .nav-links { display: none; }
       }
     </style>
   </head>
   <body>
-    <nav class="nav" aria-label="Primary">
-      <a class="brand" href="#">DidaCLI</a>
+
+    <nav class="nav">
+      <a class="brand" href="#">Dida<span>CLI</span></a>
       <div class="nav-links">
         <a href="#features">Features</a>
         <a href="#workflow">Workflow</a>
@@ -398,131 +344,194 @@
     </nav>
 
     <main>
+      <!-- ═══ Hero ═══ -->
       <section class="hero">
-        <div class="hero-copy">
+        <div class="hero-content">
           <p class="eyebrow">Dida365 / TickTick automation</p>
-          <h1>DidaCLI</h1>
+          <h1>Dida<span class="gold">CLI</span></h1>
           <p class="subtitle">
             A command line client built for agents: stable JSON, browser login,
             task and resource CRUD, and a private Web API layer that stays explicit.
           </p>
           <div class="cta-row">
-            <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">View on GitHub</a>
-            <a class="button gold" href="commands.md">Read the docs</a>
+            <a class="btn btn-primary" href="https://github.com/DeliciousBuding/dida-cli">
+              <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+              GitHub
+            </a>
+            <a class="btn btn-gold" href="commands.md">Read the Docs</a>
           </div>
         </div>
 
-        <div class="terminal-plane" aria-label="DidaCLI terminal preview">
-          <div class="terminal-head">
-            <i class="dot"></i><i class="dot"></i><i class="dot"></i>
-          </div>
-          <pre><span class="prompt">$</span> dida +today --json
+        <div class="terminal-wrap">
+          <div class="terminal">
+            <div class="terminal-bar">
+              <div class="terminal-dot r"></div>
+              <div class="terminal-dot y"></div>
+              <div class="terminal-dot g"></div>
+              <span class="terminal-title">zsh — dida</span>
+            </div>
+            <pre><span class="prompt">❯</span> dida +today --json
 {
-  "<span class="json-key">ok</span>": <span class="json-val">true</span>,
-  "<span class="json-key">command</span>": "<span class="json-val">task today</span>",
-  "<span class="json-key">meta</span>": { "<span class="json-key">count</span>": <span class="json-val">3</span> },
-  "<span class="json-key">data</span>": { "<span class="json-key">tasks</span>": [ ... ] }
+<span class="gutter"></span><span class="key">"ok"</span>: <span class="str">true</span>,
+<span class="gutter"></span><span class="key">"command"</span>: <span class="str">"task today"</span>,
+<span class="gutter"></span><span class="key">"meta"</span>: { <span class="key">"count"</span>: <span class="str">3</span> },
+<span class="gutter"></span><span class="key">"data"</span>: { <span class="key">"tasks"</span>: [ ... ] }
 }
 
-<span class="prompt">$</span> dida task create \
+<span class="prompt">❯</span> dida task create \
   --project school \
   --title "Review lab notes" \
-  --dry-run --json</pre>
+  --dry-run --json
+<span class="dim">  { "ok": true, "dry_run": true }  ✓</span>
+<span class="prompt">❯</span> <span class="cursor"></span></pre>
+          </div>
         </div>
       </section>
 
+      <!-- ═══ Features ═══ -->
       <section id="features" class="section">
-        <h2>Small surface, serious automation.</h2>
-        <p class="section-lead">
-          DidaCLI keeps the commands boring and the behavior inspectable, so a
-          human can run it comfortably and an agent can recover from errors.
-        </p>
-        <div class="feature-grid">
+        <div class="reveal">
+          <h2 class="section-title">Small surface, serious automation.</h2>
+          <p class="section-lead">
+            DidaCLI keeps the commands boring and the behavior inspectable, so a
+            human can run it comfortably and an agent can recover from errors.
+          </p>
+        </div>
+        <div class="features reveal">
           <div class="feature">
+            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
+            <b>30+ commands</b>
+            <p>Tasks, projects, folders, tags, comments, habits, Pomodoro, trash, search, stats -- full CRUD.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
             <b>Agent-ready JSON</b>
-            <p>Every machine path returns a predictable envelope with `ok`, `command`, `meta`, `data`, or `error`.</p>
+            <p>Every <code>--json</code> response returns a consistent envelope: ok, command, meta, data, or error.</p>
           </div>
           <div class="feature">
-            <b>Web API coverage</b>
-            <p>Reads sync, settings, projects, folders, tags, completed history, and writes through explicit resource endpoints.</p>
+            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
+            <b>Three auth channels</b>
+            <p>Web API (cookie), official MCP (token), and OpenAPI (OAuth) -- never mixed, each explicit.</p>
           </div>
           <div class="feature">
-            <b>Practical safety</b>
-            <p>Create, update, and complete run directly. Delete requires `--yes`; all writes support `--dry-run`.</p>
+            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+            <b>Dry-run writes</b>
+            <p>All write commands support <code>--dry-run</code> to preview payloads before executing anything.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+            <b>Six platforms</b>
+            <p>Windows, Linux, and macOS on amd64 and arm64. Single binary, zero dependencies.</p>
+          </div>
+          <div class="feature">
+            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <b>Safety built-in</b>
+            <p>Token redaction, <code>--yes</code> for destructives, bounded reads, no raw write tunnel by default.</p>
           </div>
         </div>
       </section>
 
+      <!-- ═══ Workflow ═══ -->
       <section id="workflow" class="section alt">
-        <div class="workflow">
+        <div class="workflow reveal">
           <div>
-            <h2>Designed for repeated operator loops.</h2>
+            <h2 class="section-title">Designed for repeated operator loops.</h2>
             <p class="section-lead">
               Login once, inspect context, perform targeted writes, and keep raw
               endpoint exploration separate from the stable command surface.
             </p>
           </div>
-          <div class="steps">
-            <div class="step">
-              <span>01</span>
-              <div>
-                <b>Authenticate locally</b>
-                <p>Use the browser flow; only the Dida365 `t` cookie is stored under `~/.dida-cli`.</p>
-              </div>
-            </div>
-            <div class="step">
-              <span>02</span>
-              <div>
-                <b>Build context</b>
-                <p>Use `project list`, `folder list`, `tag list`, `+today`, `upcoming`, and `completed today` before writing.</p>
-              </div>
-            </div>
-            <div class="step">
-              <span>03</span>
-              <div>
-                <b>Write deliberately</b>
-                <p>Preview generated changes with `--dry-run`; reserve `--yes` for destructive operations.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section class="section">
-        <div class="workflow">
           <div>
-            <h2>Commands that map to real resources.</h2>
-            <p class="section-lead">
-              No generic write tunnel by default. High-level verbs cover the
-              jobs agents need most often.
-            </p>
-          </div>
-          <div class="code-panel">
-            <pre>dida auth status --verify --json
-dida project list --json
-dida folder list --json
-dida tag list --json
-dida task upcoming --days 14 --json
-dida completed list --from 2026-05-01 --to 2026-05-09 --json
-dida task create --project &lt;id&gt; --title "Plan review" --json
-dida project create --name "Agent staging" --dry-run --json
-dida task delete &lt;task-id&gt; --project &lt;id&gt; --yes --json</pre>
+            <div class="steps">
+              <div class="step">
+                <div class="step-num">1</div>
+                <div>
+                  <h4>Authenticate locally</h4>
+                  <p>Browser flow captures only the Dida365 <code>t</code> cookie into <code>~/.dida-cli/</code>.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">2</div>
+                <div>
+                  <h4>Build context</h4>
+                  <p>Use <code>project list</code>, <code>+today</code>, <code>upcoming</code>, and <code>agent context</code> before writing.</p>
+                </div>
+              </div>
+              <div class="step">
+                <div class="step-num">3</div>
+                <div>
+                  <h4>Write deliberately</h4>
+                  <p>Preview with <code>--dry-run</code>. Reserve <code>--yes</code> for destructive operations only.</p>
+                </div>
+              </div>
+            </div>
+            <div class="code-sticky" style="margin-top: 32px;">
+              <div class="terminal-bar">
+                <div class="terminal-dot r"></div>
+                <div class="terminal-dot y"></div>
+                <div class="terminal-dot g"></div>
+                <span class="terminal-title">commands</span>
+              </div>
+              <pre style="padding:22px 24px; font-size:13.5px; line-height:1.7;">
+<span class="prompt">❯</span> dida auth status --verify --json
+<span class="prompt">❯</span> dida project list --json
+<span class="prompt">❯</span> dida task upcoming --days 14 --json
+<span class="prompt">❯</span> dida task create --project &lt;id&gt; \
+    --title "Plan review" --dry-run --json
+<span class="prompt">❯</span> dida task create --project &lt;id&gt; \
+    --title "Plan review" --json</pre>
+            </div>
           </div>
         </div>
       </section>
 
+      <!-- ═══ Final CTA ═══ -->
       <section class="section final">
-        <h2>Use Dida365 from the shell, safely.</h2>
-        <p class="section-lead">
+        <h2 class="section-title reveal">Use Dida365 from the shell, safely.</h2>
+        <p class="section-lead reveal" style="margin-left:auto;margin-right:auto;text-align:center;">
           Install the binary, login with the browser flow, and give agents a
           clean task interface they can actually operate.
         </p>
-        <div class="cta-row" style="justify-content: center">
-          <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">Get the source</a>
-          <a class="button gold" href="agent-usage.md">Agent guide</a>
-          <a class="button" href="skill-installation.md">Install skill</a>
+        <div class="cta-row reveal" style="justify-content:center;margin-top:36px;opacity:1;">
+          <a class="btn btn-primary" href="https://github.com/DeliciousBuding/dida-cli">Get the Source</a>
+          <a class="btn btn-gold" href="agent-usage.md">Agent Guide</a>
+          <a class="btn btn-ghost" href="skill-installation.md">Install Skill</a>
         </div>
       </section>
+
+      <!-- ═══ Disclaimer ═══ -->
+      <footer class="disclaimer">
+        <div class="disclaimer-inner">
+          <span class="disclaimer-brand">DidaCLI</span> is an independent, third-party open-source project.
+          <br />
+          This software is provided <strong>"as is"</strong> for <strong>personal learning and research purposes only</strong>.
+          <br />
+          DidaCLI is not affiliated with, endorsed by, or connected to
+          <a href="https://dida365.com" target="_blank" rel="noopener">Dida365</a> /
+          <a href="https://ticktick.com" target="_blank" rel="noopener">TickTick</a> (Beijing Shixi Chuangxiang Technology Co., Ltd.).
+          <span class="disclaimer-divider"></span>
+          Use of the Dida365 and TickTick services is subject to their respective
+          <a href="https://dida365.com/about/terms" target="_blank" rel="noopener">Terms of Service</a>.
+          The author assumes no responsibility for any consequences arising from the use of this tool.
+        </div>
+      </footer>
     </main>
+
+    <script>
+      /* ── Scroll reveal ── */
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('visible');
+              io.unobserve(e.target);
+            }
+          });
+        },
+        { threshold: 0.12 }
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    </script>
+
   </body>
 </html>
