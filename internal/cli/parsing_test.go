@@ -708,3 +708,44 @@ func TestParseTimelineFlags(t *testing.T) {
 		t.Fatalf("error = nil, want missing value")
 	}
 }
+
+func TestParseAgentContextFlags(t *testing.T) {
+	cases := []struct {
+		name  string
+		args  []string
+		days  int
+		limit int
+		comp  bool
+		out   bool
+		err   string
+	}{
+		{name: "defaults", args: nil, days: 14, limit: 50, comp: true},
+		{name: "outline", args: []string{"--outline"}, days: 14, limit: 50, comp: true, out: true},
+		{name: "refs alias", args: []string{"--refs"}, days: 14, limit: 50, comp: true, out: true},
+		{name: "full", args: []string{"--full"}, days: 14, limit: 50, comp: false, out: false},
+		{name: "custom days", args: []string{"--days", "30"}, days: 30, limit: 50, comp: true},
+		{name: "custom limit", args: []string{"--limit", "10"}, days: 14, limit: 10, comp: true},
+		{name: "all flags", args: []string{"--outline", "--days", "7", "--limit", "5"}, days: 7, limit: 5, comp: true, out: true},
+		{name: "missing days value", args: []string{"--days"}, err: "--days requires"},
+		{name: "zero days", args: []string{"--days", "0"}, err: "positive integer"},
+		{name: "negative limit", args: []string{"--limit", "-1"}, err: "non-negative"},
+		{name: "unknown flag", args: []string{"--surprise"}, err: `unknown flag`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			opts, err := parseAgentContextFlags(tc.args)
+			if tc.err != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.err) {
+					t.Fatalf("error = %v, want %q", err, tc.err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if opts.Days != tc.days || opts.Limit != tc.limit || opts.Compact != tc.comp || opts.Outline != tc.out {
+				t.Fatalf("opts = %+v, want days=%d limit=%d compact=%v outline=%v", opts, tc.days, tc.limit, tc.comp, tc.out)
+			}
+		})
+	}
+}

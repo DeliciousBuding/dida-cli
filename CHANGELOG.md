@@ -5,6 +5,34 @@ All notable changes to DidaCLI are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Version numbers follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Agent Safety section in README (EN + ZH) with 5 clear safety rules for AI agent usage
+- Agent liability disclaimer in README and SKILL.md
+- SKILL.md Safety Rules section for agents: dry-run preview, --yes confirmation, token secrecy
+- Supported Platforms table showing all 6 build targets in README
+- npm package published as `@delicious233/dida-cli@0.2.0`
+- SVG logo integrated into website (navbar, hero, footer)
+- Open Graph meta tags for website social sharing
+
+### Changed
+- Quick Start flow: manual cookie import (`dida auth cookie set --token-stdin`) is now the primary recommended flow; `--browser` is secondary (requires Python)
+- Auth error hints: all missing-auth messages now recommend `dida auth cookie set --token-stdin` instead of browser-only flow
+- Homebrew and Scoop install methods marked as "coming soon" in README
+- README restructured following professional open-source patterns (badges, feature table, platform table)
+
+### Fixed
+- Company name corrected to 杭州随笔记网络技术有限公司 in HTML footer and READMEs
+
+### Tests
+- config package: coverage improved from 0% to 83.3%
+- officialmcp package: coverage improved from 39.9% to 85.0%
+- openapi package: coverage improved from 49.6% to 82.7%
+- model package: coverage improved from 62.9% to 91.0%
+- auth package: coverage improved from 48.8% to 66.7%
+- cli package: coverage improved from 32.3% to 37.3%
+
 ## [v0.2.0] - 2026-05-10
 
 Major milestone: complete three-channel support with OpenAPI OAuth.
