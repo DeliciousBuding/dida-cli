@@ -1,5 +1,11 @@
 <p align="center">
-  <img src="assets/hero.svg" alt="DidaCLI - 面向 Dida365 / TickTick 的整洁、适合 Agent 的命令行工具" width="100%">
+  <img src="assets/logo-icon.svg" alt="DidaCLI" width="120">
+</p>
+
+<h1 align="center">DidaCLI</h1>
+
+<p align="center">
+  面向 Dida365 / TickTick 的整洁、适合 Agent 的命令行工具
 </p>
 
 <p align="center">

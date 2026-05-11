@@ -1,5 +1,11 @@
 <p align="center">
-  <img src="assets/hero.svg" alt="DidaCLI - A clean, agent-friendly CLI for Dida365 / TickTick" width="100%">
+  <img src="assets/logo-icon.svg" alt="DidaCLI" width="120">
+</p>
+
+<h1 align="center">DidaCLI</h1>
+
+<p align="center">
+  A clean, agent-friendly CLI for Dida365 / TickTick
 </p>
 
 <p align="center">
