@@ -1,8 +1,8 @@
 {
   "name": "@vectorcontrol/dida-cli",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Installer package for the DidaCLI binary.",
+  "version": "0.2.0",
+  "private": false,
+  "description": "Agent-friendly CLI for Dida365 / TickTick — task automation with stable JSON output.",
   "bin": {
     "dida": "bin/dida"
   },
@@ -13,6 +13,26 @@
     "bin/dida",
     "scripts/install.js"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DeliciousBuding/dida-cli.git",
+    "directory": "npm"
+  },
+  "homepage": "https://deliciousbuding.github.io/dida-cli/",
+  "bugs": {
+    "url": "https://github.com/DeliciousBuding/dida-cli/issues"
+  },
+  "keywords": [
+    "dida365",
+    "ticktick",
+    "cli",
+    "task-management",
+    "automation",
+    "agent",
+    "json",
+    "productivity"
+  ],
+  "author": "DeliciousBuding",
   "license": "MIT",
   "engines": {
     "node": ">=18"
