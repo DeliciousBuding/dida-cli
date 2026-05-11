@@ -1,6 +1,7 @@
 /bin/
 /dist/
 coverage.out
+*.out
 *.exe
 npm/bin/dida-bin
 
