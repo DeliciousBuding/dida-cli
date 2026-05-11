@@ -1,0 +1,82 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill in the details below so we can reproduce and fix it.
+
+  - type: input
+    id: version
+    attributes:
+      label: DidaCLI Version
+      description: Output of `dida version`
+      placeholder: "v0.2.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Auth Channel
+      description: Which channel were you using?
+      options:
+        - Web API (cookie)
+        - Official MCP (token)
+        - Official OpenAPI (OAuth)
+        - Not applicable
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The command that triggered the bug
+      render: bash
+      placeholder: "dida task create --project xxx --title 'test' --json"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Paste the error or unexpected output.
+      render: json
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Doctor output
+      description: Paste the output of `dida doctor --json` (redact any tokens)
+      render: json
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other relevant information

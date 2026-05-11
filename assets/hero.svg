@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0a1f15"/>
+      <stop offset="50%" stop-color="#0d2a1c"/>
+      <stop offset="100%" stop-color="#111b16"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="800" y1="100" x2="900" y2="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#147d4f" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#147d4f" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7cf5a8"/>
+      <stop offset="100%" stop-color="#2ecc71"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <!-- Subtle radial glow -->
+  <circle cx="900" cy="200" r="500" fill="url(#glow)"/>
+  <!-- Grid pattern -->
+  <g opacity="0.04" stroke="#7cf5a8" stroke-width="1">
+    <line x1="0" y1="80" x2="1280" y2="80"/><line x1="0" y1="160" x2="1280" y2="160"/>
+    <line x1="0" y1="240" x2="1280" y2="240"/><line x1="0" y1="320" x2="1280" y2="320"/>
+    <line x1="0" y1="400" x2="1280" y2="400"/><line x1="0" y1="480" x2="1280" y2="480"/>
+    <line x1="0" y1="560" x2="1280" y2="560"/>
+    <line x1="160" y1="0" x2="160" y2="640"/><line x1="320" y1="0" x2="320" y2="640"/>
+    <line x1="480" y1="0" x2="480" y2="640"/><line x1="640" y1="0" x2="640" y2="640"/>
+    <line x1="800" y1="0" x2="800" y2="640"/><line x1="960" y1="0" x2="960" y2="640"/>
+    <line x1="1120" y1="0" x2="1120" y2="640"/>
+  </g>
+
+  <!-- Left: Logo icon small -->
+  <g transform="translate(80, 160) scale(0.5)">
+    <rect width="512" height="512" rx="108" fill="#147d4f" opacity="0.15"/>
+    <path d="M140 160 L88 256 L140 352" stroke="#dff8e9" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="M260 352 L332 256" stroke="#dff8e9" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <rect x="300" y="156" width="120" height="120" rx="16" stroke="url(#accent)" stroke-width="20" fill="none" opacity="0.7"/>
+    <path d="M324 216 L348 240 L396 188" stroke="url(#accent)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- Title -->
+  <text x="220" y="230" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="800" font-size="96" fill="white" letter-spacing="-2">DidaCLI</text>
+
+  <!-- Tagline -->
+  <text x="222" y="280" font-family="Inter, system-ui, -apple-system, sans-serif" font-weight="400" font-size="22" fill="#a5d8bd">A clean, agent-friendly CLI for Dida365 / TickTick</text>
+
+  <!-- Badges row -->
+  <g transform="translate(222, 300)">
+    <rect x="0" y="0" width="64" height="24" rx="4" fill="#147d4f"/>
+    <text x="32" y="16" font-family="system-ui, sans-serif" font-size="11" fill="white" text-anchor="middle" font-weight="600">Go</text>
+    <rect x="72" y="0" width="32" height="24" rx="4" fill="#2ea44f"/>
+    <text x="88" y="16" font-family="system-ui, sans-serif" font-size="11" fill="white" text-anchor="middle" font-weight="600">CI</text>
+    <rect x="112" y="0" width="60" height="24" rx="4" fill="#555"/>
+    <text x="142" y="16" font-family="system-ui, sans-serif" font-size="11" fill="#ccc" text-anchor="middle" font-weight="600">MIT</text>
+  </g>
+
+  <!-- Terminal window on the right -->
+  <g transform="translate(620, 100)">
+    <rect width="580" height="440" rx="12" fill="#101915" stroke="#23362d" stroke-width="1"/>
+    <!-- Title bar -->
+    <rect width="580" height="42" rx="12" fill="#17251f"/>
+    <rect y="12" width="580" height="30" fill="#17251f"/>
+    <circle cx="22" cy="21" r="6" fill="#89d9aa"/>
+    <circle cx="42" cy="21" r="6" fill="#e2d68a"/>
+    <circle cx="62" cy="21" r="6" fill="#da9185"/>
+    <text x="290" y="26" font-family="monospace" font-size="13" fill="#5a665f" text-anchor="middle">zsh</text>
+
+    <!-- Terminal content -->
+    <text x="24" y="76" font-family="Consolas, SFMono-Regular, monospace" font-size="15" fill="#7ccf9f">$ <tspan fill="#d6f2df">dida +today --json</tspan></text>
+    <text x="24" y="106" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">{</text>
+    <text x="44" y="126" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"ok"</text><text x="80" y="126" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: </text><text x="96" y="126" font-family="Consolas, monospace" font-size="14" fill="#f4f0b5">true,</text>
+    <text x="44" y="146" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"command"</text><text x="140" y="146" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: </text><text x="156" y="146" font-family="Consolas, monospace" font-size="14" fill="#f4f0b5">"task today",</text>
+    <text x="44" y="166" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"meta"</text><text x="100" y="166" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: { </text><text x="132" y="166" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"count"</text><text x="192" y="166" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: </text><text x="208" y="166" font-family="Consolas, monospace" font-size="14" fill="#f4f0b5">3 },</text>
+    <text x="44" y="186" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"data"</text><text x="100" y="186" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: { </text><text x="132" y="186" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"tasks"</text><text x="192" y="186" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: [</text>
+    <text x="64" y="206" font-family="Consolas, monospace" font-size="14" fill="#5a665f">  ...3 tasks</text>
+    <text x="44" y="226" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">  ]</text>
+    <text x="24" y="246" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">}</text>
+
+    <!-- Second command -->
+    <text x="24" y="286" font-family="Consolas, monospace" font-size="15" fill="#7ccf9f">$ <tspan fill="#d6f2df">dida task create --project work \</tspan></text>
+    <text x="24" y="306" font-family="Consolas, monospace" font-size="15" fill="#d6f2df">    --title "Review PR #42" --dry-run --json</text>
+    <text x="24" y="336" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">{</text>
+    <text x="44" y="356" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"ok"</text><text x="80" y="356" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: </text><text x="96" y="356" font-family="Consolas, monospace" font-size="14" fill="#f4f0b5">true,</text>
+    <text x="44" y="376" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">"dry_run"</text><text x="132" y="376" font-family="Consolas, monospace" font-size="14" fill="#d6f2df">: </text><text x="148" y="376" font-family="Consolas, monospace" font-size="14" fill="#f4f0b5">true</text>
+    <text x="24" y="396" font-family="Consolas, monospace" font-size="14" fill="#9ee7bd">}</text>
+
+    <!-- Blinking cursor -->
+    <rect x="24" y="412" width="10" height="18" fill="#7cf5a8" opacity="0.8"/>
+  </g>
+
+  <!-- Feature pills at bottom -->
+  <g transform="translate(80, 480)">
+    <rect x="0" y="0" width="160" height="36" rx="18" fill="none" stroke="#23362d" stroke-width="1"/>
+    <text x="80" y="23" font-family="system-ui, sans-serif" font-size="13" fill="#7ccf9f" text-anchor="middle">30+ Commands</text>
+
+    <rect x="176" y="0" width="120" height="36" rx="18" fill="none" stroke="#23362d" stroke-width="1"/>
+    <text x="236" y="23" font-family="system-ui, sans-serif" font-size="13" fill="#7ccf9f" text-anchor="middle">Agent-safe</text>
+
+    <rect x="312" y="0" width="140" height="36" rx="18" fill="none" stroke="#23362d" stroke-width="1"/>
+    <text x="382" y="23" font-family="system-ui, sans-serif" font-size="13" fill="#7ccf9f" text-anchor="middle">Three Channels</text>
+
+    <rect x="468" y="0" width="100" height="36" rx="18" fill="none" stroke="#23362d" stroke-width="1"/>
+    <text x="518" y="23" font-family="system-ui, sans-serif" font-size="13" fill="#7ccf9f" text-anchor="middle">Zero Deps</text>
+  </g>
+
+  <!-- Version badge bottom right -->
+  <text x="1200" y="610" font-family="system-ui, sans-serif" font-size="13" fill="#5a665f" text-anchor="end">v0.2.0</text>
+</svg>

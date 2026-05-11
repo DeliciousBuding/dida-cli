@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/DeliciousBuding/dida-cli/blob/main/docs/README.md
+    about: Check the docs before opening an issue
+  - name: Command Reference
+    url: https://github.com/DeliciousBuding/dida-cli/blob/main/docs/commands.md
+    about: Full list of commands and flags

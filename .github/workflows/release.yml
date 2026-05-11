@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -69,43 +71,98 @@ jobs:
 
           (cd dist && sha256sum *.zip *.tar.gz > checksums.txt)
 
-      - name: Write release notes
+      - name: Generate release notes
         shell: bash
         run: |
-          cat > release-notes.md <<'EOF'
+          set -euo pipefail
+          version="${GITHUB_REF_NAME}"
+
+          # Try to extract this version's section from CHANGELOG.md
+          changelog_section=""
+          if [[ -f CHANGELOG.md ]]; then
+            # Extract the section for this version (between ## [version] and the next ##)
+            changelog_section=$(awk -v ver="$version" '
+              /^## \[/ {
+                if (found) exit
+                if (index($0, "[" ver "]")) { found=1; next }
+              }
+              found { print }
+            ' CHANGELOG.md)
+          fi
+
+          # Build the release notes
+          cat > release-notes.md <<NOTES_EOF
+          ## What's Changed
+
+          NOTES_EOF
+
+          if [[ -n "$changelog_section" ]]; then
+            echo "$changelog_section" >> release-notes.md
+          else
+            # Fallback: generate from commits since last tag
+            prev_tag=$(git tag --sort=-v:refname | grep -A1 "^${version}$" | tail -1)
+            if [[ -n "$prev_tag" && "$prev_tag" != "$version" ]]; then
+              echo "### Changes since ${prev_tag}" >> release-notes.md
+              echo "" >> release-notes.md
+              git log --oneline --no-merges "${prev_tag}..${version}" | while read -r line; do
+                echo "- ${line}" >> release-notes.md
+              done
+            else
+              git log --oneline -20 | while read -r line; do
+                echo "- ${line}" >> release-notes.md
+              done
+            fi
+          fi
+
+          cat >> release-notes.md <<'INSTALL_EOF'
+
+          ---
+
           ## Install
 
-          Unix-like systems:
+          **macOS / Linux:**
 
           ```bash
           curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
           ```
 
-          Windows PowerShell:
+          **Windows PowerShell:**
 
           ```powershell
           iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
           ```
 
-          Pin this release:
+          **Go:**
 
           ```bash
-          DIDA_VERSION=${{ github.ref_name }} curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+          go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
+          ```
+          INSTALL_EOF
+
+          # Append version-specific pin instructions
+          cat >> release-notes.md <<PIN_EOF
+
+          <details>
+          <summary>Pin this version</summary>
+
+          ```bash
+          DIDA_VERSION=${version} curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
           ```
 
           ```powershell
-          $env:DIDA_VERSION="${{ github.ref_name }}"; iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+          \$env:DIDA_VERSION="${version}"; iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
           ```
+          </details>
 
-          Verify after install:
+          **Verify after install:**
 
           ```bash
           dida version
           dida doctor --json
           ```
 
-          Checksums are attached as `checksums.txt`.
-          EOF
+          Checksums are attached as \`checksums.txt\`.
+          PIN_EOF
 
       - name: Create GitHub release
         env:

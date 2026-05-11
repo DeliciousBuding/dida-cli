@@ -1,0 +1,56 @@
+name: Feature Request
+description: Suggest a new command, channel, or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the feature you'd like. Be specific about the use case -- it helps us design the right command surface.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What problem does this solve? What's the current workaround?
+      placeholder: "I need to bulk-complete tasks but there's no batch command..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the command or behavior you'd like to see.
+      placeholder: |
+        ```bash
+        dida task batch-complete --project <id> --filter "due:today" --json
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    id: channel
+    attributes:
+      label: Target channel
+      description: Which auth channel should this work with?
+      options:
+        - Web API
+        - Official MCP
+        - Official OpenAPI
+        - All channels
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you thought about?
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links, screenshots, or references
