@@ -31,7 +31,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - openapi package: coverage improved from 49.6% to 82.7%
 - model package: coverage improved from 62.9% to 91.0%
 - auth package: coverage improved from 48.8% to 66.7%
-- cli package: coverage improved from 32.3% to 37.3%
+- cli package: coverage improved from 32.3% to 37.8%
+- webapi package: coverage improved from 80.5% to 84.2%
+- Add HTTP error path tests for all webapi account read endpoints
+- Add webapi client edge case tests (missing token, 204, nil output, headers)
 
 ## [v0.2.0] - 2026-05-10
 
