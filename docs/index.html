@@ -11,15 +11,16 @@
     <style>
       :root {
         color-scheme: light;
-        --ink: #17211b;
-        --muted: #5a665f;
-        --line: #dce4df;
-        --paper: #f8faf8;
-        --soft: #edf3ef;
-        --accent: #147d4f;
-        --accent-ink: #0a3f2a;
-        --terminal: #101915;
-        --terminal-2: #17251f;
+        --ink: #111827;
+        --muted: #6b7280;
+        --line: #e2e8f0;
+        --paper: #f8fafc;
+        --soft: #f1f5f9;
+        --accent: #4772FA;
+        --accent-gold: #FFB000;
+        --accent-ink: #1e3a8a;
+        --terminal: #0c1425;
+        --terminal-2: #111d33;
         --white: #ffffff;
       }
 
@@ -79,8 +80,8 @@
         gap: clamp(28px, 6vw, 92px);
         padding: 96px clamp(20px, 5vw, 72px) 56px;
         background:
-          radial-gradient(circle at 78% 18%, rgba(20, 125, 79, 0.18), transparent 30%),
-          linear-gradient(135deg, #111b16 0%, #17241e 42%, #eef3ef 42%, #f8faf8 100%);
+          radial-gradient(circle at 78% 18%, rgba(71, 114, 250, 0.18), transparent 30%),
+          linear-gradient(135deg, #081230 0%, #0c1a3d 42%, #f8fafc 42%, #f8fafc 100%);
         overflow: hidden;
       }
 
@@ -96,7 +97,7 @@
         font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        color: #a5d8bd;
+        color: #8fa8d8;
       }
 
       h1 {
@@ -110,7 +111,7 @@
         margin: 26px 0 0;
         max-width: 560px;
         font-size: clamp(18px, 2.1vw, 25px);
-        color: #dce9e2;
+        color: #c8d8f8;
       }
 
       .cta-row {
@@ -136,9 +137,15 @@
       }
 
       .button.primary {
-        background: #dff8e9;
-        color: #0d3a28;
-        border-color: #dff8e9;
+        background: var(--accent);
+        color: #ffffff;
+        border-color: var(--accent);
+      }
+
+      .button.gold {
+        background: var(--accent-gold);
+        color: #0a1535;
+        border-color: var(--accent-gold);
       }
 
       .button:hover {
@@ -147,18 +154,22 @@
       }
 
       .button.primary:hover {
-        background: #ffffff;
+        background: #3a5fe0;
+      }
+
+      .button.gold:hover {
+        background: #e6a000;
       }
 
       .terminal-plane {
         width: min(720px, 100%);
         justify-self: end;
-        color: #d6f2df;
+        color: #c8d8f8;
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 28%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%),
           var(--terminal);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        box-shadow: 0 34px 90px rgba(9, 18, 13, 0.28);
+        border: 1px solid rgba(71, 114, 250, 0.2);
+        box-shadow: 0 34px 90px rgba(8, 18, 48, 0.35);
         transform: rotate(-1deg);
         animation: terminalIn 900ms 120ms ease-out both;
       }
@@ -170,22 +181,22 @@
         height: 42px;
         padding: 0 16px;
         background: var(--terminal-2);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(71, 114, 250, 0.15);
       }
 
       .dot {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #89d9aa;
+        background: #4772FA;
       }
 
       .dot:nth-child(2) {
-        background: #e2d68a;
+        background: #FFB000;
       }
 
       .dot:nth-child(3) {
-        background: #da9185;
+        background: #e06050;
       }
 
       pre {
@@ -199,15 +210,15 @@
       }
 
       .prompt {
-        color: #7ccf9f;
+        color: #4772FA;
       }
 
       .json-key {
-        color: #9ee7bd;
+        color: #8fa8d8;
       }
 
       .json-val {
-        color: #f4f0b5;
+        color: #FFB000;
       }
 
       .section {
@@ -300,13 +311,13 @@
         position: sticky;
         top: 88px;
         background: var(--terminal);
-        color: #d6f2df;
-        border: 1px solid #23362d;
+        color: #c8d8f8;
+        border: 1px solid #1c2844;
       }
 
       .final {
         text-align: center;
-        background: #111b16;
+        background: #081230;
         color: var(--white);
       }
 
@@ -317,7 +328,7 @@
       }
 
       .final p {
-        color: #cfe3d8;
+        color: #c8d8f8;
       }
 
       @keyframes rise {
@@ -358,7 +369,7 @@
         }
 
         .hero {
-          background: linear-gradient(180deg, #111b16 0%, #17241e 56%, #f8faf8 56%);
+          background: linear-gradient(180deg, #081230 0%, #0c1a3d 56%, #f8fafc 56%);
         }
 
         .terminal-plane {
@@ -397,7 +408,7 @@
           </p>
           <div class="cta-row">
             <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">View on GitHub</a>
-            <a class="button" href="commands.md">Read the docs</a>
+            <a class="button gold" href="commands.md">Read the docs</a>
           </div>
         </div>
 
@@ -508,7 +519,7 @@ dida task delete &lt;task-id&gt; --project &lt;id&gt; --yes --json</pre>
         </p>
         <div class="cta-row" style="justify-content: center">
           <a class="button primary" href="https://github.com/DeliciousBuding/dida-cli">Get the source</a>
-          <a class="button" href="agent-usage.md">Agent guide</a>
+          <a class="button gold" href="agent-usage.md">Agent guide</a>
           <a class="button" href="skill-installation.md">Install skill</a>
         </div>
       </section>

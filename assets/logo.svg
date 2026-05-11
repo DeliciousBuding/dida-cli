@@ -1,24 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0d3a28"/>
-      <stop offset="100%" stop-color="#147d4f"/>
+      <stop offset="0%" stop-color="#081230"/>
+      <stop offset="100%" stop-color="#4772FA"/>
     </linearGradient>
-    <linearGradient id="check" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#7cf5a8"/>
-      <stop offset="100%" stop-color="#2ecc71"/>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFB000"/>
+      <stop offset="100%" stop-color="#FFC940"/>
     </linearGradient>
   </defs>
-  <!-- Rounded square background -->
   <rect width="512" height="512" rx="108" fill="url(#bg)"/>
-  <!-- Terminal bracket left -->
-  <path d="M140 160 L88 256 L140 352" stroke="#dff8e9" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- Terminal bracket right (partial, like >) -->
-  <path d="M260 352 L332 256" stroke="#dff8e9" stroke-width="28" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- Checkbox outline -->
-  <rect x="300" y="156" width="120" height="120" rx="16" stroke="url(#check)" stroke-width="20" fill="none" opacity="0.7"/>
+  <!-- Circle arc -->
+  <circle cx="256" cy="256" r="155" stroke="white" stroke-width="38" fill="none" opacity="0.9"/>
+  <path d="M256 101 A155 155 0 0 1 411 256" stroke="white" stroke-width="38" fill="none" stroke-linecap="round" opacity="0.6"/>
   <!-- Checkmark -->
-  <path d="M324 216 L348 240 L396 188" stroke="url(#check)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <!-- Cursor blink line -->
-  <rect x="148" y="380" width="60" height="8" rx="4" fill="#7cf5a8" opacity="0.8"/>
+  <path d="M150 260 L110 320 L195 400 C205 410, 220 415, 233 415 C240 415, 247 414, 253 412 C303 392, 345 352, 365 300 L340 275 L230 390 L190 340 Z" fill="url(#gold)"/>
 </svg>
