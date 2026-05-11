@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -98,5 +100,125 @@ func TestValidateBrowserProfileRemovalTargetRejectsUnsafePaths(t *testing.T) {
 		if _, err := validateBrowserProfileRemovalTarget(filepath.Join(home, "dida-web-login")); err == nil {
 			t.Fatalf("home-level profile path accepted")
 		}
+	}
+}
+
+func TestSaveCookieTokenRejectsEmpty(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	_, err := SaveCookieToken("")
+	if err == nil {
+		t.Fatalf("SaveCookieToken(\"\") error = nil")
+	}
+	_, err = SaveCookieToken("Cookie: t=abc")
+	if err == nil {
+		t.Fatalf("SaveCookieToken with Cookie: prefix error = nil")
+	}
+}
+
+func TestSaveAndLoadCookieToken(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	saved, err := SaveCookieToken("my_secret_token")
+	if err != nil {
+		t.Fatalf("SaveCookieToken() error = %v", err)
+	}
+	if saved.Token != "my_secret_token" {
+		t.Fatalf("saved.Token = %q", saved.Token)
+	}
+	if saved.SavedAt == 0 {
+		t.Fatalf("saved.SavedAt = 0")
+	}
+
+	loaded, err := LoadCookieToken()
+	if err != nil {
+		t.Fatalf("LoadCookieToken() error = %v", err)
+	}
+	if loaded.Token != "my_secret_token" {
+		t.Fatalf("loaded.Token = %q", loaded.Token)
+	}
+}
+
+func TestLoadCookieTokenMissingFile(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	_, err := LoadCookieToken()
+	if err == nil {
+		t.Fatalf("LoadCookieToken() on missing file: error = nil")
+	}
+}
+
+func TestLoadCookieTokenEmptyToken(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("DIDA_CONFIG_DIR", dir)
+	data := []byte(`{"token":"","saved_at":12345}`)
+	if err := os.WriteFile(CookiePath(), data, 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+	_, err := LoadCookieToken()
+	if err == nil {
+		t.Fatalf("LoadCookieToken() empty token: error = nil")
+	}
+	if !strings.Contains(err.Error(), "no token") {
+		t.Fatalf("error = %v, want 'no token'", err)
+	}
+}
+
+func TestLoadCookieTokenInvalidJSON(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("DIDA_CONFIG_DIR", dir)
+	if err := os.WriteFile(CookiePath(), []byte("not json"), 0o600); err != nil {
+		t.Fatalf("WriteFile: %v", err)
+	}
+	_, err := LoadCookieToken()
+	if err == nil {
+		t.Fatalf("LoadCookieToken() invalid JSON: error = nil")
+	}
+	if !strings.Contains(err.Error(), "decode") {
+		t.Fatalf("error = %v, want decode error", err)
+	}
+}
+
+func TestCookieStatusMissing(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	status := CookieStatus()
+	if status["available"] != false {
+		t.Fatalf("available = %v, want false", status["available"])
+	}
+	if status["message"] != "missing" {
+		t.Fatalf("message = %v, want missing", status["message"])
+	}
+	if _, ok := status["path"].(string); !ok {
+		t.Fatalf("path should be a string")
+	}
+}
+
+func TestCookieStatusAvailable(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	_, err := SaveCookieToken("test_cookie_value_12345")
+	if err != nil {
+		t.Fatalf("SaveCookieToken() error = %v", err)
+	}
+	status := CookieStatus()
+	if status["available"] != true {
+		t.Fatalf("available = %v, want true", status["available"])
+	}
+	if status["token_length"] != len("test_cookie_value_12345") {
+		t.Fatalf("token_length = %v", status["token_length"])
+	}
+	preview, _ := status["token_preview"].(string)
+	if !strings.Contains(preview, "...") {
+		t.Fatalf("token_preview = %q, want redacted", preview)
+	}
+	// Ensure token value is not leaked
+	all, _ := json.Marshal(status)
+	if strings.Contains(string(all), "test_cookie_value_12345") {
+		t.Fatalf("CookieStatus leaked full token: %s", string(all))
+	}
+}
+
+func TestClearCookieTokenNoFile(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA_BROWSER_PROFILE_DIR", t.TempDir())
+	// Clear when no file exists should succeed
+	if err := ClearCookieToken(); err != nil {
+		t.Fatalf("ClearCookieToken() on missing file: error = %v", err)
 	}
 }
