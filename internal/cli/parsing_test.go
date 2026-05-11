@@ -388,3 +388,323 @@ func TestCompactListMissingKeyNoOp(t *testing.T) {
 		t.Fatalf("missing key should not be added")
 	}
 }
+
+func TestParseTaskListFlags(t *testing.T) {
+	cases := []struct {
+		name   string
+		args   []string
+		filter string
+		limit  int
+		compact bool
+		err    string
+	}{
+		{name: "defaults", args: nil, filter: "all", limit: 50},
+		{name: "filter today", args: []string{"--filter", "today"}, filter: "today", limit: 50},
+		{name: "custom limit", args: []string{"--limit", "10"}, filter: "all", limit: 10},
+		{name: "compact", args: []string{"--compact"}, filter: "all", limit: 50, compact: true},
+		{name: "brief alias", args: []string{"--brief"}, filter: "all", limit: 50, compact: true},
+		{name: "all flags", args: []string{"--filter", "week", "--limit", "5", "--compact"}, filter: "week", limit: 5, compact: true},
+		{name: "missing filter value", args: []string{"--filter"}, err: "--filter requires a value"},
+		{name: "negative limit", args: []string{"--limit", "-1"}, err: "--limit must be a non-negative integer"},
+		{name: "unknown flag", args: []string{"--surprise"}, err: `unknown flag "--surprise"`},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			filter, limit, compact, err := parseTaskListFlags(tc.args)
+			if tc.err != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.err) {
+					t.Fatalf("error = %v, want %q", err, tc.err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if filter != tc.filter {
+				t.Fatalf("filter = %q, want %q", filter, tc.filter)
+			}
+			if limit != tc.limit {
+				t.Fatalf("limit = %d, want %d", limit, tc.limit)
+			}
+			if compact != tc.compact {
+				t.Fatalf("compact = %v, want %v", compact, tc.compact)
+			}
+		})
+	}
+}
+
+func TestParseSearchFlags(t *testing.T) {
+	cases := []struct {
+		name    string
+		args    []string
+		query   string
+		limit   int
+		compact bool
+		err     string
+	}{
+		{name: "positional", args: []string{"test"}, query: "test", limit: 50},
+		{name: "flagged", args: []string{"--query", "hello"}, query: "hello", limit: 50},
+		{name: "short flag", args: []string{"-q", "hi"}, query: "hi", limit: 50},
+		{name: "compact", args: []string{"test", "--compact"}, query: "test", limit: 50, compact: true},
+		{name: "custom limit", args: []string{"test", "--limit", "3"}, query: "test", limit: 3},
+		{name: "missing query", args: []string{}, err: "missing query"},
+		{name: "empty query", args: []string{"--query", "  "}, err: "missing query"},
+		{name: "missing query value", args: []string{"--query"}, err: "--query requires a value"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			query, limit, compact, err := parseSearchFlags(tc.args)
+			if tc.err != "" {
+				if err == nil || !strings.Contains(err.Error(), tc.err) {
+					t.Fatalf("error = %v, want %q", err, tc.err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if query != tc.query {
+				t.Fatalf("query = %q, want %q", query, tc.query)
+			}
+			if limit != tc.limit {
+				t.Fatalf("limit = %d, want %d", limit, tc.limit)
+			}
+			if compact != tc.compact {
+				t.Fatalf("compact = %v", compact)
+			}
+		})
+	}
+}
+
+func TestParseUpcomingFlags(t *testing.T) {
+	days, limit, compact, err := parseUpcomingFlags([]string{"--days", "14", "--limit", "20"})
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if days != 14 || limit != 20 || compact {
+		t.Fatalf("days=%d limit=%d compact=%v", days, limit, compact)
+	}
+
+	days, limit, compact, err = parseUpcomingFlags([]string{"--compact"})
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if days != 7 || limit != 50 || !compact {
+		t.Fatalf("defaults: days=%d limit=%d compact=%v", days, limit, compact)
+	}
+
+	_, _, _, err = parseUpcomingFlags([]string{"--days", "0"})
+	if err == nil {
+		t.Fatalf("error = nil, want positive days error")
+	}
+
+	_, _, _, err = parseUpcomingFlags([]string{"--days", "-1"})
+	if err == nil {
+		t.Fatalf("error = nil, want positive days error")
+	}
+
+	_, _, _, err = parseUpcomingFlags([]string{"--surprise"})
+	if err == nil {
+		t.Fatalf("error = nil, want unknown flag")
+	}
+}
+
+func TestParseTaskIDProjectFlags(t *testing.T) {
+	opts, err := parseTaskIDProjectFlags([]string{"t1", "--project", "p1"}, "complete")
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if opts.TaskID != "t1" || opts.ProjectID != "p1" {
+		t.Fatalf("opts = %+v", opts)
+	}
+
+	// positional project
+	opts, err = parseTaskIDProjectFlags([]string{"t1", "p1"}, "complete")
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if opts.ProjectID != "p1" {
+		t.Fatalf("ProjectID = %q", opts.ProjectID)
+	}
+
+	// dry-run + yes
+	opts, err = parseTaskIDProjectFlags([]string{"t1", "--project", "p1", "--dry-run", "--yes"}, "delete")
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if !opts.DryRun || !opts.Yes {
+		t.Fatalf("DryRun=%v Yes=%v", opts.DryRun, opts.Yes)
+	}
+
+	// short form -p
+	opts, err = parseTaskIDProjectFlags([]string{"t1", "-p", "p1"}, "complete")
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if opts.ProjectID != "p1" {
+		t.Fatalf("ProjectID = %q", opts.ProjectID)
+	}
+
+	// missing args
+	_, err = parseTaskIDProjectFlags(nil, "complete")
+	if err == nil {
+		t.Fatalf("error = nil, want usage error")
+	}
+
+	// missing project
+	_, err = parseTaskIDProjectFlags([]string{"t1"}, "complete")
+	if err == nil {
+		t.Fatalf("error = nil, want missing project")
+	}
+
+	// missing project value
+	_, err = parseTaskIDProjectFlags([]string{"t1", "--project"}, "complete")
+	if err == nil {
+		t.Fatalf("error = nil, want project value error")
+	}
+}
+
+func TestParsePriority(t *testing.T) {
+	cases := []struct {
+		input string
+		want  int
+		err   string
+	}{
+		{"0", 0, ""},
+		{"1", 1, ""},
+		{"3", 3, ""},
+		{"5", 5, ""},
+		{"2", 0, "must be one of"},
+		{"abc", 0, "must be one of"},
+	}
+	for _, tc := range cases {
+		got, err := parsePriority(tc.input)
+		if tc.err != "" {
+			if err == nil || !strings.Contains(err.Error(), tc.err) {
+				t.Errorf("parsePriority(%q) error = %v, want %q", tc.input, err, tc.err)
+			}
+			continue
+		}
+		if err != nil {
+			t.Errorf("parsePriority(%q) error = %v", tc.input, err)
+			continue
+		}
+		if got != tc.want {
+			t.Errorf("parsePriority(%q) = %d, want %d", tc.input, got, tc.want)
+		}
+	}
+}
+
+func TestParseCommentWriteFlags(t *testing.T) {
+	opts, err := parseCommentWriteFlags([]string{"--project", "p1", "--task", "t1", "--text", "Hello"}, "create", false)
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if opts.ProjectID != "p1" || opts.TaskID != "t1" || opts.Title != "Hello" {
+		t.Fatalf("opts = %+v", opts)
+	}
+
+	// missing project
+	_, err = parseCommentWriteFlags([]string{"--task", "t1", "--text", "Hi"}, "create", false)
+	if err == nil {
+		t.Fatalf("error = nil, want missing project")
+	}
+
+	// missing text for create
+	_, err = parseCommentWriteFlags([]string{"--project", "p1", "--task", "t1"}, "create", true)
+	if err == nil {
+		t.Fatalf("error = nil, want missing text")
+	}
+}
+
+func TestParseCompactOnlyFlags(t *testing.T) {
+	compact, err := parseCompactOnlyFlags([]string{"--compact"})
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if !compact {
+		t.Fatalf("compact = false, want true")
+	}
+
+	compact, err = parseCompactOnlyFlags(nil)
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if compact {
+		t.Fatalf("compact = true, want false")
+	}
+
+	_, err = parseCompactOnlyFlags([]string{"--surprise"})
+	if err == nil {
+		t.Fatalf("error = nil, want unknown flag")
+	}
+}
+
+func TestParseSettingsGetFlags(t *testing.T) {
+	includeWeb, err := parseSettingsGetFlags([]string{"--include-web"})
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if !includeWeb {
+		t.Fatalf("includeWeb = false, want true")
+	}
+
+	includeWeb, err = parseSettingsGetFlags(nil)
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if includeWeb {
+		t.Fatalf("includeWeb = true, want false")
+	}
+
+	_, err = parseSettingsGetFlags([]string{"--surprise"})
+	if err == nil {
+		t.Fatalf("error = nil, want unknown flag")
+	}
+}
+
+func TestParseHabitCheckinFlags(t *testing.T) {
+	ids, stamp, err := parseHabitCheckinFlags([]string{"--habit", "h1", "--habit", "h2", "--after-stamp", "1715328000000"})
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if len(ids) != 2 || ids[0] != "h1" || ids[1] != "h2" {
+		t.Fatalf("ids = %v", ids)
+	}
+	if stamp != 1715328000000 {
+		t.Fatalf("stamp = %d", stamp)
+	}
+
+	// empty
+	ids, stamp, err = parseHabitCheckinFlags(nil)
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if len(ids) != 0 || stamp != 0 {
+		t.Fatalf("defaults: ids=%v stamp=%d", ids, stamp)
+	}
+}
+
+func TestParseTimelineFlags(t *testing.T) {
+	to, limit, err := parseTimelineFlags([]string{"--to", "cursor123", "--limit", "14"})
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if to != "cursor123" || limit != 14 {
+		t.Fatalf("to=%q limit=%d", to, limit)
+	}
+
+	// defaults
+	to, limit, err = parseTimelineFlags(nil)
+	if err != nil {
+		t.Fatalf("error = %v", err)
+	}
+	if to != "" || limit != 50 {
+		t.Fatalf("defaults: to=%q limit=%d", to, limit)
+	}
+
+	_, _, err = parseTimelineFlags([]string{"--to"})
+	if err == nil {
+		t.Fatalf("error = nil, want missing value")
+	}
+}
