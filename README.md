@@ -13,7 +13,7 @@
   <img alt="Go 1.26+" src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go&logoColor=white">
   <a href="https://github.com/DeliciousBuding/dida-cli/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/DeliciousBuding/dida-cli?style=flat-square&logo=github"></a>
   <a href="https://github.com/DeliciousBuding/dida-cli/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/DeliciousBuding/dida-cli/ci.yml?branch=main&label=ci&style=flat-square&logo=github-actions"></a>
-  <a href="https://www.npmjs.com/package/@vectorcontrol/dida-cli"><img alt="npm" src="https://img.shields.io/npm/v/@vectorcontrol/dida-cli?style=flat-square&logo=npm"></a>
+  <a href="https://www.npmjs.com/package/@delicious233/dida-cli"><img alt="npm" src="https://img.shields.io/npm/v/@delicious233/dida-cli?style=flat-square&logo=npm"></a>
 </p>
 
 <p align="center">
@@ -82,7 +82,7 @@ $ dida task today --json
 ### npm (recommended)
 
 ```bash
-npm install -g @vectorcontrol/dida-cli
+npm install -g @delicious233/dida-cli
 ```
 
 ### macOS / Linux

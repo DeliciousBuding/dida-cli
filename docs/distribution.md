@@ -72,7 +72,7 @@ DIDA_REPO=DeliciousBuding/dida-cli DIDA_INSTALL_DIR="$HOME/bin" sh install.sh
 
 The `npm/` directory is a package skeleton for a future npm distribution:
 
-- package name placeholder: `@vectorcontrol/dida-cli`
+- package name: `@delicious233/dida-cli`
 - postinstall downloads the matching GitHub Release archive
 - latest release resolution reads `checksums.txt` from `latest/download`
   instead of using the GitHub API

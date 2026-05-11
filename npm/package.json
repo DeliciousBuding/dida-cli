@@ -1,5 +1,5 @@
 {
-  "name": "@vectorcontrol/dida-cli",
+  "name": "@delicious233/dida-cli",
   "version": "0.2.0",
   "private": false,
   "description": "Agent-friendly CLI for Dida365 / TickTick — task automation with stable JSON output.",

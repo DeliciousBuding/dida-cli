@@ -419,7 +419,7 @@ smoke passed against `v0.1.16`.
 ### F3. npm Installer
 
 - placeholder package under `npm/`
-- package name placeholder: `@vectorcontrol/dida-cli`
+- package name: `@delicious233/dida-cli`
 - postinstall downloads matching GitHub Release binary
 - `bin/dida` forwards to the downloaded binary
 

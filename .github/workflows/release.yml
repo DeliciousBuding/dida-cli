@@ -134,7 +134,7 @@ jobs:
 
           **npm:**
           \`\`\`bash
-          npm install -g @vectorcontrol/dida-cli
+          npm install -g @delicious233/dida-cli
           \`\`\`
 
           **macOS / Linux:**
