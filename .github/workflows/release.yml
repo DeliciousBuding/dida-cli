@@ -76,11 +76,12 @@ jobs:
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME}"
+          repo="${GITHUB_REPOSITORY}"
+          base_url="https://github.com/${repo}/releases/download/${version}"
 
           # Try to extract this version's section from CHANGELOG.md
           changelog_section=""
           if [[ -f CHANGELOG.md ]]; then
-            # Extract the section for this version (between ## [version] and the next ##)
             changelog_section=$(awk -v ver="$version" '
               /^## \[/ {
                 if (found) exit
@@ -99,10 +100,9 @@ jobs:
           if [[ -n "$changelog_section" ]]; then
             echo "$changelog_section" >> release-notes.md
           else
-            # Fallback: generate from commits since last tag
             prev_tag=$(git tag --sort=-v:refname | grep -A1 "^${version}$" | tail -1)
             if [[ -n "$prev_tag" && "$prev_tag" != "$version" ]]; then
-              echo "### Changes since ${prev_tag}" >> release-notes.md
+              echo "Changes since ${prev_tag}:" >> release-notes.md
               echo "" >> release-notes.md
               git log --oneline --no-merges "${prev_tag}..${version}" | while read -r line; do
                 echo "- ${line}" >> release-notes.md
@@ -114,55 +114,62 @@ jobs:
             fi
           fi
 
-          cat >> release-notes.md <<'INSTALL_EOF'
+          # Platform download table
+          cat >> release-notes.md <<'TABLE_EOF'
 
           ---
 
-          ## Install
+          ## Downloads
+
+          | Platform | File | Install |
+          |---|---|---|
+          | **macOS** (Apple Silicon) | [dida_VERSION_darwin_arm64.tar.gz](BASE_URL/dida_VERSION_darwin_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+          | **macOS** (Intel) | [dida_VERSION_darwin_amd64.tar.gz](BASE_URL/dida_VERSION_darwin_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+          | **Linux** (x86_64) | [dida_VERSION_linux_amd64.tar.gz](BASE_URL/dida_VERSION_linux_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+          | **Linux** (ARM64) | [dida_VERSION_linux_arm64.tar.gz](BASE_URL/dida_VERSION_linux_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+          | **Windows** (x86_64) | [dida_VERSION_windows_amd64.zip](BASE_URL/dida_VERSION_windows_amd64.zip) | Scoop / PowerShell |
+          | **Windows** (ARM64) | [dida_VERSION_windows_arm64.zip](BASE_URL/dida_VERSION_windows_arm64.zip) | Scoop / PowerShell |
+
+          ### Quick Install
+
+          **npm:**
+          \`\`\`bash
+          npm install -g @vectorcontrol/dida-cli
+          \`\`\`
 
           **macOS / Linux:**
-
-          ```bash
-          curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
-          ```
+          \`\`\`bash
+          curl -fsSL https://raw.githubusercontent.com/${repo}/main/install.sh | sh
+          \`\`\`
 
           **Windows PowerShell:**
-
-          ```powershell
-          iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
-          ```
+          \`\`\`powershell
+          iwr https://raw.githubusercontent.com/${repo}/main/install.ps1 -UseB | iex
+          \`\`\`
 
           **Go:**
+          \`\`\`bash
+          go install github.com/${repo}/cmd/dida@latest
+          \`\`\`
 
-          ```bash
-          go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
-          ```
-          INSTALL_EOF
+          **Pin this version:**
+          \`\`\`bash
+          DIDA_VERSION=${version} curl -fsSL https://raw.githubusercontent.com/${repo}/main/install.sh | sh
+          \`\`\`
 
-          # Append version-specific pin instructions
-          cat >> release-notes.md <<PIN_EOF
+          ### Verify
 
-          <details>
-          <summary>Pin this version</summary>
-
-          ```bash
-          DIDA_VERSION=${version} curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
-          ```
-
-          ```powershell
-          \$env:DIDA_VERSION="${version}"; iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
-          ```
-          </details>
-
-          **Verify after install:**
-
-          ```bash
+          \`\`\`bash
           dida version
           dida doctor --json
-          ```
+          \`\`\`
 
-          Checksums are attached as \`checksums.txt\`.
-          PIN_EOF
+          SHA-256 checksums are in [\`checksums.txt\`](BASE_URL/checksums.txt).
+          TABLE_EOF
+
+          # Replace placeholders
+          sed -i "s|VERSION|${version}|g" release-notes.md
+          sed -i "s|BASE_URL|${base_url}|g" release-notes.md
 
       - name: Create GitHub release
         env:
