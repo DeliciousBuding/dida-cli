@@ -78,3 +78,50 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		t.Fatalf("seen endpoints:\n%s\nwant:\n%s", strings.Join(seen, "\n"), strings.Join(want, "\n"))
 	}
 }
+
+func TestAccountReadsHandleHTTPErrors(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"errorMessage":"internal error"}`))
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	client.BaseURLV1 = server.URL
+	ctx := context.Background()
+
+	// Each of these should return an error, not panic
+	cases := []struct {
+		name string
+		call func() error
+	}{
+		{"AttachmentQuota", func() error { _, err := client.AttachmentQuota(ctx); return err }},
+		{"DailyReminderPreferences", func() error { _, err := client.DailyReminderPreferences(ctx); return err }},
+		{"ShareContacts", func() error { _, err := client.ShareContacts(ctx); return err }},
+		{"RecentProjectUsers", func() error { _, err := client.RecentProjectUsers(ctx); return err }},
+		{"ProjectShares", func() error { _, err := client.ProjectShares(ctx, "p1"); return err }},
+		{"ProjectShareQuota", func() error { _, err := client.ProjectShareQuota(ctx, "p1"); return err }},
+		{"ProjectInviteURL", func() error { _, err := client.ProjectInviteURL(ctx, "p1"); return err }},
+		{"CalendarSubscriptions", func() error { _, err := client.CalendarSubscriptions(ctx); return err }},
+		{"CalendarArchivedEvents", func() error { _, err := client.CalendarArchivedEvents(ctx); return err }},
+		{"CalendarThirdAccounts", func() error { _, err := client.CalendarThirdAccounts(ctx); return err }},
+		{"StatisticsGeneral", func() error { _, err := client.StatisticsGeneral(ctx); return err }},
+		{"ProjectTemplates", func() error { _, err := client.ProjectTemplates(ctx, 0); return err }},
+		{"SearchAll", func() error { _, err := client.SearchAll(ctx, "test"); return err }},
+		{"UserStatus", func() error { _, err := client.UserStatus(ctx); return err }},
+		{"UserProfile", func() error { _, err := client.UserProfile(ctx); return err }},
+		{"UserSessions", func() error { _, err := client.UserSessions(ctx, "en"); return err }},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.call()
+			if err == nil {
+				t.Fatalf("%s: error = nil, want HTTP error", tc.name)
+			}
+			if !strings.Contains(err.Error(), "500") {
+				t.Fatalf("%s: error = %v, want 500", tc.name, err)
+			}
+		})
+	}
+}
