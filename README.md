@@ -255,3 +255,7 @@ go build -o bin/dida ./cmd/dida
 ## License
 
 [MIT](LICENSE)
+
+## Disclaimer
+
+DidaCLI is an independent, third-party open-source project. It is **not** affiliated with, endorsed by, or connected to [Dida365](https://dida365.com) / [TickTick](https://ticktick.com) (杭州随笔记网络技术有限公司 / Hangzhou Suibiji Network Technology Co., Ltd.). Provided "as is" for personal learning and research purposes only. The author assumes no responsibility for any consequences arising from the use of this tool.
