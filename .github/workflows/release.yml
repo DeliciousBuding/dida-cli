@@ -80,7 +80,8 @@ jobs:
           repo="${GITHUB_REPOSITORY}"
           base_url="https://github.com/${repo}/releases/download/${version}"
 
-          # Try to extract this version's section from CHANGELOG.md
+          printf '%s\n\n' '## What'\''s Changed' > release-notes.md
+
           changelog_section=""
           if [[ -f CHANGELOG.md ]]; then
             changelog_section=$(awk -v ver="$version" '
@@ -92,19 +93,12 @@ jobs:
             ' CHANGELOG.md)
           fi
 
-          # Build the release notes
-          cat > release-notes.md <<'NOTES_EOF'
-## What's Changed
-
-NOTES_EOF
-
           if [[ -n "$changelog_section" ]]; then
             echo "$changelog_section" >> release-notes.md
           else
             prev_tag=$(git tag --sort=-v:refname | grep -A1 "^${version}$" | tail -1)
             if [[ -n "$prev_tag" && "$prev_tag" != "$version" ]]; then
-              echo "Changes since ${prev_tag}:" >> release-notes.md
-              echo "" >> release-notes.md
+              printf '%s\n\n' "Changes since ${prev_tag}:" >> release-notes.md
               git log --oneline --no-merges "${prev_tag}..${version}" | while read -r line; do
                 echo "- ${line}" >> release-notes.md
               done
@@ -115,60 +109,17 @@ NOTES_EOF
             fi
           fi
 
-          # Platform download table
-          cat >> release-notes.md <<'TABLE_EOF'
+          printf '%s\n' '' '---' '' '## Downloads' '' >> release-notes.md
+          printf '%s\n' '| Platform | File | Install |' >> release-notes.md
+          printf '%s\n' '|---|---|---|' >> release-notes.md
+          printf '%s\n' "| **macOS** (Apple Silicon) | [dida___VER___darwin_arm64.tar.gz](BASE_URL/dida___VER___darwin_arm64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
+          printf '%s\n' "| **macOS** (Intel) | [dida___VER___darwin_amd64.tar.gz](BASE_URL/dida___VER___darwin_amd64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
+          printf '%s\n' "| **Linux** (x86_64) | [dida___VER___linux_amd64.tar.gz](BASE_URL/dida___VER___linux_amd64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
+          printf '%s\n' "| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
+          printf '%s\n' "| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | Scoop / PowerShell |" >> release-notes.md
+          printf '%s\n' "| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | Scoop / PowerShell |" >> release-notes.md
+          printf '%s\n' '' '### Quick Install' '' '**npm:**' '```bash' 'npm install -g @delicious233/dida-cli' '```' '' '**macOS / Linux:**' '```bash' 'curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh | sh' '```' '' '**Windows PowerShell:**' '```powershell' 'iwr https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.ps1 -UseB | iex' '```' '' '**Go:**' '```bash' 'go install github.com/REPO_PLACEHOLDER/cmd/dida@latest' '```' '' '**Self-update:**' '```bash' 'dida upgrade' '```' '' '### Verify' '' '```bash' 'dida version' 'dida doctor --json' '```' '' 'SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).' >> release-notes.md
 
----
-
-## Downloads
-
-| Platform | File | Install |
-|---|---|---|
-| **macOS** (Apple Silicon) | [dida___VER___darwin_arm64.tar.gz](BASE_URL/dida___VER___darwin_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **macOS** (Intel) | [dida___VER___darwin_amd64.tar.gz](BASE_URL/dida___VER___darwin_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **Linux** (x86_64) | [dida___VER___linux_amd64.tar.gz](BASE_URL/dida___VER___linux_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | Scoop / PowerShell |
-| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | Scoop / PowerShell |
-
-### Quick Install
-
-**npm:**
-```bash
-npm install -g @delicious233/dida-cli
-```
-
-**macOS / Linux:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh | sh
-```
-
-**Windows PowerShell:**
-```powershell
-iwr https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.ps1 -UseB | iex
-```
-
-**Go:**
-```bash
-go install github.com/REPO_PLACEHOLDER/cmd/dida@latest
-```
-
-**Self-update:**
-```bash
-dida upgrade
-```
-
-### Verify
-
-```bash
-dida version
-dida doctor --json
-```
-
-SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).
-TABLE_EOF
-
-          # Replace placeholders
           sed -i "s|__VER__|${version}|g" release-notes.md
           sed -i "s|BASE_URL|${base_url}|g" release-notes.md
           sed -i "s|REPO_PLACEHOLDER|${repo}|g" release-notes.md
