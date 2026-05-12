@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
@@ -251,6 +252,167 @@ func TestUpgradeHelp(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "--check") {
 		t.Fatalf("help missing --check: %s", stdout.String())
+	}
+}
+
+func TestUpgradeFullFlowIntegration(t *testing.T) {
+	fakeBinary := []byte("#!/bin/sh\necho dida v99.0.0")
+	var archiveData []byte
+	var assetName string
+	if runtime.GOOS == "windows" {
+		assetName = "dida_v99.0.0_windows_" + runtime.GOARCH + ".zip"
+		archiveData = buildTestZip(t, "dida_v99.0.0_windows_"+runtime.GOARCH+"/dida.exe", fakeBinary)
+	} else {
+		assetName = "dida_v99.0.0_" + runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
+		archiveData = buildTestTarGz(t, "dida_v99.0.0_"+runtime.GOOS+"_"+runtime.GOARCH+"/dida", fakeBinary)
+	}
+
+	archiveHash := sha256.Sum256(archiveData)
+	checksumLine := hex.EncodeToString(archiveHash[:]) + "  " + assetName + "\n"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/DeliciousBuding/dida-cli/releases/latest":
+			_ = json.NewEncoder(w).Encode(githubRelease{
+				TagName: "v99.0.0",
+				Assets: []githubAsset{
+					{Name: assetName, BrowserDownloadURL: "http://" + r.Host + "/download/" + assetName},
+					{Name: "checksums.txt", BrowserDownloadURL: "http://" + r.Host + "/download/checksums.txt"},
+				},
+			})
+		case "/download/" + assetName:
+			w.Header().Set("Content-Length", fmt.Sprintf("%d", len(archiveData)))
+			w.Write(archiveData)
+		case "/download/checksums.txt":
+			w.Write([]byte(checksumLine))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	orig := releasesLatestURL
+	releasesLatestURL = server.URL + "/repos/DeliciousBuding/dida-cli/releases/latest"
+	defer func() { releasesLatestURL = orig }()
+
+	origVersion := versionFromBuild
+	versionFromBuild = "v1.0.0"
+	defer func() { versionFromBuild = origVersion }()
+
+	var stdout, stderr bytes.Buffer
+	code := runUpgrade([]string{"--check"}, true, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("--check exit code = %d, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	if !strings.Contains(stdout.String(), `"needs_update": true`) {
+		t.Fatalf("--check stdout missing needs_update: %s", stdout.String())
+	}
+}
+
+func TestUpgradeMissingChecksumsFails(t *testing.T) {
+	var assetName string
+	if runtime.GOOS == "windows" {
+		assetName = "dida_v99.0.0_windows_" + runtime.GOARCH + ".zip"
+	} else {
+		assetName = "dida_v99.0.0_" + runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
+	}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/DeliciousBuding/dida-cli/releases/latest":
+			_ = json.NewEncoder(w).Encode(githubRelease{
+				TagName: "v99.0.0",
+				Assets: []githubAsset{
+					{Name: assetName, BrowserDownloadURL: "http://" + r.Host + "/download/" + assetName},
+				},
+			})
+		case "/download/" + assetName:
+			w.Write([]byte("fake-archive-data"))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	orig := releasesLatestURL
+	releasesLatestURL = server.URL + "/repos/DeliciousBuding/dida-cli/releases/latest"
+	defer func() { releasesLatestURL = orig }()
+
+	origVersion := versionFromBuild
+	versionFromBuild = "v1.0.0"
+	defer func() { versionFromBuild = origVersion }()
+
+	var stdout, stderr bytes.Buffer
+	code := runUpgrade(nil, true, &stdout, &stderr)
+	if code == 0 {
+		t.Fatalf("expected failure when checksums.txt missing, got exit 0")
+	}
+	if !strings.Contains(stdout.String(), "checksum") {
+		t.Fatalf("expected checksum error type, got: %s", stdout.String())
+	}
+}
+
+func TestUpgradeChecksumMismatchFails(t *testing.T) {
+	var assetName string
+	if runtime.GOOS == "windows" {
+		assetName = "dida_v99.0.0_windows_" + runtime.GOARCH + ".zip"
+	} else {
+		assetName = "dida_v99.0.0_" + runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
+	}
+	archiveData := []byte("fake-archive-data")
+	badChecksum := "0000000000000000000000000000000000000000000000000000000000000000  " + assetName + "\n"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/DeliciousBuding/dida-cli/releases/latest":
+			_ = json.NewEncoder(w).Encode(githubRelease{
+				TagName: "v99.0.0",
+				Assets: []githubAsset{
+					{Name: assetName, BrowserDownloadURL: "http://" + r.Host + "/download/" + assetName},
+					{Name: "checksums.txt", BrowserDownloadURL: "http://" + r.Host + "/download/checksums.txt"},
+				},
+			})
+		case "/download/" + assetName:
+			w.Write(archiveData)
+		case "/download/checksums.txt":
+			w.Write([]byte(badChecksum))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	orig := releasesLatestURL
+	releasesLatestURL = server.URL + "/repos/DeliciousBuding/dida-cli/releases/latest"
+	defer func() { releasesLatestURL = orig }()
+
+	origVersion := versionFromBuild
+	versionFromBuild = "v1.0.0"
+	defer func() { versionFromBuild = origVersion }()
+
+	var stdout, stderr bytes.Buffer
+	code := runUpgrade(nil, true, &stdout, &stderr)
+	if code == 0 {
+		t.Fatalf("expected failure on checksum mismatch, got exit 0")
+	}
+	if !strings.Contains(stdout.String(), "checksum") {
+		t.Fatalf("expected checksum error, got: %s", stdout.String())
+	}
+}
+
+func TestProgressReader(t *testing.T) {
+	data := bytes.Repeat([]byte("x"), 1000)
+	var progress bytes.Buffer
+	pr := &progressReader{r: bytes.NewReader(data), total: 1000, w: &progress}
+	buf := make([]byte, 100)
+	for {
+		_, err := pr.Read(buf)
+		if err != nil {
+			break
+		}
+	}
+	if !strings.Contains(progress.String(), "100%") {
+		t.Fatalf("progress output missing 100%%: %s", progress.String())
 	}
 }
 
