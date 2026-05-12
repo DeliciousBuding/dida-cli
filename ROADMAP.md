@@ -441,11 +441,11 @@ deferred until release cadence and package identifier are final.
 | `dida upgrade` command | Done | SHA-256 verified, Windows rename-replace |
 | Checksum enforcement | Done | Fails if checksums.txt missing |
 | HTTP timeout hardening | Done | All clients 30-60s, response limits |
-| Download progress output | TODO | Byte counter on stderr, no deps |
-| Upgrade integration test | TODO | httptest mock of full flow |
+| Download progress output | Done | Percentage counter on stderr, suppressed in --json |
+| Upgrade integration test | Done | httptest mock of full flow + failure paths |
 | Schema registry entry | Done | `upgrade` registered |
-| CHANGELOG update | TODO | Consolidate unreleased items |
-| README badges | TODO | CI + version badges |
+| CHANGELOG update | Done | Consolidated unreleased items |
+| README badges | Done | CI + version + npm badges already present |
 
 ### G2. v0.3.0 Scope (next milestone)
 
