@@ -178,3 +178,27 @@ jobs:
           gh release create "${GITHUB_REF_NAME}" dist/* \
             --title "DidaCLI ${GITHUB_REF_NAME}" \
             --notes-file release-notes.md
+
+  npm-publish:
+    name: Publish to npm
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update package version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          cd npm && npm version "$VERSION" --no-git-tag-version
+
+      - name: Publish
+        run: cd npm && npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

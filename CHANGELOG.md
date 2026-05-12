@@ -8,6 +8,9 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- `dida upgrade` self-update command: checks GitHub Releases, downloads platform binary, verifies SHA-256, replaces executable
+- `dida upgrade --check` mode for version query without install
+- npm auto-publish job in release workflow (publishes on tag push)
 - Agent Safety section in README (EN + ZH) with 5 clear safety rules for AI agent usage
 - Agent liability disclaimer in README and SKILL.md
 - SKILL.md Safety Rules section for agents: dry-run preview, --yes confirmation, token secrecy
