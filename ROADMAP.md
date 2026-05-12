@@ -22,10 +22,9 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline (as of v0.2.0 + unreleased main)
+## Current Baseline (as of v0.2.1)
 
-Latest release: `v0.2.0` (2026-05-10). Main branch has ~28 commits ahead
-targeting `v0.2.1`.
+Latest release: `v0.2.1` (2026-05-12).
 
 ### Three Channels — All Functional
 
@@ -56,8 +55,8 @@ targeting `v0.2.1`.
 - No shell completion (`dida completion`)
 - No Homebrew tap or Scoop bucket (templates exist, not published)
 - No i18n (all errors English-only)
-- No download progress indicator during `dida upgrade`
 - `doctor` doesn't check for available updates
+- Website needs polish and better content
 
 ## Non-Negotiable Rules
 
@@ -386,7 +385,9 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.1.16`; release workflow uses Node 24-compatible action major versions.
+Status: implemented and smoke-tested through `v0.2.1`; release workflow uses
+Node 24-compatible action major versions. Workflow-dispatch trigger added for
+manual re-triggering. YAML heredoc issue fixed in release notes template.
 
 ### F2. Install Scripts
 
@@ -399,20 +400,20 @@ Status: implemented and smoke-tested through `v0.1.16`; release workflow uses No
 - install-time `dida version` and `dida doctor --json`
 
 Status: implemented; Windows `install.ps1` latest smoke passed against
-`v0.1.16`, and WSL Linux `install.sh` latest smoke passed against
-`v0.1.16`. The installed-binary OpenAPI client config
+`v0.2.1`, and WSL Linux `install.sh` latest smoke passed against
+`v0.2.1`. The installed-binary OpenAPI client config
 smoke passed against `v0.1.16`.
 
 ### F3. npm Installer
 
-- placeholder package under `npm/`
-- package name: `@delicious233/dida-cli`
+- package: `@delicious233/dida-cli`
 - postinstall downloads matching GitHub Release binary
 - `bin/dida` forwards to the downloaded binary
+- npm auto-publish on tag push (release workflow)
 
-Status: skeleton smoke-tested on Windows and WSL Linux against `v0.1.16`; do
-not publish until package ownership, final npm scope, macOS smoke, and
-publishing policy are confirmed.
+Status: published as `@delicious233/dida-cli`. npm auto-publish on tag push
+added in release workflow. Postinstall binary download tested on Windows and
+WSL Linux against `v0.1.16`; published through `v0.2.1`.
 
 ### F4. Homebrew / Scoop
 
@@ -420,10 +421,8 @@ publishing policy are confirmed.
 - Scoop bucket manifest
 - both should reference GitHub Release assets and checksums
 
-Status: templates added under `packaging/`; not published to an external tap or
-bucket yet. Static URL/hash validation against `v0.1.16/checksums.txt` passed
-for Homebrew and Scoop templates; native package-manager install smoke remains
-pending.
+Status: templates exist under `packaging/`; not published to an external tap or
+bucket yet. Homebrew tap and Scoop bucket planned for v0.3.0.
 
 ### F5. winget
 
@@ -446,6 +445,7 @@ deferred until release cadence and package identifier are final.
 | Schema registry entry | Done | `upgrade` registered |
 | CHANGELOG update | Done | Consolidated unreleased items |
 | README badges | Done | CI + version + npm badges already present |
+| README rewrite | Done | Condensed ~60%, better structure, collapsed verbose sections |
 
 ### G2. v0.3.0 Scope (next milestone)
 
