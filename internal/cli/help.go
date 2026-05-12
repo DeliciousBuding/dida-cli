@@ -48,6 +48,7 @@ Commands:
   task         Task reads and writes
   raw          Raw read-only API escape hatch
   version      Print version
+  upgrade      Check for updates and self-upgrade
   +today       Shortcut for task today
 
 Global options:
@@ -463,6 +464,21 @@ Usage:
 
 Channel output is local and does not require auth. Use it to choose between
 Web API, Official MCP, and Official OpenAPI without mixing auth models.
+`))
+}
+
+func printUpgradeHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida upgrade [--check] [--json]
+
+Check for new releases and update the DidaCLI binary.
+
+  --check   Only check for updates, do not download or install.
+
+The updater downloads the platform-matched binary from GitHub Releases,
+verifies the SHA-256 checksum, and replaces the current executable.
+Requires write permission to the binary location.
 `))
 }
 

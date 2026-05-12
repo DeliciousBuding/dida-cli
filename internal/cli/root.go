@@ -82,6 +82,13 @@ func rootCommands(version string) []rootCommand {
 		{Name: "column", Run: runColumn},
 		{Name: "comment", Run: runComment},
 		{Name: "task", Run: runTask},
+		{
+			Name: "upgrade",
+			Run: func(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+				versionFromBuild = version
+				return runUpgrade(args, jsonOut, stdout, stderr)
+			},
+		},
 	}
 }
 
