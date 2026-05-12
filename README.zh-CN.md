@@ -5,7 +5,7 @@
 <h1 align="center">DidaCLI</h1>
 
 <p align="center">
-  <b>面向 <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a> 的 Agent 友好型任务自动化工具</b>
+  <b>面向 <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a> 的 Agent 友好型 CLI</b>
 </p>
 
 <p align="center">
@@ -19,65 +19,27 @@
 <p align="center">
   <a href="README.md">English</a> ·
   <a href="https://deliciousbuding.github.io/dida-cli/">项目主页</a> ·
-  <a href="docs/quickstart.zh-CN.md">快速开始</a> ·
-  <a href="docs/commands.md">命令参考</a> ·
-  <a href="CONTRIBUTING.md">参与贡献</a>
+  <a href="docs/commands.md">命令参考</a>
 </p>
 
 ---
 
-DidaCLI 是一个 Go 单二进制文件，同时接入 Dida365/TickTick 的 **Web API**、**官方 MCP** 和 **官方 OpenAPI**——为人类和 AI Agent 设计，提供结构化、可预测的任务自动化。
+Go 单二进制文件，三条认证通道（Web API、官方 MCP、OpenAPI）。每条响应都是稳定的 JSON 信封。零依赖。
 
 ```bash
-$ dida task today --json
-{
-  "ok": true,
-  "command": "task today",
-  "meta": { "count": 3 },
-  "data": {
-    "tasks": [
-      { "title": "写周报", "project": "工作" },
-      { "title": "Review PR #42", "project": "工作" },
-      { "title": "买菜", "project": "生活" }
-    ]
-  }
-}
+$ dida task today --compact --json
 ```
 
-## 为什么选 DidaCLI？
-
-- **Agent 原生 JSON** — 每个响应使用稳定的信封结构 `{ ok, command, meta, data, error }`。无需 HTML 解析，无需脆弱的爬虫。
-- **三通道认证** — Web API（浏览器 Cookie）、官方 MCP（Token）、官方 OpenAPI（OAuth）。互不混用。
-- **Dry-run 写入** — 所有写命令支持 `--dry-run`，执行前预览请求体。
-- **零依赖** — 单个静态二进制文件，纯 Go stdlib，无 CGO。
-- **六平台** — Windows / Linux / macOS，amd64 + arm64。Apple Silicon 原生支持。
-- **30+ 命令** — 任务、项目、文件夹、标签、列、评论、习惯、番茄钟、回收站、搜索、统计等。
-
-## 功能特性
-
-| 分类 | 能力 |
-|---|---|
-| **任务** | 创建、更新、完成、删除、移动、批量操作、评论、附件 |
-| **项目与文件夹** | 列表、创建、层级管理、列、排序 |
-| **标签与过滤** | 创建、分配、按标签过滤、保存过滤器 |
-| **搜索与查询** | 全文搜索、即将到来的任务、已完成历史 |
-| **习惯与番茄钟** | 打卡追踪、番茄钟统计与计时 |
-| **Agent 上下文** | 大纲模式、Schema 自省、上下文包 |
-| **认证与安全** | 多通道认证、`doctor` 诊断、Token 管理 |
-| **Dry-run 与 Schema** | 预览所有写操作、查看 API Schema |
-
-## 支持平台
-
-| 平台 | 架构 | 压缩格式 | 安装方式 |
-|---|---|---|---|
-| **macOS** | Apple Silicon (arm64) | `.tar.gz` | `curl ... \| sh` / Homebrew |
-| **macOS** | Intel (amd64) | `.tar.gz` | `curl ... \| sh` / Homebrew |
-| **Linux** | x86_64 (amd64) | `.tar.gz` | `curl ... \| sh` |
-| **Linux** | ARM64 (arm64) | `.tar.gz` | `curl ... \| sh` |
-| **Windows** | x86_64 (amd64) | `.zip` | Scoop / PowerShell |
-| **Windows** | ARM64 (arm64) | `.zip` | Scoop / PowerShell |
-
 ## 安装
+
+```bash
+npm i -g @delicious233/dida-cli          # npm
+curl -fsSL .../install.sh | sh           # macOS / Linux
+iwr .../install.ps1 -UseB | iex          # Windows
+```
+
+<details>
+<summary>全部安装方式</summary>
 
 ### npm（推荐）
 
@@ -89,18 +51,6 @@ npm install -g @delicious233/dida-cli
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
-```
-
-### Homebrew（macOS / Linux）— 即将上线
-
-```bash
-brew install dida
-```
-
-### Windows（Scoop）— 即将上线
-
-```powershell
-scoop install dida
 ```
 
 ### Windows（PowerShell）
@@ -115,171 +65,125 @@ iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 
 go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
 ```
 
-<details>
-<summary><b>锁定特定版本</b></summary>
+### 锁定版本
 
 ```bash
-# macOS / Linux
-DIDA_VERSION=v0.2.0 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
-
-# Windows PowerShell
-$env:DIDA_VERSION="v0.2.0"; iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+DIDA_VERSION=v0.2.1 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
+
+安装后：
+
+```bash
+dida version && dida doctor --json && dida upgrade
+```
+
 </details>
-
-安装后验证和更新：
-
-```bash
-dida version
-dida doctor --json
-dida upgrade          # 自更新到最新版本
-```
 
 ## 快速开始
 
 ```bash
-# 1. 登录 — 在浏览器打开 dida365.com，登录后：
+# 1. 登录 — 从浏览器复制 dida365.com 的 cookie "t"
 dida auth cookie set --token-stdin --json
-# 提示时粘贴浏览器中名为 "t" 的 Cookie。
 
-# 2. 验证环境
+# 2. 验证
 dida doctor --verify --json
 
-# 3. 查看今日任务
-dida task today --json
+# 3. 查看今日
+dida +today --json
 
-# 4. 列出项目，获取 project ID
-dida project list --json
-
-# 5. 创建任务（先用 --dry-run 预览）
-dida task create --project <project-id> --title "发布 v1" --dry-run --json
-dida task create --project <project-id> --title "发布 v1" --json
-
-# 6. 为 AI Agent 获取上下文
-dida agent context --outline --json
+# 4. 创建任务（先预览）
+dida task create --project <id> --title "发布 v1" --dry-run --json
 ```
-
-> **提示：** 如果安装了 Python，可以用 `dida auth login --browser --json` 自动捕获 Cookie。否则用上面的手动流程。
 
 ## 命令
 
 <details>
-<summary><b>读取数据</b></summary>
+<summary>读取</summary>
 
 ```bash
-dida task today --json                       # 今日任务
-dida task upcoming --days 14 --json          # 未来两周
-dida task search --query "考试" --json       # 搜索任务
-dida project list --json                     # 所有项目
-dida folder list --json                      # 所有文件夹
-dida tag list --json                         # 所有标签
-dida completed today --json                  # 今日已完成
-dida pomo stats --json                       # 番茄钟统计
-dida stats general --json                    # 账户统计
+dida task today --json
+dida task upcoming --days 14 --json
+dida task search --query "考试" --json
+dida project list --json
+dida tag list --json
+dida completed today --json
+dida pomo stats --json
 ```
 </details>
 
 <details>
-<summary><b>写入数据</b></summary>
+<summary>写入</summary>
 
 ```bash
 dida task create --project <id> --title "新任务" --json
-dida task update <task-id> --project <id> --title "更新标题" --json
-dida task complete <task-id> --project <id> --json
-dida task move <task-id> --project <id> --to-project <dest> --json
-dida task delete <task-id> --project <id> --yes --json
-dida project create --name "新项目" --json
-dida tag create my-tag --json
+dida task update <id> --project <p> --title "更新" --json
+dida task complete <id> --project <p> --json
+dida task move <id> --from <p> --to <p> --json
+dida task delete <id> --project <p> --yes --json
 ```
 </details>
 
 <details>
-<summary><b>官方通道（MCP & OpenAPI）</b></summary>
+<summary>官方通道（MCP & OpenAPI）</summary>
 
 ```bash
-# 官方 MCP（基于 Token）
-DIDA365_TOKEN=dp_xxx dida official doctor --json
-dida official project list --json
-dida official task query --query "today" --json
+# MCP（Token）
+DIDA365_TOKEN=dp_xxx dida official project list --json
 
-# 官方 OpenAPI（基于 OAuth）
-dida openapi client set --id <client-id> --secret-stdin --json
+# OpenAPI（OAuth）
+dida openapi client set --id <id> --secret-stdin --json
 dida openapi login --browser --json
 dida openapi project list --json
 ```
 </details>
 
-完整命令参考：[docs/commands.md](docs/commands.md)
+完整参考：[docs/commands.md](docs/commands.md)
 
 ## 认证通道
 
 | | Web API | 官方 MCP | 官方 OpenAPI |
 |---|---|---|---|
-| **认证方式** | 浏览器 Cookie | Token | OAuth 应用 |
-| **覆盖面** | 最广（私有端点） | MCP 工具型 | 标准 REST |
-| **写入安全** | Dry-run + 确认 | Dry-run | Dry-run |
-| **配置成本** | 一次浏览器登录 | 获取 Token | 注册 OAuth 应用 |
+| **认证** | 浏览器 Cookie | Token | OAuth |
+| **覆盖面** | 最广 | MCP 工具型 | 标准 REST |
+| **配置** | 一次登录 | 获取 Token | 注册应用 |
 
-Web API 覆盖面最大，OpenAPI 适合标准 REST 集成，MCP 适合官方工具接入。三者认证通道独立，绝不混用。
-
-**该用哪个通道？**
-
-- **刚上手？** 用 Web API — 一个 cookie 搞定，覆盖最广，零配置摩擦。
-- **做集成？** 用 OpenAPI — 标准 OAuth，稳定 REST 契约。
-- **用官方 MCP 服务器？** 用 Official MCP — 基于 token，工具导向。
-
-三者认证独立，可以在同一项目中同时使用多个通道。
+三条通道独立，绝不混用。
 
 ## Agent 集成
 
-DidaCLI 从一开始就为 AI Agent 工作流设计：
-
-1. **发现命令** — `dida schema list --compact --json`
-2. **构建上下文** — `dida agent context --outline --json`
-3. **预览写入** — `--dry-run` 执行前预览
-4. **解析响应** — 稳定的 JSON 信封
+```bash
+dida schema list --compact --json        # 发现命令
+dida agent context --outline --json      # 构建上下文
+dida task create ... --dry-run --json    # 预览写入
+```
 
 | Agent | 安装 |
 |---|---|
-| Claude Code | 复制 [`skills/dida-cli/SKILL.md`](skills/dida-cli/SKILL.md) 到你的 skills 目录 |
-| Codex | 参见 [docs/skill-installation.md](docs/skill-installation.md) |
-| Hermes | 参见 [docs/skill-installation.md](docs/skill-installation.md) |
+| Claude Code | 复制 [`skills/dida-cli/SKILL.md`](skills/dida-cli/SKILL.md) |
+| Codex / 其他 | 参见 [docs/skill-installation.md](docs/skill-installation.md) |
 
-### Agent 安全须知
-
-使用 AI Agent 操作 DidaCLI 时，**你有责任审查和批准所有写操作**。关键安全边界：
-
-- **写入前先预览** — Agent 应在执行写操作前运行 `--dry-run`，审查生成的请求体后再移除 `--dry-run`。
-- **破坏性操作需确认** — `task delete`、`project delete`、`tag merge` 等操作需要 `--yes`。切勿盲目传入 `--yes`。
-- **Agent 操作失误由使用者负责** — 如果 Agent 错误地创建、修改或删除了任务/项目，DidaCLI 及其作者不承担任何责任。你控制 Agent，Agent 控制 CLI。
-- **Token 安全** — 切勿将 Cookie 或 Token 分享给 Agent 或在聊天中暴露。DidaCLI 仅在本地存储 Token，不会传输给任何第三方。
-- **限制 Agent 访问范围** — 建议使用独立的 Dida365 账号进行 Agent 实验，而非主账号。
+**安全须知：** 写入前务必 `--dry-run`。破坏性操作需 `--yes`。Token 仅存本地。参见 [Agent 使用指南](docs/agent-usage.md)。
 
 ## 文档
 
-- [快速开始](docs/quickstart.zh-CN.md) — 2 分钟上手
-- [命令参考](docs/commands.md) — 每个命令、每个参数
-- [Agent 使用指南](docs/agent-usage.md) — AI Agent 如何使用 DidaCLI
-- [API 覆盖面](docs/api-coverage.md) — 端点覆盖地图
-- [OpenAPI 设置](docs/openapi-setup.zh-CN.md) — OAuth 通道配置
+- [命令参考](docs/commands.md)
+- [Agent 使用指南](docs/agent-usage.md)
+- [API 覆盖面](docs/api-coverage.md)
+- [OpenAPI 设置](docs/openapi-setup.zh-CN.md)
 
 ## 参与贡献
 
-欢迎贡献。参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
-
 ```bash
-git clone https://github.com/DeliciousBuding/dida-cli.git
-cd dida-cli
-go test ./...
-go build -o bin/dida ./cmd/dida
+git clone https://github.com/DeliciousBuding/dida-cli.git && cd dida-cli
+go test ./... && go build -o bin/dida ./cmd/dida
 ```
+
+参见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
 [MIT](LICENSE)
 
-## 声明
+---
 
-DidaCLI 是独立的第三方开源项目，与 [Dida365](https://dida365.com) / [TickTick](https://ticktick.com)（杭州随笔记网络技术有限公司）无关联、未获其授权或认可。本工具仅供个人学习与研究使用，不作任何担保，使用者须自行承担一切后果。
-
-**AI Agent 使用：** 当 DidaCLI 由 AI Agent（Claude、Codex、Hermes 等）操作时，人类操作者对所有操作承担全部责任。务必在执行前审查 Agent 生成的写操作，使用 `--dry-run` 预览。CLI 作者不对 Agent 操作导致的数据丢失、账号问题或意外修改承担任何责任。
+DidaCLI 是独立的第三方开源项目，与 [Dida365](https://dida365.com) / [TickTick](https://ticktick.com)（杭州随笔记网络技术有限公司）无关联。仅供个人学习与研究。由 AI Agent 操作时，人类操作者对所有行为承担全部责任。

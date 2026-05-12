@@ -5,7 +5,7 @@
 <h1 align="center">DidaCLI</h1>
 
 <p align="center">
-  <b>Agent-friendly task automation for <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a></b>
+  <b>Agent-friendly CLI for <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a></b>
 </p>
 
 <p align="center">
@@ -19,65 +19,27 @@
 <p align="center">
   <a href="README.zh-CN.md">中文</a> ·
   <a href="https://deliciousbuding.github.io/dida-cli/">Website</a> ·
-  <a href="docs/quickstart.md">Quick Start</a> ·
-  <a href="docs/commands.md">Commands</a> ·
-  <a href="CONTRIBUTING.md">Contributing</a>
+  <a href="docs/commands.md">Commands</a>
 </p>
 
 ---
 
-DidaCLI is a single Go binary that talks to Dida365/TickTick's **Web API**, **official MCP**, and **official OpenAPI** — designed for both humans and AI agents that need structured, predictable task automation.
+Single Go binary with three auth channels (Web API, Official MCP, OpenAPI). Stable JSON envelope on every response. Zero dependencies.
 
 ```bash
-$ dida task today --json
-{
-  "ok": true,
-  "command": "task today",
-  "meta": { "count": 3 },
-  "data": {
-    "tasks": [
-      { "title": "写周报", "project": "工作" },
-      { "title": "Review PR #42", "project": "工作" },
-      { "title": "买菜", "project": "生活" }
-    ]
-  }
-}
+$ dida task today --compact --json
 ```
 
-## Why DidaCLI?
-
-- **Agent-native JSON** — Every response uses a stable envelope `{ ok, command, meta, data, error }`. No HTML parsing, no fragile scraping.
-- **Three auth channels** — Web API (browser cookie), Official MCP (token), Official OpenAPI (OAuth). Never mixed.
-- **Dry-run writes** — All write commands support `--dry-run` to preview payloads before execution.
-- **Zero dependencies** — Single static binary, pure Go stdlib, no CGO.
-- **Six platforms** — Windows / Linux / macOS on amd64 + arm64. Apple Silicon native.
-- **30+ commands** — Tasks, projects, folders, tags, columns, comments, habits, Pomodoro, trash, search, stats, and more.
-
-## Features
-
-| Category | Capabilities |
-|---|---|
-| **Tasks** | Create, update, complete, delete, move, batch operations, comments, attachments |
-| **Projects & Folders** | List, create, manage hierarchies, columns, sort orders |
-| **Tags & Filters** | Create, assign, filter by tag, saved filters |
-| **Search & Queries** | Full-text search, upcoming tasks, completed history |
-| **Habits & Pomodoro** | Check-in tracking, Pomodoro stats and timer |
-| **Agent Context** | Outline mode, schema introspection, context packs |
-| **Auth & Security** | Multi-channel auth, `doctor` diagnostics, token management |
-| **Dry-run & Schema** | Preview every write, inspect API schemas |
-
-## Supported Platforms
-
-| Platform | Architecture | Archive | Install |
-|---|---|---|---|
-| **macOS** | Apple Silicon (arm64) | `.tar.gz` | `curl ... \| sh` / Homebrew |
-| **macOS** | Intel (amd64) | `.tar.gz` | `curl ... \| sh` / Homebrew |
-| **Linux** | x86_64 (amd64) | `.tar.gz` | `curl ... \| sh` |
-| **Linux** | ARM64 (arm64) | `.tar.gz` | `curl ... \| sh` |
-| **Windows** | x86_64 (amd64) | `.zip` | Scoop / PowerShell |
-| **Windows** | ARM64 (arm64) | `.zip` | Scoop / PowerShell |
-
 ## Install
+
+```bash
+npm i -g @delicious233/dida-cli          # npm
+curl -fsSL .../install.sh | sh           # macOS / Linux
+iwr .../install.ps1 -UseB | iex          # Windows
+```
+
+<details>
+<summary>All install options</summary>
 
 ### npm (recommended)
 
@@ -89,18 +51,6 @@ npm install -g @delicious233/dida-cli
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
-```
-
-### Homebrew (macOS / Linux) — coming soon
-
-```bash
-brew install dida
-```
-
-### Windows (Scoop) — coming soon
-
-```powershell
-scoop install dida
 ```
 
 ### Windows (PowerShell)
@@ -115,170 +65,125 @@ iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 
 go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
 ```
 
-<details>
-<summary><b>Pin a specific version</b></summary>
+### Pin a specific version
 
 ```bash
-# macOS / Linux
-DIDA_VERSION=v0.2.0 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
-
-# Windows PowerShell
-$env:DIDA_VERSION="v0.2.0"; iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
+DIDA_VERSION=v0.2.1 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
+
+After install:
+
+```bash
+dida version && dida doctor --json && dida upgrade
+```
+
 </details>
-
-After install, verify and keep up to date:
-
-```bash
-dida version
-dida doctor --json
-dida upgrade          # Self-update to latest release
-```
 
 ## Quick Start
 
 ```bash
-# 1. Login — open dida365.com in your browser, sign in, then:
+# 1. Login — paste browser cookie "t" from dida365.com
 dida auth cookie set --token-stdin --json
-# Paste your browser cookie named "t" when prompted.
 
-# 2. Verify everything works
+# 2. Verify
 dida doctor --verify --json
 
-# 3. View today's tasks
-dida task today --json
+# 3. See today
+dida +today --json
 
-# 4. List your projects to get a project ID
-dida project list --json
-
-# 5. Create a task (preview first with --dry-run)
-dida task create --project <project-id> --title "Ship v1" --dry-run --json
-dida task create --project <project-id> --title "Ship v1" --json
-
-# 6. Get context for AI agents
-dida agent context --outline --json
+# 4. Create a task (preview first)
+dida task create --project <id> --title "Ship v1" --dry-run --json
 ```
-
-> **Tip:** `dida auth login --browser --json` can capture the cookie automatically if Python is installed. Otherwise use the manual flow above.
 
 ## Commands
 
 <details>
-<summary><b>Reading data</b></summary>
+<summary>Read</summary>
 
 ```bash
-dida task today --json                       # Today's tasks
-dida task upcoming --days 14 --json          # Next two weeks
-dida task search --query "exam" --json       # Search tasks
-dida project list --json                     # All projects
-dida folder list --json                      # All folders
-dida tag list --json                         # All tags
-dida completed today --json                  # Completed today
-dida pomo stats --json                       # Pomodoro stats
-dida stats general --json                    # Account stats
+dida task today --json
+dida task upcoming --days 14 --json
+dida task search --query "exam" --json
+dida project list --json
+dida tag list --json
+dida completed today --json
+dida pomo stats --json
 ```
 </details>
 
 <details>
-<summary><b>Writing data</b></summary>
+<summary>Write</summary>
 
 ```bash
 dida task create --project <id> --title "New task" --json
-dida task update <task-id> --project <id> --title "Updated" --json
-dida task complete <task-id> --project <id> --json
-dida task move <task-id> --project <id> --to-project <dest> --json
-dida task delete <task-id> --project <id> --yes --json
-dida project create --name "New project" --json
-dida tag create my-tag --json
+dida task update <id> --project <p> --title "Updated" --json
+dida task complete <id> --project <p> --json
+dida task move <id> --from <p> --to <p> --json
+dida task delete <id> --project <p> --yes --json
 ```
 </details>
 
 <details>
-<summary><b>Official channels (MCP & OpenAPI)</b></summary>
+<summary>Official channels (MCP & OpenAPI)</summary>
 
 ```bash
-# Official MCP (token-based)
-DIDA365_TOKEN=dp_xxx dida official doctor --json
-dida official project list --json
-dida official task query --query "today" --json
+# MCP (token)
+DIDA365_TOKEN=dp_xxx dida official project list --json
 
-# Official OpenAPI (OAuth-based)
-dida openapi client set --id <client-id> --secret-stdin --json
+# OpenAPI (OAuth)
+dida openapi client set --id <id> --secret-stdin --json
 dida openapi login --browser --json
 dida openapi project list --json
 ```
 </details>
 
-Full command reference: [docs/commands.md](docs/commands.md)
+Full reference: [docs/commands.md](docs/commands.md)
 
 ## Auth Channels
 
 | | Web API | Official MCP | Official OpenAPI |
 |---|---|---|---|
-| **Auth method** | Browser cookie | Token | OAuth app |
-| **Coverage** | Broadest (private endpoints) | MCP tool-based | Standard REST |
-| **Write safety** | Dry-run + confirm | Dry-run | Dry-run |
-| **Setup** | One browser login | Get token | Register OAuth app |
+| **Auth** | Browser cookie | Token | OAuth |
+| **Coverage** | Broadest | MCP tool-based | Standard REST |
+| **Setup** | One login | Get token | Register app |
 
-**Which channel should I use?**
-
-- **Just getting started?** Use Web API — one cookie, broadest coverage, zero setup friction.
-- **Building an integration?** Use OpenAPI — standard OAuth, stable REST contracts.
-- **Using the official MCP server?** Use Official MCP — token-based, tool-oriented.
-
-They use separate auth — never mixed. You can use multiple channels in the same project.
+All three are independent — never mixed.
 
 ## Agent Integration
 
-DidaCLI is built for AI agent workflows. Agents can:
-
-1. **Discover commands** — `dida schema list --compact --json`
-2. **Build context** — `dida agent context --outline --json`
-3. **Preview writes** — `--dry-run` before executing
-4. **Parse responses** — stable JSON envelope
+```bash
+dida schema list --compact --json        # discover commands
+dida agent context --outline --json      # build context
+dida task create ... --dry-run --json    # preview writes
+```
 
 | Agent | Install |
 |---|---|
-| Claude Code | Copy [`skills/dida-cli/SKILL.md`](skills/dida-cli/SKILL.md) to your skills directory |
-| Codex | See [docs/skill-installation.md](docs/skill-installation.md) |
-| Hermes | See [docs/skill-installation.md](docs/skill-installation.md) |
+| Claude Code | Copy [`skills/dida-cli/SKILL.md`](skills/dida-cli/SKILL.md) |
+| Codex / Others | See [docs/skill-installation.md](docs/skill-installation.md) |
 
-### Agent Safety
+**Safety:** Always `--dry-run` before writes. `--yes` required for destructives. Token never leaves local disk. See [Agent Usage](docs/agent-usage.md).
 
-When using DidaCLI with AI agents, **you are responsible for reviewing and approving all write operations**. Key safety boundaries:
+## Docs
 
-- **Always preview first** — Agents should run `--dry-run` before any write. Review the generated payload before removing `--dry-run`.
-- **Destructive operations require confirmation** — `task delete`, `project delete`, `tag merge` etc. require `--yes`. Never pass `--yes` blindly.
-- **Agent mistakes are your responsibility** — If an agent creates, modifies, or deletes tasks/projects incorrectly, DidaCLI and its authors are not liable. You control the agent; the agent controls the CLI.
-- **Token security** — Never share cookies or tokens with agents or in chat. DidaCLI stores tokens locally only; it does not transmit them to any third party.
-- **Scope your agent's access** — Consider using a dedicated Dida365 account for agent experimentation, not your primary account.
-
-## Documentation
-
-- [Quick Start](docs/quickstart.md) — Running in 2 minutes
-- [Commands Reference](docs/commands.md) — Every command, every flag
-- [Agent Usage](docs/agent-usage.md) — Using DidaCLI with AI agents
-- [API Coverage](docs/api-coverage.md) — Endpoint coverage map
-- [OpenAPI Setup](docs/openapi-setup.md) — OAuth channel configuration
-- [Distribution](docs/distribution.md) — Build from source, packaging
+- [Commands Reference](docs/commands.md)
+- [Agent Usage](docs/agent-usage.md)
+- [API Coverage](docs/api-coverage.md)
+- [OpenAPI Setup](docs/openapi-setup.md)
 
 ## Contributing
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ```bash
-git clone https://github.com/DeliciousBuding/dida-cli.git
-cd dida-cli
-go test ./...
-go build -o bin/dida ./cmd/dida
+git clone https://github.com/DeliciousBuding/dida-cli.git && cd dida-cli
+go test ./... && go build -o bin/dida ./cmd/dida
 ```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
 [MIT](LICENSE)
 
-## Disclaimer
+---
 
-DidaCLI is an independent, third-party open-source project. It is **not** affiliated with, endorsed by, or connected to [Dida365](https://dida365.com) / [TickTick](https://ticktick.com) (杭州随笔记网络技术有限公司 / Hangzhou Suibiji Network Technology Co., Ltd.). Provided "as is" for personal learning and research purposes only. The author assumes no responsibility for any consequences arising from the use of this tool.
-
-**AI Agent usage:** When DidaCLI is operated by an AI agent (Claude, Codex, Hermes, etc.), the human operator is solely responsible for all actions performed. Always review agent-generated write operations before execution. Use `--dry-run` to preview. The CLI authors are not liable for data loss, account issues, or unintended modifications caused by agent actions.
+DidaCLI is an independent, third-party open-source project. Not affiliated with [Dida365](https://dida365.com) / [TickTick](https://ticktick.com) (杭州随笔记网络技术有限公司). Provided "as is" for personal learning and research. The author assumes no responsibility for any consequences arising from the use of this tool. When operated by AI agents, the human operator is solely responsible for all actions.
