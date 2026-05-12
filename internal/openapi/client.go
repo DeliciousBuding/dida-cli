@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type Client struct {
@@ -19,9 +20,11 @@ type Client struct {
 
 func NewClient(token string) *Client {
 	return &Client{
-		BaseURL:    DefaultAPIBaseURL,
-		Token:      token,
-		HTTPClient: http.DefaultClient,
+		BaseURL: DefaultAPIBaseURL,
+		Token:   token,
+		HTTPClient: &http.Client{
+			Timeout: 30 * time.Second,
+		},
 	}
 }
 
@@ -50,7 +53,7 @@ func (c *Client) Do(ctx context.Context, method string, path string, body io.Rea
 		return fmt.Errorf("openapi request failed: %w", err)
 	}
 	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 16<<20)) // 16MB max
 	if err != nil {
 		return fmt.Errorf("read response: %w", err)
 	}

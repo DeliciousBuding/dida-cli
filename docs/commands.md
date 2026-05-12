@@ -405,3 +405,16 @@ Raw calls are intentionally GET-only. On JSON failures, `raw get` includes
 `error.details.statusCode`, `error.details.path`, and a short
 `error.details.bodySnippet` so private API probes can distinguish entitlement
 errors, path mistakes, and server failures without enabling raw writes.
+
+## Upgrade
+
+```bash
+dida upgrade --json              # Check for updates and self-upgrade
+dida upgrade --check --json      # Only check, do not install
+```
+
+The updater queries GitHub Releases for the latest version, downloads the
+platform-matched binary archive, verifies the SHA-256 checksum against
+`checksums.txt`, extracts the binary, and replaces the current executable.
+Requires write permission to the binary location. On Windows, uses a
+rename-then-replace strategy to avoid file-lock issues.

@@ -193,6 +193,9 @@ func parseTokenInput(args []string) (string, error) {
 			}
 			return args[i+1], nil
 		case "--token-stdin":
+			if fileInfo, _ := os.Stdin.Stat(); fileInfo != nil && (fileInfo.Mode()&os.ModeCharDevice) != 0 {
+				fmt.Fprintln(os.Stderr, "Paste cookie value, then press Ctrl+D (Unix) or Ctrl+Z+Enter (Windows):")
+			}
 			data, err := io.ReadAll(io.LimitReader(os.Stdin, maxTokenStdinBytes+1))
 			if err != nil {
 				return "", fmt.Errorf("read token from stdin: %w", err)

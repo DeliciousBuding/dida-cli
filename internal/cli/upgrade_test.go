@@ -42,6 +42,11 @@ func TestIsNewer(t *testing.T) {
 		{"", "v0.2.0", false},
 		{"v0.2.0", "", false},
 		{"v0.3.0", "0.2.0", true},
+		{"v1.0.0", "v2.0.0", false},  // downgrade protection
+		{"v0.2.0", "v0.3.0", false},  // downgrade protection
+		{"v1.2.3", "v1.2.2", true},   // patch bump
+		{"v1.2.0", "v1.1.9", true},   // minor bump
+		{"v2.0.0", "v1.99.99", true}, // major bump
 	}
 	for _, tc := range cases {
 		got := isNewer(tc.latest, tc.current)

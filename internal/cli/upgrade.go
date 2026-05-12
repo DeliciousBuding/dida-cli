@@ -84,11 +84,44 @@ func isNewer(latest, current string) bool {
 	if l == "" || c == "" {
 		return false
 	}
-	// dev versions are always considered older
 	if c == "dev" {
 		return true
 	}
-	return l != c
+	return compareSemver(l, c) > 0
+}
+
+func compareSemver(a, b string) int {
+	ap := parseSemverParts(a)
+	bp := parseSemverParts(b)
+	for i := 0; i < 3; i++ {
+		if ap[i] > bp[i] {
+			return 1
+		}
+		if ap[i] < bp[i] {
+			return -1
+		}
+	}
+	return 0
+}
+
+func parseSemverParts(v string) [3]int {
+	var parts [3]int
+	fields := strings.SplitN(v, ".", 3)
+	for i, f := range fields {
+		if i >= 3 {
+			break
+		}
+		n := 0
+		for _, ch := range f {
+			if ch >= '0' && ch <= '9' {
+				n = n*10 + int(ch-'0')
+			} else {
+				break
+			}
+		}
+		parts[i] = n
+	}
+	return parts
 }
 
 func findAsset(release *githubRelease) (*githubAsset, string) {

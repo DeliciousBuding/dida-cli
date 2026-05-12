@@ -26,7 +26,7 @@ function archName() {
 
 function requestBuffer(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, { headers: { "User-Agent": "dida-cli-npm-installer" } }, (res) => {
+    const req = https.get(url, { headers: { "User-Agent": "dida-cli-npm-installer" }, timeout: 60000 }, (res) => {
       if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
         requestBuffer(res.headers.location).then(resolve, reject);
         return;
@@ -39,6 +39,7 @@ function requestBuffer(url) {
       res.on("data", (chunk) => chunks.push(chunk));
       res.on("end", () => resolve(Buffer.concat(chunks)));
     }).on("error", reject);
+    req.on("timeout", () => { req.destroy(); reject(new Error(`request timed out: ${url}`)); });
   });
 }
 

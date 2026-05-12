@@ -172,15 +172,16 @@ func (c *Client) redactForError(value string) string {
 	return value
 }
 
+var redactPatterns = []*regexp.Regexp{
+	regexp.MustCompile(`(?i)(cookie\s*:\s*)[^\r\n]+`),
+	regexp.MustCompile(`(?i)(set-cookie\s*:\s*)[^\r\n]+`),
+	regexp.MustCompile(`(?i)(authorization\s*:\s*bearer\s+)[A-Za-z0-9._~+\-/=]+`),
+	regexp.MustCompile(`(?i)(["']?(?:token|access_token|refresh_token|cookie)["']?\s*[:=]\s*["']?)[^"',\s}]+`),
+	regexp.MustCompile(`(?i)(\bt=)[^;\s"',}]+`),
+}
+
 func redactSensitivePatterns(value string) string {
-	patterns := []*regexp.Regexp{
-		regexp.MustCompile(`(?i)(cookie\s*:\s*)[^\r\n]+`),
-		regexp.MustCompile(`(?i)(set-cookie\s*:\s*)[^\r\n]+`),
-		regexp.MustCompile(`(?i)(authorization\s*:\s*bearer\s+)[A-Za-z0-9._~+\-/=]+`),
-		regexp.MustCompile(`(?i)(["']?(?:token|access_token|refresh_token|cookie)["']?\s*[:=]\s*["']?)[^"',\s}]+`),
-		regexp.MustCompile(`(?i)(\bt=)[^;\s"',}]+`),
-	}
-	for _, pattern := range patterns {
+	for _, pattern := range redactPatterns {
 		value = pattern.ReplaceAllString(value, `${1}[REDACTED]`)
 	}
 	return value
