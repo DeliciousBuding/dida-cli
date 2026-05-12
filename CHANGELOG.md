@@ -10,34 +10,36 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 ### Added
 - `dida upgrade` self-update command: checks GitHub Releases, downloads platform binary, verifies SHA-256, replaces executable
 - `dida upgrade --check` mode for version query without install
+- Download progress output on stderr during upgrade (percentage-based)
 - npm auto-publish job in release workflow (publishes on tag push)
-- Agent Safety section in README (EN + ZH) with 5 clear safety rules for AI agent usage
-- Agent liability disclaimer in README and SKILL.md
-- SKILL.md Safety Rules section for agents: dry-run preview, --yes confirmation, token secrecy
+- `upgrade` registered in schema registry
+- Agent Safety section in README (EN + ZH) with 5 clear safety rules
 - Supported Platforms table showing all 6 build targets in README
-- npm package published as `@delicious233/dida-cli@0.2.0`
-- SVG logo integrated into website (navbar, hero, footer)
-- Open Graph meta tags for website social sharing
 
 ### Changed
-- Quick Start flow: manual cookie import (`dida auth cookie set --token-stdin`) is now the primary recommended flow; `--browser` is secondary (requires Python)
-- Auth error hints: all missing-auth messages now recommend `dida auth cookie set --token-stdin` instead of browser-only flow
-- Homebrew and Scoop install methods marked as "coming soon" in README
-- README restructured following professional open-source patterns (badges, feature table, platform table)
+- Quick Start flow: `dida auth cookie set --token-stdin` is now primary; `--browser` is secondary
+- Auth error hints now recommend `--token-stdin` instead of browser-only flow
+- Interactive terminal hint when using `--token-stdin` (prompts for Ctrl+D/Ctrl+Z)
 
 ### Fixed
-- Company name corrected to 杭州随笔记网络技术有限公司 in HTML footer and READMEs
+- OpenAPI OAuth `ExchangeCode` now uses 30s timeout instead of `http.DefaultClient`
+- OpenAPI OAuth error messages no longer leak raw response body (secret leakage prevention)
+- Official MCP client now uses 60s timeout instead of `http.DefaultClient`
+- `dida upgrade` now fails when `checksums.txt` is missing from release assets (previously skipped verification silently)
+- Release notes template uses `__VER__` placeholder instead of generic `VERSION` to avoid unintended sed replacements
+- Semver comparison in upgrade uses proper numeric comparison (fixes downgrade-as-upgrade bug)
+- Web API client: regex patterns hoisted to package-level (avoids recompilation per call)
 
 ### Tests
-- config package: coverage improved from 0% to 83.3%
-- officialmcp package: coverage improved from 39.9% to 85.0%
-- openapi package: coverage improved from 49.6% to 82.7%
-- model package: coverage improved from 62.9% to 91.0%
-- auth package: coverage improved from 48.8% to 66.7%
-- cli package: coverage improved from 32.3% to 37.8%
-- webapi package: coverage improved from 80.5% to 84.2%
-- Add HTTP error path tests for all webapi account read endpoints
-- Add webapi client edge case tests (missing token, 204, nil output, headers)
+- Upgrade integration tests: full flow mock, missing checksums failure, checksum mismatch failure
+- Progress reader unit test
+- config package: 0% to 83.3%
+- officialmcp package: 39.9% to 85.0%
+- openapi package: 49.6% to 82.7%
+- model package: 62.9% to 91.0%
+- auth package: 48.8% to 66.7%
+- cli package: 32.3% to 37.8%
+- webapi package: 80.5% to 84.2%
 
 ## [v0.2.0] - 2026-05-10
 
