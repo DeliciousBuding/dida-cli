@@ -127,11 +127,12 @@ $env:DIDA_VERSION="v0.2.0"; iwr https://raw.githubusercontent.com/DeliciousBudin
 ```
 </details>
 
-After install, verify:
+After install, verify and keep up to date:
 
 ```bash
 dida version
 dida doctor --json
+dida upgrade          # Self-update to latest release
 ```
 
 ## Quick Start
@@ -219,7 +220,13 @@ Full command reference: [docs/commands.md](docs/commands.md)
 | **Write safety** | Dry-run + confirm | Dry-run | Dry-run |
 | **Setup** | One browser login | Get token | Register OAuth app |
 
-Use Web API for maximum coverage, OpenAPI for standard REST integration, MCP for official tool access. They use separate auth channels — never mixed.
+**Which channel should I use?**
+
+- **Just getting started?** Use Web API — one cookie, broadest coverage, zero setup friction.
+- **Building an integration?** Use OpenAPI — standard OAuth, stable REST contracts.
+- **Using the official MCP server?** Use Official MCP — token-based, tool-oriented.
+
+They use separate auth — never mixed. You can use multiple channels in the same project.
 
 ## Agent Integration
 

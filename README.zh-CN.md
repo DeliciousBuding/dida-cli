@@ -127,11 +127,12 @@ $env:DIDA_VERSION="v0.2.0"; iwr https://raw.githubusercontent.com/DeliciousBudin
 ```
 </details>
 
-安装后验证：
+安装后验证和更新：
 
 ```bash
 dida version
 dida doctor --json
+dida upgrade          # 自更新到最新版本
 ```
 
 ## 快速开始
@@ -220,6 +221,14 @@ dida openapi project list --json
 | **配置成本** | 一次浏览器登录 | 获取 Token | 注册 OAuth 应用 |
 
 Web API 覆盖面最大，OpenAPI 适合标准 REST 集成，MCP 适合官方工具接入。三者认证通道独立，绝不混用。
+
+**该用哪个通道？**
+
+- **刚上手？** 用 Web API — 一个 cookie 搞定，覆盖最广，零配置摩擦。
+- **做集成？** 用 OpenAPI — 标准 OAuth，稳定 REST 契约。
+- **用官方 MCP 服务器？** 用 Official MCP — 基于 token，工具导向。
+
+三者认证独立，可以在同一项目中同时使用多个通道。
 
 ## Agent 集成
 
