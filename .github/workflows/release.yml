@@ -123,12 +123,12 @@ NOTES_EOF
 
 | Platform | File | Install |
 |---|---|---|
-| **macOS** (Apple Silicon) | [dida_VERSION_darwin_arm64.tar.gz](BASE_URL/dida_VERSION_darwin_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **macOS** (Intel) | [dida_VERSION_darwin_amd64.tar.gz](BASE_URL/dida_VERSION_darwin_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **Linux** (x86_64) | [dida_VERSION_linux_amd64.tar.gz](BASE_URL/dida_VERSION_linux_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **Linux** (ARM64) | [dida_VERSION_linux_arm64.tar.gz](BASE_URL/dida_VERSION_linux_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
-| **Windows** (x86_64) | [dida_VERSION_windows_amd64.zip](BASE_URL/dida_VERSION_windows_amd64.zip) | Scoop / PowerShell |
-| **Windows** (ARM64) | [dida_VERSION_windows_arm64.zip](BASE_URL/dida_VERSION_windows_arm64.zip) | Scoop / PowerShell |
+| **macOS** (Apple Silicon) | [dida___VER___darwin_arm64.tar.gz](BASE_URL/dida___VER___darwin_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+| **macOS** (Intel) | [dida___VER___darwin_amd64.tar.gz](BASE_URL/dida___VER___darwin_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+| **Linux** (x86_64) | [dida___VER___linux_amd64.tar.gz](BASE_URL/dida___VER___linux_amd64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | `curl -fsSL ...install.sh \| sh` |
+| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | Scoop / PowerShell |
+| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | Scoop / PowerShell |
 
 ### Quick Install
 
@@ -168,7 +168,7 @@ SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).
 TABLE_EOF
 
           # Replace placeholders
-          sed -i "s|VERSION|${version}|g" release-notes.md
+          sed -i "s|__VER__|${version}|g" release-notes.md
           sed -i "s|BASE_URL|${base_url}|g" release-notes.md
           sed -i "s|REPO_PLACEHOLDER|${repo}|g" release-notes.md
 

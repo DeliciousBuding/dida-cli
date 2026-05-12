@@ -163,17 +163,18 @@ func ExchangeCode(ctx context.Context, clientID string, clientSecret string, cod
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Authorization", "Basic "+basicAuth(clientID, clientSecret))
-	resp, err := http.DefaultClient.Do(req)
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("exchange oauth code: %w", err)
 	}
 	defer resp.Body.Close()
-	data, err := io.ReadAll(resp.Body)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
 		return nil, fmt.Errorf("read token response: %w", err)
 	}
 	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("oauth token exchange returned HTTP %d: %s", resp.StatusCode, summarizeBody(string(data)))
+		return nil, fmt.Errorf("oauth token exchange returned HTTP %d", resp.StatusCode)
 	}
 	var out TokenResponse
 	if err := json.Unmarshal(data, &out); err != nil {

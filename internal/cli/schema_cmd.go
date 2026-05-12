@@ -315,6 +315,7 @@ func didaCommandSchemas() []commandSchema {
 		{ID: "habit.checkins", Title: "Read habit check-ins", Resource: "habit", Operation: "read", Command: "dida habit checkins --habit <habit-id> --after-stamp <millis> --json", HTTP: []string{"POST /habitCheckins/query"}, Status: "stable", AuthRequired: true, Notes: "POST read; accepts repeated --habit and optional afterStamp cursor."},
 		{ID: "quadrant.list", Title: "Group active tasks into Eisenhower quadrants", Resource: "quadrant", Operation: "read", Command: "dida quadrant list --json", HTTP: []string{"GET /batch/check/0"}, Status: "stable", AuthRequired: true},
 		{ID: "raw.get", Title: "Read-only raw Web API probe", Resource: "raw", Operation: "read", Command: "dida raw get /path --api-version v1|v2 --json", HTTP: []string{"GET <path>"}, Status: "stable", AuthRequired: true, Notes: "Raw writes are intentionally unavailable."},
+		{ID: "upgrade", Title: "Self-update CLI binary", Resource: "system", Operation: "write", Command: "dida upgrade --json", Status: "stable", AuthRequired: false, DryRun: false, Notes: "Queries GitHub Releases, verifies SHA-256 checksum, replaces binary. Use --check for version check only."},
 	}
 	applyChannelAuthMetadata(schemas)
 	return schemas

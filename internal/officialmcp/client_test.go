@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestToolsHandshakeFlow(t *testing.T) {
@@ -446,7 +447,10 @@ func TestNewClient(t *testing.T) {
 	if c.Token != "mytoken" || c.URL != DefaultURL {
 		t.Fatalf("client = %+v", c)
 	}
-	if c.HTTPClient != http.DefaultClient {
-		t.Fatalf("HTTPClient = %v, want DefaultClient", c.HTTPClient)
+	if c.HTTPClient == nil {
+		t.Fatal("HTTPClient is nil")
+	}
+	if c.HTTPClient.Timeout != 60*time.Second {
+		t.Fatalf("HTTPClient.Timeout = %v, want 60s", c.HTTPClient.Timeout)
 	}
 }

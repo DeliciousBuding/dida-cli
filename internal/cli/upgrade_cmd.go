@@ -66,17 +66,18 @@ func runUpgrade(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	}
 
 	checksumsAsset := findChecksumsAsset(release)
-	if checksumsAsset != nil {
-		if !jsonOut {
-			fmt.Fprintln(stdout, "Verifying checksum...")
-		}
-		checksums, err := downloadBytes(httpClient, checksumsAsset.BrowserDownloadURL)
-		if err != nil {
-			return failTyped("upgrade", "download", fmt.Sprintf("download checksums.txt failed: %v", err), "", jsonOut, stdout, stderr)
-		}
-		if err := verifyChecksum(archiveData, checksums, asset.Name); err != nil {
-			return failTyped("upgrade", "checksum", err.Error(), "the download may be corrupted; try again", jsonOut, stdout, stderr)
-		}
+	if checksumsAsset == nil {
+		return failTyped("upgrade", "checksum", "checksums.txt not found in release assets", "the release may be incomplete; try again later or download manually from "+info.ReleaseURL, jsonOut, stdout, stderr)
+	}
+	if !jsonOut {
+		fmt.Fprintln(stdout, "Verifying checksum...")
+	}
+	checksums, err := downloadBytes(httpClient, checksumsAsset.BrowserDownloadURL)
+	if err != nil {
+		return failTyped("upgrade", "download", fmt.Sprintf("download checksums.txt failed: %v", err), "", jsonOut, stdout, stderr)
+	}
+	if err := verifyChecksum(archiveData, checksums, asset.Name); err != nil {
+		return failTyped("upgrade", "checksum", err.Error(), "the download may be corrupted; try again", jsonOut, stdout, stderr)
 	}
 
 	if !jsonOut {

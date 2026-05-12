@@ -140,9 +140,11 @@ func RedactForStatus(value string) string {
 
 func NewClient(token string) *Client {
 	return &Client{
-		URL:        DefaultURL,
-		Token:      token,
-		HTTPClient: http.DefaultClient,
+		URL:   DefaultURL,
+		Token: token,
+		HTTPClient: &http.Client{
+			Timeout: 60 * time.Second,
+		},
 	}
 }
 
