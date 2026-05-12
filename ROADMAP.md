@@ -22,55 +22,42 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline
+## Current Baseline (as of v0.2.0 + unreleased main)
 
-As of the current main branch:
+Latest release: `v0.2.0` (2026-05-10). Main branch has ~28 commits ahead
+targeting `v0.2.1`.
 
-- `webapi` is the primary implemented channel
-- `agent context --outline` provides a lower-token Web API context pack with
-  task id references and a deduplicated `taskIndex`
-- `webapi` has live-smoked trash pagination reads through
-  `trash list --cursor/--limit --compact --json`
-- `official mcp` has:
-  - `official doctor`
-  - `official tools`
-  - `official show`
-  - `official call`
-  - local token config helpers under `official token`
-  - first-class project read wrappers
-  - first-class task read/filter/query wrappers
-  - first-class official task batch-add, batch-update, and project completion
-    wrappers with local dry-run previews
-  - first-class habit wrappers
-  - first-class focus wrappers
-- `official openapi` has:
-  - OAuth foundation
-  - auth URL generation
-  - callback listener
-  - code exchange
-  - token persistence
-  - project wrappers
-  - task wrappers
-  - focus wrappers
-  - habit wrappers
-- docs already include:
-  - API coverage matrix at `docs/api-coverage.md`
-  - Web API notes
-  - OpenAPI guide
-  - MCP vs Web API comparison
-  - channel inventory
-  - Web API gap catalog
-  - MCP tool crosswalk
-- distribution is live:
-  - `v0.1.16` GitHub Release exists
-  - release assets cover Windows, Linux, and macOS on amd64/arm64
-  - `install.ps1` has been smoke-tested against the latest `v0.1.16` release asset on Windows
-  - installed `v0.1.16` binary has smoke-tested `openapi client set/status/clear`
-  - `install.sh` has been smoke-tested against the latest `v0.1.16` release asset on Linux/amd64
-  - npm installer skeleton has been smoke-tested against `v0.1.16` on Windows
-    and WSL Linux
-  - package manager templates exist under `packaging/` for Homebrew and Scoop;
-    winget is documented as a future submission
+### Three Channels — All Functional
+
+| Channel | Auth | Status |
+|---|---|---|
+| Web API | Browser cookie `t` | Primary, widest coverage |
+| Official MCP | `DIDA365_TOKEN=dp_...` | 22 first-class wrappers + generic `call` |
+| Official OpenAPI | OAuth access token | Full CRUD for project/task/focus/habit |
+
+### Distribution
+
+- GitHub Releases: 6-platform binary archives + checksums.txt
+- `install.sh` / `install.ps1`: smoke-tested on Linux/macOS/Windows
+- npm: `@delicious233/dida-cli` with postinstall binary download
+- `dida upgrade`: self-update with SHA-256 verification (new in v0.2.1)
+- CI: tag-triggered release + npm auto-publish
+
+### Engineering Quality
+
+- Test coverage: webapi 84%, officialmcp 85%, openapi 83%, model 91%, config 83%
+- All HTTP clients have explicit timeouts (30-60s) and response size limits
+- Error messages redact tokens and sensitive patterns
+- Upgrade enforces checksum verification (fails if checksums.txt missing)
+
+### What's NOT Done Yet
+
+- CLI package coverage: 37.8% (core command paths under-tested)
+- No shell completion (`dida completion`)
+- No Homebrew tap or Scoop bucket (templates exist, not published)
+- No i18n (all errors English-only)
+- No download progress indicator during `dida upgrade`
+- `doctor` doesn't check for available updates
 
 ## Non-Negotiable Rules
 
@@ -445,6 +432,65 @@ pending.
 Status: submission notes added under `packaging/winget/`; manifest generation is
 deferred until release cadence and package identifier are final.
 
+## Workstream G: Self-Update & CLI Ergonomics
+
+### G1. v0.2.1 Scope (current sprint)
+
+| Item | Status | Notes |
+|---|---|---|
+| `dida upgrade` command | Done | SHA-256 verified, Windows rename-replace |
+| Checksum enforcement | Done | Fails if checksums.txt missing |
+| HTTP timeout hardening | Done | All clients 30-60s, response limits |
+| Download progress output | TODO | Byte counter on stderr, no deps |
+| Upgrade integration test | TODO | httptest mock of full flow |
+| Schema registry entry | Done | `upgrade` registered |
+| CHANGELOG update | TODO | Consolidate unreleased items |
+| README badges | TODO | CI + version badges |
+
+### G2. v0.3.0 Scope (next milestone)
+
+| Item | Priority | Notes |
+|---|---|---|
+| `dida completion` | High | bash/zsh/fish/powershell, hardcoded templates |
+| `dida doctor` upgrade check | High | One-line "update available" in doctor output |
+| goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
+| Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
+| Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI |
+| CLI test coverage to 60%+ | Medium | Focus on task/project/upgrade command paths |
+| staticcheck in CI | Low | Catches more issues than go vet alone |
+
+### G3. v0.4.0+ (long-term)
+
+| Item | Notes |
+|---|---|
+| `DIDA_LANG=zh` error messages | Lightweight i18n, no framework, message table |
+| `dida watch` (file-system trigger) | Watch a markdown file, sync changes to Dida365 |
+| Plugin system | User-defined commands via `~/.dida-cli/plugins/` |
+| TUI mode | Interactive task browser (bubbletea or similar) |
+| winget submission | After release cadence stabilizes |
+| Proxy/mirror support | `DIDA_PROXY` for corporate environments |
+
+## Long-Term Vision
+
+DidaCLI aims to be the definitive command-line and agent interface for
+Dida365/TickTick. The end state:
+
+1. **Zero-friction install**: `npm i -g`, `brew install`, `scoop install`,
+   `dida upgrade` — any path works in under 30 seconds
+2. **Agent-native**: structured JSON output, schema discovery, dry-run
+   previews, and safety rails make it the preferred tool for AI agents
+3. **Three-channel coverage**: Web API for breadth, Official MCP for
+   token-based automation, OpenAPI for OAuth integrations
+4. **Self-maintaining**: auto-update, stale issue cleanup, CI badges,
+   changelog generation — minimal human maintenance overhead
+5. **Community-ready**: clear contribution guide, good test coverage,
+   accessible docs in EN + ZH
+
+The project is NOT trying to be:
+- A full GUI replacement (use the app for that)
+- A sync engine (read/write, not bidirectional sync)
+- A general-purpose task manager (it's Dida365-specific)
+
 ## Commit Strategy
 
 Do not batch unrelated work.
@@ -492,13 +538,21 @@ If another agent takes over, the best sequence is:
 
 ## Current Best Next Tasks
 
-Top five next tasks:
+For v0.2.1 release (immediate):
 
-1. Live-smoke OpenAPI `project get/data`, task, focus, and habit reads with the saved OAuth token
-2. Create or identify disposable official MCP habit/focus targets for known-id reads
-3. Capture a successful Web API task activity request with a Pro account or trace
-4. Capture a reversible task-level attachment association trace, then decide whether to expose task attachment upload/download commands
-5. Live-smoke disposable OpenAPI writes after read coverage is closed
+1. Add download progress output to `dida upgrade` (byte counter on stderr)
+2. Write upgrade integration test (httptest mock of full fetch→verify→extract flow)
+3. Add CI + version badges to README
+4. Update CHANGELOG [Unreleased] → [v0.2.1]
+5. Tag and release v0.2.1
+
+For v0.3.0 (next sprint):
+
+1. Implement `dida completion` (bash/zsh/fish/powershell)
+2. Integrate upgrade check into `dida doctor`
+3. Evaluate goreleaser migration (replace hand-rolled build script)
+4. Publish Homebrew tap and Scoop bucket
+5. Raise CLI test coverage to 60%+
 
 ## Done Means Done
 

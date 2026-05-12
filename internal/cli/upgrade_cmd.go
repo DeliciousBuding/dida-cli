@@ -60,7 +60,11 @@ func runUpgrade(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		fmt.Fprintf(stdout, "Downloading %s (%s -> %s)...\n", asset.Name, current, release.TagName)
 	}
 
-	archiveData, err := downloadBytes(httpClient, asset.BrowserDownloadURL)
+	var progressWriter io.Writer
+	if !jsonOut {
+		progressWriter = stderr
+	}
+	archiveData, err := downloadBytesProgress(httpClient, asset.BrowserDownloadURL, progressWriter)
 	if err != nil {
 		return failTyped("upgrade", "download", fmt.Sprintf("download failed: %v", err), "try again or download manually from "+info.ReleaseURL, jsonOut, stdout, stderr)
 	}

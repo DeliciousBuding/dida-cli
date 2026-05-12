@@ -144,6 +144,10 @@ func findChecksumsAsset(release *githubRelease) *githubAsset {
 }
 
 func downloadBytes(httpClient *http.Client, url string) ([]byte, error) {
+	return downloadBytesProgress(httpClient, url, nil)
+}
+
+func downloadBytesProgress(httpClient *http.Client, url string, progress io.Writer) ([]byte, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: 120 * time.Second}
 	}
@@ -155,7 +159,31 @@ func downloadBytes(httpClient *http.Client, url string) ([]byte, error) {
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("download returned HTTP %d", resp.StatusCode)
 	}
-	return io.ReadAll(io.LimitReader(resp.Body, 200<<20)) // 200MB max
+	const maxBytes int64 = 200 << 20
+	var reader io.Reader = io.LimitReader(resp.Body, maxBytes)
+	if progress != nil && resp.ContentLength > 0 {
+		reader = &progressReader{r: reader, total: resp.ContentLength, w: progress}
+	}
+	return io.ReadAll(reader)
+}
+
+type progressReader struct {
+	r       io.Reader
+	w       io.Writer
+	total   int64
+	read    int64
+	lastPct int
+}
+
+func (p *progressReader) Read(buf []byte) (int, error) {
+	n, err := p.r.Read(buf)
+	p.read += int64(n)
+	pct := int(p.read * 100 / p.total)
+	if pct != p.lastPct && pct%10 == 0 {
+		fmt.Fprintf(p.w, "  %d%% (%d / %d bytes)\n", pct, p.read, p.total)
+		p.lastPct = pct
+	}
+	return n, err
 }
 
 func verifyChecksum(data []byte, checksums []byte, archiveName string) error {
