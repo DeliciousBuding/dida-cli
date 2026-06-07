@@ -558,6 +558,40 @@ func TestCommentCreateWithFileDryRunJSON(t *testing.T) {
 	}
 }
 
+func TestAttachmentDownloadFlagParsing(t *testing.T) {
+	opts, err := parseAttachmentDownloadFlags([]string{"--project", "p1", "--task", "t1", "--attachment", "a1", "--output", "out.doc", "--force"})
+	if err != nil {
+		t.Fatalf("parseAttachmentDownloadFlags() error = %v", err)
+	}
+	if opts.ProjectID != "p1" || opts.TaskID != "t1" || opts.AttachmentID != "a1" || opts.Output != "out.doc" || !opts.Force {
+		t.Fatalf("opts = %#v", opts)
+	}
+
+	_, err = parseAttachmentDownloadFlags([]string{"--project", "p1", "--task", "t1", "--attachment", "a1"})
+	if err == nil {
+		t.Fatalf("parseAttachmentDownloadFlags() error = nil, want missing output")
+	}
+}
+
+func TestAttachmentDownloadDoesNotOverwriteWithoutForce(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	output := filepath.Join(t.TempDir(), "exists.doc")
+	if err := os.WriteFile(output, []byte("existing"), 0o600); err != nil {
+		t.Fatalf("write output fixture: %v", err)
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"attachment", "download", "--project", "p1", "--task", "t1", "--attachment", "a1", "--output", output, "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	if !strings.Contains(stdout.String(), `"type": "file_exists"`) {
+		t.Fatalf("stdout missing file_exists error: %s", stdout.String())
+	}
+}
+
 func TestCommentDeleteRequiresYesJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"comment", "delete", "--project", "p1", "--task", "t1", "--comment", "c1", "--json"}, "test-version", &stdout, &stderr)

@@ -116,6 +116,7 @@ dida comment list --project <project-id> --task <task-id> --json
 dida settings get --json
 dida settings get --include-web --json
 dida attachment quota --json
+dida attachment download --project <project-id> --task <task-id> --attachment <attachment-id> --output ./file.doc --json
 dida reminder daily --json
 dida share contacts --json
 dida share recent-users --json
@@ -249,9 +250,11 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 
 Comment attachment create is verified for the Web API v1 multipart field `file`.
 Use the real project id from `dida agent context --json`, not the logical
-`inbox` alias. Task-level attachment download/preview and task attachment
-mutation remain intentionally unexposed until separately verified. The CLI
-checks `dida attachment quota --json` before uploading files.
+`inbox` alias. Task-level attachment download is exposed through
+`dida attachment download` for attachments that already exist on a task.
+Task-level attachment upload, preview, mutation, and delete remain intentionally
+unexposed until separately verified. The CLI checks `dida attachment quota
+--json` before uploading files.
 
 ## Filters
 
@@ -368,6 +371,7 @@ variables still take precedence.
 
 ```bash
 dida attachment quota --json
+dida attachment download --project <project-id> --task <task-id> --attachment <attachment-id> --output ./file.doc --json
 dida reminder daily --json
 dida share contacts --json
 dida share recent-users --json
@@ -377,9 +381,11 @@ dida share project invite-url <project-id> --json
 dida calendar subscriptions --json
 ```
 
-These commands are read-only. Collaboration writes such as creating invite
-links, deleting invite links, inviting users, or changing permissions are not
-exposed until their payloads and rollback paths are traced.
+`attachment download` refuses to overwrite an existing output file unless
+`--force` is provided. These commands are read-only with respect to Dida365.
+Collaboration writes such as creating invite links, deleting invite links,
+inviting users, or changing permissions are not exposed until their payloads
+and rollback paths are traced.
 
 ## Sync
 

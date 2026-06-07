@@ -13,9 +13,65 @@ import (
 	"strings"
 )
 
+func (c *Client) DownloadTaskAttachment(ctx context.Context, projectID string, taskID string, attachmentID string, out io.Writer) (int64, string, error) {
+	path := "/attachment/" + url.PathEscape(projectID) + "/" + url.PathEscape(taskID) + "/" + url.PathEscape(attachmentID) + "?action=download"
+	return c.doV1Download(ctx, path, out)
+}
+
 func (c *Client) UploadCommentAttachment(ctx context.Context, projectID string, taskID string, fileName string, contentType string, file io.Reader) (map[string]any, error) {
 	path := "/attachment/upload/comment/" + url.PathEscape(projectID) + "/" + url.PathEscape(taskID)
 	return c.doV1MultipartFile(ctx, path, "file", fileName, contentType, file)
+}
+
+func (c *Client) doV1Download(ctx context.Context, path string, out io.Writer) (int64, string, error) {
+	if strings.TrimSpace(c.Token) == "" {
+		return 0, "", fmt.Errorf("missing Dida web cookie token")
+	}
+	if strings.TrimSpace(c.BaseURLV1) == "" {
+		c.BaseURLV1 = DefaultBaseURLV1
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(c.BaseURLV1, "/")+path, nil)
+	if err != nil {
+		return 0, "", fmt.Errorf("build request: %w", err)
+	}
+	req.Header.Set("Cookie", "t="+c.Token)
+	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("x-device", c.deviceHeader())
+
+	httpClient := c.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return 0, "", fmt.Errorf("request %s %s: %w", http.MethodGet, path, err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		limit := c.MaxResponseBytes
+		if limit <= 0 {
+			limit = DefaultMaxResponseBytes
+		}
+		data, readErr := io.ReadAll(io.LimitReader(resp.Body, limit+1))
+		if readErr != nil {
+			return 0, "", fmt.Errorf("read error response: %w", readErr)
+		}
+		return 0, "", &APIError{
+			Method:      http.MethodGet,
+			Path:        path,
+			StatusCode:  resp.StatusCode,
+			BodySnippet: c.redactForError(string(data)),
+			IncludeBody: os.Getenv("DIDA_DEBUG_API_ERRORS") == "1",
+		}
+	}
+	written, err := io.Copy(out, resp.Body)
+	if err != nil {
+		return written, resp.Header.Get("Content-Type"), fmt.Errorf("write response: %w", err)
+	}
+	return written, resp.Header.Get("Content-Type"), nil
 }
 
 func (c *Client) doV1MultipartFile(ctx context.Context, path string, fieldName string, fileName string, contentType string, file io.Reader) (map[string]any, error) {

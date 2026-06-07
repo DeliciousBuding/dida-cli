@@ -100,6 +100,7 @@ dida stats general --json
 dida pomo timeline --limit 10 --json
 dida template project list --limit 10 --json
 dida search all --query <text> --limit 20 --json
+dida attachment download --project <project-id> --task <task-id> --attachment <attachment-id> --output <file> --json
 ```
 
 Use exact IDs from read commands for writes. Do not guess project IDs, folder IDs, or task IDs from names if the command output is available.
@@ -188,9 +189,12 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 
 For comment attachments, use the real project id from `dida agent context
 --json`, not the logical `inbox` alias. Always preview generated writes with
-`--dry-run` before uploading local files. Task-level attachment download/preview
-and task attachment mutation are not exposed yet. If upload fails, check
-`dida attachment quota --json`.
+`--dry-run` before uploading local files. Existing task attachments can be
+downloaded with `dida attachment download --project <project-id> --task
+<task-id> --attachment <attachment-id> --output <file> --json`; the command
+refuses to overwrite local files unless `--force` is provided. Task-level
+attachment upload, preview, mutation, and delete are not exposed yet. If upload
+fails, check `dida attachment quota --json`.
 
 ## Official MCP And OpenAPI
 
@@ -260,6 +264,7 @@ sharing, and calendar integrations:
 
 ```bash
 dida attachment quota --json
+dida attachment download --project <project-id> --task <task-id> --attachment <attachment-id> --output <file> --json
 dida reminder daily --json
 dida share contacts --json
 dida share recent-users --json

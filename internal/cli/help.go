@@ -239,6 +239,10 @@ func printAttachmentHelp(w io.Writer) {
 	fmt.Fprintln(w, strings.TrimSpace(`
 Usage:
   dida attachment quota [--json]
+  dida attachment download --project <project-id> --task <task-id> --attachment <attachment-id> --output <file> [--force] [--json]
+
+Download uses the task attachment Web API v1 path. It refuses to overwrite an
+existing output file unless --force is provided.
 `))
 }
 
