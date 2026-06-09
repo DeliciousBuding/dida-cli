@@ -1,0 +1,25 @@
+[package]
+name = "dida-http"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[features]
+default = []
+reqwest-client = ["dep:futures-util", "dep:reqwest"]
+
+[dependencies]
+async-trait = "0.1"
+bytes = "1"
+futures-util = { version = "0.3", optional = true }
+http = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"], optional = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+thiserror = "1"
+tokio = { version = "1", features = ["time"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt", "time"] }

@@ -1,0 +1,147 @@
+{
+  "cases": [
+    {
+      "id": "version-command",
+      "category": "version",
+      "args": ["version"],
+      "expectExit": 0
+    },
+    {
+      "id": "version-flag",
+      "category": "version",
+      "args": ["--version"],
+      "expectExit": 0
+    },
+    {
+      "id": "root-help",
+      "category": "help",
+      "args": ["--help"],
+      "expectExit": 0
+    },
+    {
+      "id": "root-no-args-help",
+      "category": "help",
+      "args": [],
+      "expectExit": 0
+    },
+    {
+      "id": "schema-list-compact-json",
+      "category": "schema",
+      "args": ["schema", "list", "--compact", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "schema-list-filtered-task-writes-json",
+      "category": "schema",
+      "args": ["schema", "list", "--resource", "task", "--operation", "write", "--compact", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "schema-show-schema-list-json",
+      "category": "schema",
+      "args": ["schema", "show", "schema.list", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "channel-list-json",
+      "category": "schema",
+      "args": ["channel", "list", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "project-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["project", "create", "--name", "Compat Project", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "folder-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["folder", "create", "--name", "Compat Folder", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "tag-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["tag", "create", "compat-tag", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "column-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["column", "create", "--project", "project-1", "--name", "Doing", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "task-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["task", "create", "--project", "project-1", "--title", "Compat Task", "--tag", "compat", "--item", "Step 1", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "comment-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["comment", "create", "--project", "project-1", "--task", "task-1", "--text", "Looks good", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "official-task-batch-add-dry-run-json",
+      "category": "dry-run",
+      "args": ["official", "task", "batch-add", "--args-json", "{\"tasks\":[{\"title\":\"Compat Task\"}]}", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "openapi-project-create-dry-run-json",
+      "category": "dry-run",
+      "args": ["openapi", "project", "create", "--args-json", "{\"name\":\"Compat Project\",\"viewMode\":\"list\",\"kind\":\"TASK\"}", "--dry-run", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
+    },
+    {
+      "id": "schema-list-missing-resource-value-validation",
+      "category": "validation",
+      "args": ["schema", "list", "--resource", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "unknown-command-json-validation",
+      "category": "validation",
+      "args": ["nope", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "task-create-missing-project-value-validation",
+      "category": "validation",
+      "args": ["task", "create", "--project", "--bogus", "--title", "Compat Task", "--dry-run", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "openapi-project-create-invalid-json-validation",
+      "category": "validation",
+      "args": ["openapi", "project", "create", "--args-json", "{", "--dry-run", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "official-task-batch-add-invalid-json-validation",
+      "category": "validation",
+      "args": ["official", "task", "batch-add", "--args-json", "{", "--dry-run", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    }
+  ]
+}

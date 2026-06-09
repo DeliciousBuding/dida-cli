@@ -42,6 +42,11 @@ function createInstallPlan(options = {}) {
   return { repo, version, osName, arch, ext, exe, installedExe, base };
 }
 
+function archiveBinaryNames(plan) {
+  const rustDefault = plan.osName === "windows" ? "dida-cli.exe" : "dida-cli";
+  return [plan.exe, rustDefault];
+}
+
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -218,8 +223,9 @@ async function main(options = {}) {
     } else {
       execFileSync("tar", ["-xzf", archivePath, "-C", temp], { stdio: "inherit" });
     }
-    const found = findFile(temp, plan.exe);
-    if (!found) throw new Error("binary not found in archive");
+    const candidates = archiveBinaryNames(plan);
+    const found = findFirstFile(temp, candidates);
+    if (!found) throw new Error(`binary not found in archive; expected one of: ${candidates.join(", ")}`);
     fs.mkdirSync(binDir, { recursive: true });
     const target = path.join(binDir, plan.installedExe);
     fs.copyFileSync(found, target);
@@ -227,6 +233,14 @@ async function main(options = {}) {
   } finally {
     fs.rmSync(temp, { recursive: true, force: true });
   }
+}
+
+function findFirstFile(dir, fileNames) {
+  for (const fileName of fileNames) {
+    const hit = findFile(dir, fileName);
+    if (hit) return hit;
+  }
+  return null;
 }
 
 function findFile(dir, fileName) {
@@ -244,7 +258,9 @@ function findFile(dir, fileName) {
 
 module.exports = {
   archName,
+  archiveBinaryNames,
   createInstallPlan,
+  findFirstFile,
   findFile,
   main,
   platformName,

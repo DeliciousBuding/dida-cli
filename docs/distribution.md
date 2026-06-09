@@ -80,6 +80,10 @@ The `npm/` directory contains the published npm wrapper package:
 - Windows stores the downloaded binary as `bin/dida.exe`
 - Unix-like systems store the downloaded binary as `bin/dida-bin` so the
   wrapper is not overwritten
+- Release archives should keep exposing the CLI as `dida` or `dida.exe`.
+  During the Rust migration, the npm installer also accepts Cargo's default
+  `dida-cli` or `dida-cli.exe` artifact name and installs it under the stable
+  wrapper-owned binary name.
 - Windows and Linux smoke coverage installs the release binary and runs
   `dida version` plus `dida doctor --json`
 - Linux smoke coverage verifies the Unix wrapper/binary split where
