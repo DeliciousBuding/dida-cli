@@ -104,8 +104,8 @@ func TestInferColumns(t *testing.T) {
 		{ID: "t1", ProjectID: "p1", ColumnID: "c1"},
 		{ID: "t2", ProjectID: "p1", ColumnID: "c1"},
 		{ID: "t3", ProjectID: "p1", ColumnID: "c2"},
-		{ID: "t4", ProjectID: "p2", ColumnID: "c1"},    // different project
-		{ID: "t5", ProjectID: "p1", ColumnID: ""},       // no column
+		{ID: "t4", ProjectID: "p2", ColumnID: "c1"}, // different project
+		{ID: "t5", ProjectID: "p1", ColumnID: ""},   // no column
 	}
 	columns := InferColumns("p1", tasks)
 	if len(columns) != 2 {

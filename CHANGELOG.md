@@ -7,6 +7,11 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.3] - 2026-06-09
+
+### Fixed
+- Go formatting baseline now matches Linux CI `gofmt`.
+
 ## [v0.2.2] - 2026-06-09
 
 ### Added
@@ -205,6 +210,7 @@ Initial release.
 
 [v0.2.1]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.0...v0.2.1
 [v0.2.2]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.1...v0.2.2
+[v0.2.3]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.2...v0.2.3
 [v0.2.0]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.16...v0.2.0
 [v0.1.16]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.15...v0.1.16
 [v0.1.15]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.14...v0.1.15

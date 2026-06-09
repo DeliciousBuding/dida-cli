@@ -3,7 +3,7 @@
 This directory contains maintainer-facing packaging templates for distribution
 channels that usually live in separate repositories or registries.
 
-Current source release: `v0.2.2`
+Current source release: `v0.2.3`
 
 ## Channels
 
