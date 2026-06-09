@@ -1,8 +1,8 @@
-# DidaCLI Documentation
+# DidaCLI docs
 
 This directory is the maintained documentation entrypoint for DidaCLI.
 
-## Start Here
+## Start here
 
 | Audience | Document | Purpose |
 | --- | --- | --- |
@@ -14,17 +14,17 @@ This directory is the maintained documentation entrypoint for DidaCLI.
 | Contributors | [commands.md](commands.md) | Command reference and safety rules. |
 | Maintainers | [distribution.md](distribution.md) | Release and package-manager distribution plan. |
 
-## API Channels
+## API channels
 
-DidaCLI intentionally keeps three channels separate:
+DidaCLI exposes three separate API channels:
 
 | Channel | Auth | Best for | Status |
 | --- | --- | --- | --- |
-| Web API | Browser cookie `t` | Broadest Dida365 account coverage | Primary working channel. |
-| Official MCP | `DIDA365_TOKEN` or saved local token config | Official task/project/habit/focus tools | Token-based reads and task writes are live-smoked; habit/focus known-id writes need disposable targets. |
-| Official OpenAPI | OAuth access token | Official REST project/task/focus/habit endpoints | OAuth login and `project list` are live-verified; more resource families still need full live smoke. |
+| Web API | Browser cookie `t` | Web API resources outside the official channels | Primary working channel. |
+| Official MCP | `DIDA365_TOKEN` or configured token store | Official task/project/habit/focus tools | Token-based project/task reads and task writes are live-smoked; habit list, sections, and focus range reads are verified. |
+| Official OpenAPI | OAuth access token | Official REST project/task/focus/habit endpoints | OAuth login and project reads are live-verified; write smokes and known-id habit/focus paths need disposable targets. |
 
-## Coverage And Evidence
+## Coverage and evidence
 
 - [api-coverage.md](api-coverage.md) tracks command-level Web API coverage.
 - [web-api.md](web-api.md) records private Web API endpoint notes.
@@ -33,12 +33,12 @@ DidaCLI intentionally keeps three channels separate:
 - [research/roadmap-completion-audit.md](research/roadmap-completion-audit.md) is the current completion audit.
 - [research/prompt-to-artifact-checklist.md](research/prompt-to-artifact-checklist.md) maps the active goal to artifacts and evidence.
 
-## Current External Blockers
+## Current blockers
 
-- Official OpenAPI requires a completed browser OAuth approval before live resource smokes.
-- Additional Web API upload smokes are blocked on the observed account while quota reports `underQuota=false`; the verified comment attachment path remains implemented.
+- Official OpenAPI write smokes need disposable project/task targets; habit and focus known-id checks need test records.
+- Additional Web API upload smokes need an account with attachment quota available; the verified comment attachment path remains implemented.
 - Web API task-level attachment mutation remains research-only until association, download/preview, file-limit, and cleanup behavior are traced with a disposable task.
-- Web API task activity detail is blocked by `need_pro` on the observed account.
-- Official MCP habit/focus known-id reads and destructive writes need disposable habit/focus targets.
+- Web API task activity detail needs a Pro account or a browser trace that confirms the response shape.
+- Official MCP habit get/checkins need known habit IDs; focus get/delete need focus records and disposable targets.
 
 Do not commit cookies, tokens, OAuth secrets, local absolute paths, or full private payload dumps.

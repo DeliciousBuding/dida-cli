@@ -18,7 +18,11 @@ func runColumn(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) 
 		if len(args) != 2 {
 			return failTyped("column list", "validation", "usage: dida column list <project-id>", "run: dida column --help", jsonOut, stdout, stderr)
 		}
-		return runProjectColumns(args[1], jsonOut, stdout, stderr)
+		projectID, err := parseIDValue(args, 1, "project")
+		if err != nil {
+			return failTyped("column list", "validation", err.Error(), "run: dida column --help", jsonOut, stdout, stderr)
+		}
+		return runProjectColumns(projectID, jsonOut, stdout, stderr)
 	case "create":
 		return runColumnCreate(args[1:], jsonOut, stdout, stderr)
 	default:

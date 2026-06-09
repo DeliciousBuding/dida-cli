@@ -1,8 +1,7 @@
 # LLM / Agent Quickstart
 
-This page is for LLMs and automation agents. It is not a human tutorial.
-Prefer copy-pasteable JSON commands and do not ask users to paste secrets into
-chat.
+This page gives LLMs and automation agents copy-pasteable JSON commands.
+Keep secrets in local CLI prompts.
 
 ## First Commands
 
@@ -106,17 +105,20 @@ dida task delete <task-id> --project <project-id> --dry-run --json
 dida task delete <task-id> --project <project-id> --yes --json
 ```
 
-## Never Do This
+## Safety Rules
 
-- Do not ask the user to paste cookies or tokens into chat.
-- Do not use official MCP tokens as OpenAPI bearer tokens.
-- Do not use Web API cookies as official OpenAPI tokens.
-- Do not use `dida official call` for write-capable MCP tools unless the user
-  explicitly approves that exact tool and payload; it has no dry-run layer.
-- If Official MCP auth is missing, ask the user to run `dida official token set --token-stdin --json` locally.
-- If OpenAPI client config is missing, ask the user to run `dida openapi client set --id <client-id> --secret-stdin --json` locally.
-- Do not create live disposable habits just to test Official MCP/OpenAPI habit
-  writes unless the user has approved a cleanup or archive procedure.
-- Do not run destructive commands without `--yes`.
-- Do not use raw probes for writes; DidaCLI intentionally supports only raw
-  read probes.
+- Keep cookies and tokens in local CLI prompts. Use `--token-stdin` for secret
+  input.
+- Keep auth channels separate: Web API cookies, official MCP tokens, and
+  OpenAPI OAuth tokens are different credentials.
+- Use first-class write commands with `--dry-run`; `dida official call` has no
+  dry-run layer for write-capable tools.
+- If Official MCP auth is missing, ask the user to run
+  `dida official token set --token-stdin --json` locally.
+- If OpenAPI client config is missing, ask the user to run
+  `dida openapi client set --id <client-id> --secret-stdin --json` locally.
+- Use approved disposable targets and a cleanup path before habit/focus write
+  tests.
+- Use `--yes` for destructive commands after the dry-run preview matches the
+  request.
+- Use `raw get` only for read probes.

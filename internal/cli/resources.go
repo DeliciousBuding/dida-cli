@@ -40,7 +40,11 @@ func parseProjectCreateFlags(args []string) (resourceOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--id requires a value")
 			}
-			opts.ID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ID = projectID
 			i++
 		case "--name", "-n":
 			if i+1 >= len(args) {
@@ -52,7 +56,11 @@ func parseProjectCreateFlags(args []string) (resourceOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--group requires a folder id")
 			}
-			opts.GroupID = args[i+1]
+			folderID, err := parseIDValue(args, i+1, "folder")
+			if err != nil {
+				return opts, err
+			}
+			opts.GroupID = folderID
 			i++
 		case "--dry-run":
 			opts.DryRun = true
@@ -77,7 +85,11 @@ func parseProjectUpdateFlags(args []string) (resourceOptions, error) {
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida project update <project-id> [--name <name>] [--group <folder-id>]")
 	}
-	opts.ID = args[0]
+	projectID, err := parseIDValue(args, 0, "project")
+	if err != nil {
+		return opts, err
+	}
+	opts.ID = projectID
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--name", "-n":
@@ -90,7 +102,11 @@ func parseProjectUpdateFlags(args []string) (resourceOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--group requires a folder id")
 			}
-			opts.GroupID = args[i+1]
+			folderID, err := parseIDValue(args, i+1, "folder")
+			if err != nil {
+				return opts, err
+			}
+			opts.GroupID = folderID
 			i++
 		case "--dry-run":
 			opts.DryRun = true
@@ -114,7 +130,11 @@ func parseNamedCreateFlags(args []string) (resourceOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--id requires a value")
 			}
-			opts.ID = args[i+1]
+			id, err := parseIDValue(args, i+1, "resource")
+			if err != nil {
+				return opts, err
+			}
+			opts.ID = id
 			i++
 		case "--name", "-n":
 			if i+1 >= len(args) {
@@ -145,7 +165,11 @@ func parseNamedUpdateFlags(args []string, command string) (resourceOptions, erro
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida %s <id> --name <name>", command)
 	}
-	opts.ID = args[0]
+	id, err := parseIDValue(args, 0, "resource")
+	if err != nil {
+		return opts, err
+	}
+	opts.ID = id
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--name", "-n":
@@ -173,7 +197,11 @@ func parseDeleteIDFlags(args []string, command string) (resourceOptions, error) 
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida %s <id> --yes", command)
 	}
-	opts.ID = args[0]
+	id, err := parseIDValue(args, 0, "resource")
+	if err != nil {
+		return opts, err
+	}
+	opts.ID = id
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--dry-run":
@@ -276,7 +304,11 @@ func parseColumnCreateFlags(args []string) (resourceOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a project id", args[i])
 			}
-			opts.ProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ProjectID = projectID
 			i++
 		case "--name", "-n":
 			if i+1 >= len(args) {
@@ -310,20 +342,32 @@ func parseTaskMoveFlags(args []string) (taskMoveOptions, error) {
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida task move <task-id> --from <project-id> --to <project-id>")
 	}
-	opts.TaskID = args[0]
+	taskID, err := parseIDValue(args, 0, "task")
+	if err != nil {
+		return opts, err
+	}
+	opts.TaskID = taskID
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--from":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--from requires a project id")
 			}
-			opts.FromProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "from project")
+			if err != nil {
+				return opts, err
+			}
+			opts.FromProjectID = projectID
 			i++
 		case "--to":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--to requires a project id")
 			}
-			opts.ToProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "to project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ToProjectID = projectID
 			i++
 		case "--dry-run":
 			opts.DryRun = true
@@ -342,20 +386,32 @@ func parseTaskParentFlags(args []string) (taskParentOptions, error) {
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida task parent <task-id> --parent <task-id> --project <project-id>")
 	}
-	opts.TaskID = args[0]
+	taskID, err := parseIDValue(args, 0, "task")
+	if err != nil {
+		return opts, err
+	}
+	opts.TaskID = taskID
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--parent":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--parent requires a task id")
 			}
-			opts.ParentID = args[i+1]
+			parentID, err := parseIDValue(args, i+1, "parent task")
+			if err != nil {
+				return opts, err
+			}
+			opts.ParentID = parentID
 			i++
 		case "--project", "-p":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a project id", args[i])
 			}
-			opts.ProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ProjectID = projectID
 			i++
 		case "--dry-run":
 			opts.DryRun = true

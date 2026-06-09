@@ -13,7 +13,7 @@ body:
     attributes:
       label: DidaCLI Version
       description: Output of `dida version`
-      placeholder: "v0.2.0"
+      placeholder: "vX.Y.Z from dida version"
     validations:
       required: true
 

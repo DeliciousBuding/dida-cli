@@ -11,7 +11,15 @@ type rootCommand struct {
 }
 
 func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int {
-	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
+	jsonOut, args := consumeJSONFlag(args)
+	if len(args) == 0 {
+		if jsonOut {
+			return failTyped("dida", "validation", "missing command", "run: dida --help", jsonOut, stdout, stderr)
+		}
+		printHelp(stdout)
+		return 0
+	}
+	if args[0] == "-h" || args[0] == "--help" {
 		printHelp(stdout)
 		return 0
 	}
@@ -20,14 +28,6 @@ func Run(args []string, version string, stdout io.Writer, stderr io.Writer) int 
 		return 0
 	}
 
-	jsonOut, args := consumeJSONFlag(args)
-	if len(args) == 0 {
-		if jsonOut {
-			return failTyped("dida", "validation", "missing command", "run: dida --help", jsonOut, stdout, stderr)
-		}
-		printHelp(stdout)
-		return 1
-	}
 	command := args[0]
 
 	for _, cmd := range rootCommands(version) {

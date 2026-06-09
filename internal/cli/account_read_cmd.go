@@ -452,9 +452,11 @@ func parseSearchAllFlags(args []string) (string, int, bool, error) {
 			if i+1 >= len(args) {
 				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		case "--full":
 			full = true
@@ -500,9 +502,11 @@ func parseUserSessionsFlags(args []string) (string, int, bool, error) {
 			if i+1 >= len(args) {
 				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		case "--full":
 			full = true
@@ -597,17 +601,21 @@ func parseTemplateListFlags(args []string) (int64, int, error) {
 			if i+1 >= len(args) {
 				return 0, 0, fmt.Errorf("--timestamp requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &timestamp); err != nil || timestamp < 0 {
+			parsed, err := parseInt64Strict(args[i+1])
+			if err != nil || parsed < 0 {
 				return 0, 0, fmt.Errorf("--timestamp must be a non-negative integer")
 			}
+			timestamp = parsed
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
 				return 0, 0, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return 0, 0, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		default:
 			return 0, 0, fmt.Errorf("unknown flag %q", args[i])

@@ -1,7 +1,8 @@
 # Web API Attachment Flow Notes
 
 This note records the currently mapped attachment flow from the saved webapp
-bundle and reversible live probes. It is not a full media command spec yet.
+bundle and reversible live probes. Task-level media commands still need a
+separate spec.
 
 ## Confirmed Read Surfaces
 
@@ -70,16 +71,17 @@ write path:
 - `comment list` read-back included the uploaded attachment id.
 - Cleanup was verified by deleting the created comment and disposable task.
 
-Repeat smoke on 2026-05-10:
+Repeat smoke pattern:
 
-- `dida attachment quota --json` returned `underQuota=true`, `dailyLimit=1`.
+- `dida attachment quota --json` should show quota available before the live
+  upload.
 - A dry-run preview was run before the live write.
 - A disposable task was created in a normal project.
 - A 1x1 PNG attachment uploaded through `comment create --file`.
 - `comment list` read back the created comment with one attachment.
 - The created comment and disposable task were deleted afterward.
-- A follow-up quota check showed `underQuota=false`, confirming the daily
-  smoke budget can be consumed by one successful upload on this account.
+- A follow-up quota check should be recorded in private notes when it contains
+  account-specific quota state.
 - A `.txt` probe remains unsuitable for smoke tests; the server rejects or
   fails that file type, so future reversible smokes should use PNG unless the
   accepted file matrix is being tested explicitly.

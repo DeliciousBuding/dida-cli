@@ -84,17 +84,21 @@ func parseAgentContextFlags(args []string) (agentContextOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--days requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Days); err != nil || opts.Days <= 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed <= 0 {
 				return opts, fmt.Errorf("--days must be a positive integer")
 			}
+			opts.Days = parsed
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Limit); err != nil || opts.Limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return opts, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			opts.Limit = parsed
 			i++
 		case "--compact", "--brief":
 			opts.Compact = true

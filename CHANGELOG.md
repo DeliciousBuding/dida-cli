@@ -7,21 +7,52 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.2] - 2026-06-09
+
+### Added
+- CI coverage for private-state checks, packaging metadata validation, release archive verification, workflow linting, cross-platform builds, Go vet, and vulnerability scanning.
+- Release script tests for packaging metadata, private-state hygiene, archive shape, archive contents, and executable bits.
+- npm installer offline tests for redirects, checksum matching, byte limits, retry handling, unsupported platforms, and asset parsing.
+
+### Changed
+- `dida upgrade` downloads the archive and checksum file concurrently, retries transient artifact downloads, enforces a 200 MiB artifact cap, and reports Windows deferred replacement as `status: "scheduled"`.
+- The npm installer now retries transient downloads, enforces a 200 MiB response cap, and reports final download attempts in errors.
+- Release workflow now builds six archives in parallel, verifies archive contents before publishing, smoke-tests the Linux binary, and skips npm publish when the package version already exists.
+
+### Fixed
+- Web API task, project, comment, column, folder, and tag commands now reject flag-like IDs before auth, API calls, or dry-run success output.
+- OpenAPI and Official command wrappers now reject flag-like task and project IDs in local validation.
+- Official habit check-in value parsing now rejects `NaN` and infinite values.
+- Windows self-upgrade stages the replacement through a helper script instead of attempting to replace the running executable.
+- Packaging and release scripts now clean temporary files on failure paths covered by the test suite.
+
+## [v0.2.1] - 2026-05-12
+
 ### Added
 - `dida upgrade` self-update command: checks GitHub Releases, downloads platform binary, verifies SHA-256, replaces executable
 - `dida upgrade --check` mode for version query without install
 - Download progress output on stderr during upgrade (percentage-based)
 - npm auto-publish job in release workflow (publishes on tag push)
 - `upgrade` registered in schema registry
-- Agent Safety section in README (EN + ZH) with 5 clear safety rules
-- Supported Platforms table showing all 6 build targets in README
+- README safety note for dry-run previews, destructive confirmations, and token redaction
+- Release workflow archive verification for all six build targets
 
 ### Changed
 - Quick Start flow: `dida auth cookie set --token-stdin` is now primary; `--browser` is secondary
 - Auth error hints now recommend `--token-stdin` instead of browser-only flow
 - Interactive terminal hint when using `--token-stdin` (prompts for Ctrl+D/Ctrl+Z)
+- `attachment quota` now fetches independent quota endpoints in parallel
+- README install snippets now use copy-pasteable URLs and `upgrade --check` for post-install update checks
+- npm installer now defaults to the GitHub Release tag that matches the npm package version
 
 ### Fixed
+- Global `--json` is accepted before root `version` and `--help`
+- CLI integer flags now reject trailing junk such as `--limit 10x`
+- Auth commands now reject unknown flags instead of silently ignoring them
+- `comment update --file` now fails validation because update does not attach files
+- OpenAPI project and Official task commands now return local usage errors before auth errors
+- Release workflow now validates tag checkout, checks archive contents, verifies binary version, and runs npm preflight before creating the GitHub release
+- Private-state checks now cover untracked files, local DidaCLI credential filenames, common dumps, packet captures, and local absolute paths
 - OpenAPI OAuth `ExchangeCode` now uses 30s timeout instead of `http.DefaultClient`
 - OpenAPI OAuth error messages no longer leak raw response body (secret leakage prevention)
 - Official MCP client now uses 60s timeout instead of `http.DefaultClient`
@@ -31,6 +62,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Web API client: regex patterns hoisted to package-level (avoids recompilation per call)
 
 ### Tests
+- Added CLI regression tests for root global flags, auth unknown flags, comment update file rejection, strict integer parsing, and auth-before-validation ordering
+- Added Web API coverage proving `AttachmentQuota` overlaps independent reads
 - Upgrade integration tests: full flow mock, missing checksums failure, checksum mismatch failure
 - Progress reader unit test
 - config package: 0% to 83.3%
@@ -83,7 +116,7 @@ Schema and help quality improvements.
 
 ### Added
 - Comment attachment live smoke evidence
-- Comprehensive schema coverage for all commands
+- Schema coverage for all commands
 
 ### Fixed
 - Dry-run flag advertised in schema metadata
@@ -170,6 +203,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
+[v0.2.1]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.0...v0.2.1
+[v0.2.2]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.1...v0.2.2
 [v0.2.0]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.16...v0.2.0
 [v0.1.16]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.15...v0.1.16
 [v0.1.15]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.14...v0.1.15

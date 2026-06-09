@@ -5,7 +5,7 @@
 <h1 align="center">DidaCLI</h1>
 
 <p align="center">
-  <b>面向 <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a> 的 Agent 友好型 CLI</b>
+  <b>面向 <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a> 的 JSON 优先 CLI</b>
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 ---
 
-Go 单二进制文件，三条认证通道（Web API、官方 MCP、OpenAPI）。每条响应都是稳定的 JSON 信封。零依赖。
+DidaCLI 构建为单个 Go 二进制文件，不依赖外部 Go 模块。Web API Cookie、官方 MCP Token、OpenAPI OAuth 三条认证通道相互独立。命令返回稳定的 JSON 信封。
 
 ```bash
 $ dida task today --compact --json
@@ -34,8 +34,8 @@ $ dida task today --compact --json
 
 ```bash
 npm i -g @delicious233/dida-cli          # npm
-curl -fsSL .../install.sh | sh           # macOS / Linux
-iwr .../install.ps1 -UseB | iex          # Windows
+curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
 ```
 
 <details>
@@ -68,13 +68,14 @@ go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
 ### 锁定版本
 
 ```bash
-DIDA_VERSION=v0.2.1 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+DIDA_VERSION=vX.Y.Z curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
 
 安装后：
 
 ```bash
-dida version && dida doctor --json && dida upgrade
+dida version && dida doctor --json
+dida upgrade --check
 ```
 
 </details>
@@ -82,8 +83,11 @@ dida version && dida doctor --json && dida upgrade
 ## 快速开始
 
 ```bash
-# 1. 登录 — 从浏览器复制 dida365.com 的 cookie "t"
+# 1. 使用 Dida365 浏览器 Cookie "t" 登录
 dida auth cookie set --token-stdin --json
+
+# 可选：用本地浏览器自动捕获 Cookie
+dida auth login --browser --json
 
 # 2. 验证
 dida doctor --verify --json
@@ -144,10 +148,10 @@ dida openapi project list --json
 | | Web API | 官方 MCP | 官方 OpenAPI |
 |---|---|---|---|
 | **认证** | 浏览器 Cookie | Token | OAuth |
-| **覆盖面** | 最广 | MCP 工具型 | 标准 REST |
+| **覆盖面** | 官方通道外的 Web API 资源 | MCP 工具型 | 标准 REST |
 | **配置** | 一次登录 | 获取 Token | 注册应用 |
 
-三条通道独立，绝不混用。
+三条认证通道独立。
 
 ## Agent 集成
 
@@ -162,7 +166,7 @@ dida task create ... --dry-run --json    # 预览写入
 | Claude Code | 复制 [`skills/dida-cli/SKILL.md`](skills/dida-cli/SKILL.md) |
 | Codex / 其他 | 参见 [docs/skill-installation.md](docs/skill-installation.md) |
 
-**安全须知：** 写入前务必 `--dry-run`。破坏性操作需 `--yes`。Token 仅存本地。参见 [Agent 使用指南](docs/agent-usage.md)。
+支持 `--dry-run` 的资源写入应先预览。破坏性操作需要 `--yes`。CLI 不会打印完整 Token。参见 [Agent 使用指南](docs/agent-usage.md)。
 
 ## 文档
 
@@ -186,4 +190,4 @@ go test ./... && go build -o bin/dida ./cmd/dida
 
 ---
 
-DidaCLI 是独立的第三方开源项目，与 [Dida365](https://dida365.com) / [TickTick](https://ticktick.com)（杭州随笔记网络技术有限公司）无关联。仅供个人学习与研究。由 AI Agent 操作时，人类操作者对所有行为承担全部责任。
+DidaCLI 是面向 [Dida365](https://dida365.com) / [TickTick](https://ticktick.com) 兼容工作流的独立开源 CLI。请只在你控制的账号和自动化流程中使用，并遵守上游服务条款。

@@ -347,9 +347,11 @@ func normalizeOpenAPICallback(redirectURI string, host string, port int) (string
 	}
 	portValue := 80
 	if parsed.Port() != "" {
-		if _, err := fmt.Sscanf(parsed.Port(), "%d", &portValue); err != nil || portValue <= 0 {
+		parsedPort, err := parseIntStrict(parsed.Port())
+		if err != nil || parsedPort <= 0 {
 			return "", "", 0, fmt.Errorf("--redirect-uri port must be a positive integer")
 		}
+		portValue = parsedPort
 	}
 	return redirectURI, hostname, portValue, nil
 }
@@ -452,6 +454,9 @@ func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.
 		printOpenAPIHelp(stdout)
 		return 0
 	}
+	if err := validateOpenAPIProjectArgs(args); err != nil {
+		return failTyped("openapi project "+args[0], "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
 	if handled, code := runOpenAPIProjectDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
 	}
@@ -552,10 +557,44 @@ func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.
 	}
 }
 
+func validateOpenAPIProjectArgs(args []string) error {
+	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: dida openapi project list")
+		}
+	case "get":
+		if len(args) != 2 {
+			return fmt.Errorf("usage: dida openapi project get <project-id>")
+		}
+		return validateIDArg("project", args[1])
+	case "data":
+		if len(args) != 2 {
+			return fmt.Errorf("usage: dida openapi project data <project-id>")
+		}
+		return validateIDArg("project", args[1])
+	case "create":
+		_, _, err := parseOpenAPIJSONWriteFlags(args[1:])
+		return err
+	case "update":
+		_, _, _, err := parseOpenAPIIDJSONWriteFlags(args[1:], "project")
+		return err
+	case "delete":
+		_, _, _, err := parseOpenAPIProjectDeleteFlags(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown project subcommand %q", args[0])
+	}
+	return nil
+}
+
 func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || hasHelpFlag(args) {
 		printOpenAPIHelp(stdout)
 		return 0
+	}
+	if err := validateOpenAPITaskArgs(args); err != nil {
+		return failTyped("openapi task "+args[0], "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
 	if handled, code := runOpenAPITaskDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
@@ -679,10 +718,41 @@ func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wri
 	}
 }
 
+func validateOpenAPITaskArgs(args []string) error {
+	switch args[0] {
+	case "get":
+		_, _, err := parseOpenAPITaskTargetFlags(args[1:])
+		return err
+	case "create":
+		_, _, err := parseOpenAPIJSONWriteFlags(args[1:])
+		return err
+	case "update":
+		_, _, _, err := parseOpenAPITaskUpdateFlags(args[1:])
+		return err
+	case "complete":
+		_, _, _, err := parseOpenAPITaskTargetWriteFlags(args[1:], false)
+		return err
+	case "delete":
+		_, _, _, err := parseOpenAPITaskTargetWriteFlags(args[1:], true)
+		return err
+	case "move":
+		_, _, err := parseOpenAPIAnyJSONWriteFlags(args[1:])
+		return err
+	case "completed", "filter":
+		_, err := parseOpenAPIJSONReadFlags(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown openapi task command %q", args[0])
+	}
+}
+
 func runOpenAPIFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || hasHelpFlag(args) {
 		printOpenAPIHelp(stdout)
 		return 0
+	}
+	if err := validateOpenAPIFocusArgs(args); err != nil {
+		return failTyped("openapi focus "+args[0], "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
 	if args[0] == "delete" && openAPIHasFlag(args[1:], "--dry-run") {
 		focusID, focusType, _, _, err := parseOpenAPIFocusDeleteFlags(args[1:])
@@ -741,10 +811,29 @@ func runOpenAPIFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	}
 }
 
+func validateOpenAPIFocusArgs(args []string) error {
+	switch args[0] {
+	case "get":
+		_, _, err := parseOpenAPIFocusGetFlags(args[1:])
+		return err
+	case "list":
+		_, _, _, err := parseOpenAPIFocusListFlags(args[1:])
+		return err
+	case "delete":
+		_, _, _, _, err := parseOpenAPIFocusDeleteFlags(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown openapi focus command %q", args[0])
+	}
+}
+
 func runOpenAPIHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || hasHelpFlag(args) {
 		printOpenAPIHelp(stdout)
 		return 0
+	}
+	if err := validateOpenAPIHabitArgs(args); err != nil {
+		return failTyped("openapi habit "+args[0], "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
 	if handled, code := runOpenAPIHabitDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
@@ -826,6 +915,30 @@ func runOpenAPIHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	default:
 		return failTyped("openapi habit", "validation", fmt.Sprintf("unknown openapi habit command %q", args[0]), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
+}
+
+func validateOpenAPIHabitArgs(args []string) error {
+	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: dida openapi habit list")
+		}
+	case "get":
+		_, err := parseOpenAPISingleID(args[1:], "habit")
+		return err
+	case "create":
+		_, _, err := parseOpenAPIJSONWriteFlags(args[1:])
+		return err
+	case "update", "checkin":
+		_, _, _, err := parseOpenAPIIDJSONWriteFlags(args[1:], "habit")
+		return err
+	case "checkins":
+		_, _, _, err := parseOpenAPIHabitCheckinsFlags(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown openapi habit command %q", args[0])
+	}
+	return nil
 }
 
 func runOpenAPITaskDryRun(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) (bool, int) {
@@ -993,13 +1106,21 @@ func parseOpenAPITaskTargetFlags(args []string) (string, string, error) {
 			if i+1 >= len(args) {
 				return "", "", fmt.Errorf("--project requires a value")
 			}
-			projectID = args[i+1]
+			parsedProjectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return "", "", err
+			}
+			projectID = parsedProjectID
 			i++
 		case "--task":
 			if i+1 >= len(args) {
 				return "", "", fmt.Errorf("--task requires a value")
 			}
-			taskID = args[i+1]
+			parsedTaskID, err := parseIDValue(args, i+1, "task")
+			if err != nil {
+				return "", "", err
+			}
+			taskID = parsedTaskID
 			i++
 		default:
 			return "", "", fmt.Errorf("unknown flag %q", args[i])
@@ -1025,13 +1146,21 @@ func parseOpenAPITaskTargetWriteFlags(args []string, requireYes bool) (string, s
 			if i+1 >= len(args) {
 				return "", "", false, fmt.Errorf("--project requires a value")
 			}
-			projectID = args[i+1]
+			parsedProjectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return "", "", false, err
+			}
+			projectID = parsedProjectID
 			i++
 		case "--task":
 			if i+1 >= len(args) {
 				return "", "", false, fmt.Errorf("--task requires a value")
 			}
-			taskID = args[i+1]
+			parsedTaskID, err := parseIDValue(args, i+1, "task")
+			if err != nil {
+				return "", "", false, err
+			}
+			taskID = parsedTaskID
 			i++
 		case "--dry-run":
 			dryRun = true
@@ -1058,6 +1187,9 @@ func parseOpenAPITaskUpdateFlags(args []string) (string, map[string]any, bool, e
 		return "", nil, false, fmt.Errorf("usage: dida openapi task update <task-id> --args-json <json> [--dry-run]")
 	}
 	taskID := args[0]
+	if err := validateIDArg("task", taskID); err != nil {
+		return "", nil, false, err
+	}
 	payload, dryRun, err := parseOpenAPIJSONWriteFlags(args[1:])
 	return taskID, payload, dryRun, err
 }
@@ -1067,6 +1199,9 @@ func parseOpenAPIFocusGetFlags(args []string) (string, string, error) {
 		return "", "", fmt.Errorf("usage: dida openapi focus get <focus-id> --type 0|1")
 	}
 	focusID := args[0]
+	if err := validateIDArg("focus", focusID); err != nil {
+		return "", "", err
+	}
 	focusType := "0"
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
@@ -1138,6 +1273,9 @@ func parseOpenAPISingleID(args []string, name string) (string, error) {
 	if len(args) != 1 {
 		return "", fmt.Errorf("usage: dida openapi %s get <%s-id>", name, name)
 	}
+	if err := validateIDArg(name, args[0]); err != nil {
+		return "", err
+	}
 	return args[0], nil
 }
 
@@ -1146,6 +1284,9 @@ func parseOpenAPIIDJSONWriteFlags(args []string, name string) (string, map[strin
 		return "", nil, false, fmt.Errorf("usage: dida openapi %s <command> <%s-id> --args-json <json> [--dry-run]", name, name)
 	}
 	id := args[0]
+	if err := validateIDArg(name, id); err != nil {
+		return "", nil, false, err
+	}
 	payload, dryRun, err := parseOpenAPIJSONWriteFlags(args[1:])
 	return id, payload, dryRun, err
 }
@@ -1314,9 +1455,11 @@ func parseOpenAPIListenFlags(args []string) (string, int, error) {
 			if i+1 >= len(args) {
 				return "", 0, fmt.Errorf("--port requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &port); err != nil || port <= 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed <= 0 {
 				return "", 0, fmt.Errorf("--port must be a positive integer")
 			}
+			port = parsed
 			i++
 		default:
 			return "", 0, fmt.Errorf("unknown flag %q", args[i])
@@ -1363,16 +1506,18 @@ func parseOpenAPILoginFlags(args []string) (string, string, string, string, int,
 			if i+1 >= len(args) {
 				return "", "", "", "", 0, 0, false, fmt.Errorf("--port requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &port); err != nil || port <= 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed <= 0 {
 				return "", "", "", "", 0, 0, false, fmt.Errorf("--port must be a positive integer")
 			}
+			port = parsed
 			i++
 		case "--timeout":
 			if i+1 >= len(args) {
 				return "", "", "", "", 0, 0, false, fmt.Errorf("--timeout requires seconds")
 			}
-			var seconds int
-			if _, err := fmt.Sscanf(args[i+1], "%d", &seconds); err != nil || seconds <= 0 {
+			seconds, err := parseIntStrict(args[i+1])
+			if err != nil || seconds <= 0 {
 				return "", "", "", "", 0, 0, false, fmt.Errorf("--timeout must be a positive integer")
 			}
 			timeout = time.Duration(seconds) * time.Second

@@ -19,8 +19,8 @@ func runSync(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		if len(args) != 2 {
 			return failTyped("sync checkpoint", "validation", "usage: dida sync checkpoint <checkpoint>", "run: dida sync --help", jsonOut, stdout, stderr)
 		}
-		var checkpoint int64
-		if _, err := fmt.Sscanf(args[1], "%d", &checkpoint); err != nil || checkpoint < 0 {
+		checkpoint, err := parseInt64Strict(args[1])
+		if err != nil || checkpoint < 0 {
 			return failTyped("sync checkpoint", "validation", "checkpoint must be a non-negative integer", "run: dida sync all --json to get latest checkpoint", jsonOut, stdout, stderr)
 		}
 		return runSyncCheckpoint(checkpoint, jsonOut, stdout, stderr)

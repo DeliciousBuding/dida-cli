@@ -99,9 +99,11 @@ func parseCompletedListFlags(args []string, now time.Time) (time.Time, time.Time
 			if i+1 >= len(args) {
 				return time.Time{}, time.Time{}, 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit <= 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed <= 0 {
 				return time.Time{}, time.Time{}, 0, false, fmt.Errorf("--limit must be a positive integer")
 			}
+			limit = parsed
 			i++
 		case "--compact", "--brief":
 			compact = true

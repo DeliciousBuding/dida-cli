@@ -5,14 +5,20 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 	var seen []string
+	var seenMu sync.Mutex
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		seenMu.Lock()
 		seen = append(seen, r.Method+" "+r.URL.RequestURI())
+		seenMu.Unlock()
 		switch r.URL.Path {
 		case "/attachment/isUnderQuota":
 			_ = json.NewEncoder(w).Encode(true)
@@ -55,6 +61,7 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		}
 	}
 
+	seenMu.Lock()
 	want := []string{
 		"GET /attachment/isUnderQuota",
 		"GET /attachment/dailyLimit",
@@ -74,8 +81,140 @@ func TestAccountReadsUseExpectedEndpoints(t *testing.T) {
 		"GET /user/profile",
 		"GET /user/sessions?lang=zh_CN",
 	}
+	sort.Strings(seen)
+	sort.Strings(want)
 	if strings.Join(seen, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("seen endpoints:\n%s\nwant:\n%s", strings.Join(seen, "\n"), strings.Join(want, "\n"))
+	}
+	seenMu.Unlock()
+}
+
+func TestAttachmentQuotaFetchesIndependentReadsConcurrently(t *testing.T) {
+	entered := make(chan string, 2)
+	release := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		entered <- r.URL.Path
+		select {
+		case <-release:
+		case <-time.After(2 * time.Second):
+			t.Errorf("timed out waiting for release")
+			return
+		}
+		switch r.URL.Path {
+		case "/attachment/isUnderQuota":
+			_ = json.NewEncoder(w).Encode(true)
+		case "/attachment/dailyLimit":
+			_ = json.NewEncoder(w).Encode(99)
+		default:
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURLV1 = server.URL
+	type quotaResult struct {
+		quota map[string]any
+		err   error
+	}
+	done := make(chan quotaResult, 1)
+	go func() {
+		quota, err := client.AttachmentQuota(context.Background())
+		done <- quotaResult{quota: quota, err: err}
+	}()
+
+	seen := map[string]bool{}
+	for len(seen) < 2 {
+		select {
+		case path := <-entered:
+			seen[path] = true
+		case <-time.After(2 * time.Second):
+			t.Fatalf("timed out waiting for both quota requests; seen=%v", seen)
+		}
+	}
+	close(release)
+
+	var result quotaResult
+	select {
+	case result = <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("AttachmentQuota() did not finish")
+	}
+	if result.err != nil {
+		t.Fatalf("AttachmentQuota() error = %v", result.err)
+	}
+	if result.quota["underQuota"] != true || result.quota["dailyLimit"] != int64(99) {
+		t.Fatalf("quota = %#v", result.quota)
+	}
+	if !seen["/attachment/isUnderQuota"] || !seen["/attachment/dailyLimit"] {
+		t.Fatalf("seen paths = %#v", seen)
+	}
+}
+
+func TestAttachmentQuotaReturnsEitherEndpointError(t *testing.T) {
+	for _, failPath := range []string{"/attachment/isUnderQuota", "/attachment/dailyLimit"} {
+		t.Run(failPath, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == failPath {
+					http.Error(w, `{"errorMessage":"quota failed"}`, http.StatusInternalServerError)
+					return
+				}
+				switch r.URL.Path {
+				case "/attachment/isUnderQuota":
+					_ = json.NewEncoder(w).Encode(true)
+				case "/attachment/dailyLimit":
+					_ = json.NewEncoder(w).Encode(99)
+				default:
+					t.Fatalf("unexpected path %s", r.URL.Path)
+				}
+			}))
+			defer server.Close()
+
+			client := NewClient("test-token")
+			client.BaseURLV1 = server.URL
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			_, err := client.AttachmentQuota(ctx)
+			if err == nil {
+				t.Fatalf("AttachmentQuota() error = nil, want failure for %s", failPath)
+			}
+		})
+	}
+}
+
+func TestAttachmentQuotaCancelsSiblingRequestOnError(t *testing.T) {
+	blockingStarted := make(chan struct{})
+	blockingCanceled := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/attachment/isUnderQuota":
+			select {
+			case <-blockingStarted:
+			case <-time.After(2 * time.Second):
+				t.Errorf("timed out waiting for blocking request")
+				return
+			}
+			http.Error(w, `{"errorMessage":"quota failed"}`, http.StatusInternalServerError)
+		case "/attachment/dailyLimit":
+			close(blockingStarted)
+			<-r.Context().Done()
+			close(blockingCanceled)
+		default:
+			t.Fatalf("unexpected path %s", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURLV1 = server.URL
+	_, err := client.AttachmentQuota(context.Background())
+	if err == nil {
+		t.Fatalf("AttachmentQuota() error = nil, want failure")
+	}
+	select {
+	case <-blockingCanceled:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("blocking quota request was not canceled")
 	}
 }
 

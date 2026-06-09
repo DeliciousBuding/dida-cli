@@ -44,7 +44,7 @@ Important existing endpoints:
 
 Column probe notes:
 
-- `POST /column` with `{projectId,name}` returned `{"id2error":{},"id2etag":{}}` for temporary projects, but `GET /column/project/{projectId}` still returned an empty list after a short delay.
+- `POST /column` with `{projectId,name}` returned `{"id2error":{},"id2etag":{}}` for temporary projects. `GET /column/project/{projectId}` still showed no columns after a short delay.
 - The same result occurred for a temporary project created with `viewMode:"kanban"`.
 - Because the create response did not expose a column id and no column appeared in the read endpoint, column update/delete/order must stay unimplemented until a real webapp network trace shows the full project/column preconditions and payload.
 
@@ -115,7 +115,7 @@ Implemented command families:
 Current blocker:
 
 - Full live OAuth verification still needs a configured developer app redirect
-  URL and real browser approval on the current account.
+  URL and browser approval in a disposable OAuth session.
 
 ## Safety Rules
 

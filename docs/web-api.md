@@ -164,7 +164,7 @@ Task relationship shapes:
 [{"taskId":"...","parentId":"...","projectId":"..."}]
 ```
 
-Column update/delete/order endpoints are not yet documented in this CLI. The webapp bundle references `POST /batch/columnProject`, but DidaCLI should not expose first-class update/delete/order commands until payload shapes are observed and covered by tests.
+Column update/delete/order command coverage is pending. The webapp bundle references `POST /batch/columnProject`; first-class commands need observed payload shapes and tests.
 
 Trash pagination:
 
@@ -173,10 +173,9 @@ GET /project/all/trash/page
 GET /project/all/trash/page?from=<next>
 ```
 
-The response contains `tasks` and `next`. A live probe on 2026-05-10 returned
-the first 20 deleted tasks and `next=20`; passing `from=20` returned the next
-page and `next=40`. Do not send `type=task`: it returned HTTP 500 on the
-observed CN Web API.
+The response contains `tasks` and `next`. Use `from=<next>` for pagination.
+Do not send `type=task`; live probes showed it is not accepted by the current
+private endpoint.
 
 The webapp bundle references task activity detail reads through the legacy v1
 client:
@@ -187,11 +186,10 @@ GET /task/activity/{taskId}?skip=<n>
 GET /task/activity/{taskId}?lastId=<id>
 ```
 
-Direct live probes on 2026-05-10 showed that v2-style
-`/api/v1/task/activity/{taskId}` is the wrong route when sent through the v2
-base. The legacy v1 path is routed, but the observed account returns
-`need_pro`. Treat task activity as a Pro-gated read surface until a Pro account
-or successful browser trace confirms response shape and pagination semantics.
+Direct live probes showed that v2-style `/api/v1/task/activity/{taskId}` is the
+wrong route when sent through the v2 base. The legacy v1 path is routed, but
+success response shape and pagination still need a Pro-entitled account or
+successful browser trace.
 
 Observed tag merge behavior: the endpoint can return success while the source tag remains listed. Treat merge and delete as separate operations.
 

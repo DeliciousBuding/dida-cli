@@ -71,13 +71,8 @@ Known status:
 - optional cursor-like query values `skip` and `lastId` are visible
 - v2-style `/api/v1/task/activity/{taskId}` returned 404 when sent through the
   v2 base
-- v1 `/task/activity/{taskId}` reached the route but returned `need_pro` on the
-  observed account
-- 2026-05-10 raw CLI probes against a real task returned HTTP 500 with
-  `errorCode=need_pro` in the body snippet for the no-query form, `skip=0`, and
-  `skip=0&lastId=`
-- a later 2026-05-10 repeat probe against another active task still returned
-  HTTP 500 with `errorCode=need_pro`
+- entitlement-gated probes reached v1 `/task/activity/{taskId}`; success fields
+  and pagination still need a Pro-entitled disposable trace
 
 Current implication:
 
@@ -99,8 +94,8 @@ Known status:
 
 - quota reads are implemented
 - 2026-05-10 live `attachment quota` returned a valid quota envelope
-- later 2026-05-10 quota recheck returned `underQuota=false` and `dailyLimit=0`,
-  so additional upload smokes remain blocked on the observed account
+- additional upload smokes need a disposable account with attachment quota
+  available
 - comment attachment paths and create payload shape are mapped in
   [webapi-attachment-flow-notes.md](webapi-attachment-flow-notes.md)
 - 2026-05-10 reversible live probe confirmed comment attachment upload with
@@ -156,8 +151,8 @@ the same dead-end assumptions.
 - `GET /project/{id}/columns` returned 404
 - `GET /project/{id}` returned 405
 - `GET /api/v1/task/activity/{taskId}` returned 404 through the v2 base
-- `GET /task/activity/{taskId}` returned HTTP 500 with `need_pro` through the
-  v1 base on the observed account
+- `GET /task/activity/{taskId}` reached the v1 route but needs Pro-entitled
+  success evidence
 - `GET /project/all/trash/page?type=task` returned 500; use `from=<cursor>` for pagination
 - `POST /column` produced responses that looked successful but did not yet prove
   full semantic correctness of the write

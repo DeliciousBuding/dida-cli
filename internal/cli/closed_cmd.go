@@ -73,8 +73,8 @@ func parseClosedListFlags(args []string, now time.Time) (closedListOptions, erro
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--status requires a value")
 			}
-			var status int
-			if _, err := fmt.Sscanf(args[i+1], "%d", &status); err != nil || status < 0 {
+			status, err := parseIntStrict(args[i+1])
+			if err != nil || status < 0 {
 				return opts, fmt.Errorf("--status must be a non-negative integer")
 			}
 			opts.Statuses = append(opts.Statuses, status)
@@ -109,9 +109,11 @@ func parseClosedListFlags(args []string, now time.Time) (closedListOptions, erro
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Limit); err != nil || opts.Limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return opts, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			opts.Limit = parsed
 			i++
 		default:
 			return opts, fmt.Errorf("unknown flag %q", args[i])

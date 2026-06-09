@@ -116,6 +116,9 @@ func runCommentUpdate(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	if err != nil {
 		return failTyped("comment update", "validation", err.Error(), "run: dida comment --help", jsonOut, stdout, stderr)
 	}
+	if len(opts.Files) > 0 {
+		return failTyped("comment update", "validation", "comment update does not support --file; create a new comment with an attachment instead", "run: dida comment create --project <project-id> --task <task-id> --text <text> --file <path> --dry-run --json", jsonOut, stdout, stderr)
+	}
 	comment := webapi.CommentMutation{Title: opts.Title}
 	payload := map[string]any{"projectId": opts.ProjectID, "taskId": opts.TaskID, "commentId": opts.CommentID, "comment": comment}
 	if opts.DryRun {
@@ -199,19 +202,31 @@ func parseCommentTargetFlags(args []string, command string, requireComment bool)
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a project id", args[i])
 			}
-			opts.ProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ProjectID = projectID
 			i++
 		case "--task":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--task requires a task id")
 			}
-			opts.TaskID = args[i+1]
+			taskID, err := parseIDValue(args, i+1, "task")
+			if err != nil {
+				return opts, err
+			}
+			opts.TaskID = taskID
 			i++
 		case "--comment", "--id":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a comment id", args[i])
 			}
-			opts.CommentID = args[i+1]
+			commentID, err := parseIDValue(args, i+1, "comment")
+			if err != nil {
+				return opts, err
+			}
+			opts.CommentID = commentID
 			i++
 		case "--title", "--text", "-t":
 			if i+1 >= len(args) {

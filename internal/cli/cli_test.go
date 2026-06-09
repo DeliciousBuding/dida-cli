@@ -112,6 +112,33 @@ func TestJSONFlagWithoutCommandReturnsError(t *testing.T) {
 	}
 }
 
+func TestRootJSONFlagBeforeHelpAndVersion(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"--json", "version"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("version exit code = %d, stderr=%s", code, stderr.String())
+	}
+	if strings.TrimSpace(stdout.String()) != "test-version" {
+		t.Fatalf("version stdout = %q", stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("version stderr = %q", stderr.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"--json", "--help"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("help exit code = %d, stderr=%s", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "Usage:") {
+		t.Fatalf("help stdout missing usage: %s", stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("help stderr = %q", stderr.String())
+	}
+}
+
 func TestJSONErrorDetailsAreIncluded(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := failTypedDetails("openapi login", "timeout", "timed out", "use details", map[string]any{
@@ -287,6 +314,57 @@ func TestAuthLoginJSON(t *testing.T) {
 	}
 	if !strings.Contains(data["recommended_next"].(string), "--token-stdin") {
 		t.Fatalf("recommended_next missing stdin guidance: %v", data["recommended_next"])
+	}
+}
+
+func TestAuthUnknownFlagsFailValidationJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	cases := [][]string{
+		{"auth", "status", "--bogus", "--json"},
+		{"auth", "login", "--bogus", "--json"},
+		{"auth", "login", "--browser", "--bogus", "--json"},
+		{"auth", "logout", "--bogus", "--json"},
+		{"auth", "cookie", "set", "--bogus", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error payload = %#v", errPayload)
+			}
+		})
+	}
+}
+
+func TestAuthBrowserTimeoutRejectsTrailingJunk(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"auth", "login", "--browser", "--timeout", "60x", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
 	}
 }
 
@@ -555,6 +633,28 @@ func TestCommentCreateWithFileDryRunJSON(t *testing.T) {
 	upload := requestPayload["upload"].(map[string]any)
 	if upload["field"] != "file" {
 		t.Fatalf("upload = %#v", upload)
+	}
+}
+
+func TestCommentUpdateRejectsFileFlag(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"comment", "update", "--project", "p1", "--task", "t1", "--comment", "c1", "--text", "hi", "--file", "a.txt", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1 stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+	if !strings.Contains(fmt.Sprint(errPayload["message"]), "does not support --file") {
+		t.Fatalf("error.message = %v", errPayload["message"])
 	}
 }
 
@@ -1552,6 +1652,96 @@ func TestOpenAPIProjectDryRunDoesNotRequireToken(t *testing.T) {
 	}
 }
 
+func TestOpenAPIProjectUsageErrorsBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "project", "get", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+	if !strings.Contains(fmt.Sprint(errPayload["message"]), "dida openapi project get <project-id>") {
+		t.Fatalf("error.message = %v", errPayload["message"])
+	}
+}
+
+func TestOfficialProjectUsageErrorsBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	cases := [][]string{
+		{"official", "project", "list", "extra", "--json"},
+		{"official", "project", "get", "--json"},
+		{"official", "project", "get", "--bogus", "--json"},
+		{"official", "project", "data", "--bogus", "--json"},
+		{"official", "project", "nope", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if strings.Contains(fmt.Sprint(errPayload["message"]), "DIDA365_TOKEN") {
+				t.Fatalf("validation was hidden by auth error: %#v", errPayload)
+			}
+		})
+	}
+}
+
+func TestOpenAPIUsageErrorsBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	cases := [][]string{
+		{"openapi", "project", "list", "extra", "--json"},
+		{"openapi", "project", "get", "--bogus", "--json"},
+		{"openapi", "project", "create", "--args-json", "{", "--json"},
+		{"openapi", "task", "get", "--json"},
+		{"openapi", "task", "complete", "--project", "p1", "--json"},
+		{"openapi", "focus", "get", "--bogus", "--type", "0", "--json"},
+		{"openapi", "focus", "get", "f1", "--type", "0x", "--json"},
+		{"openapi", "habit", "get", "--bogus", "--json"},
+		{"openapi", "habit", "get", "--json"},
+		{"openapi", "habit", "checkins", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if strings.Contains(fmt.Sprint(errPayload["message"]), "openapi login first") {
+				t.Fatalf("validation was hidden by auth error: %#v", errPayload)
+			}
+		})
+	}
+}
+
 func TestOpenAPIProjectDeleteRequiresYesJSON(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	if err := openapi.SaveToken(&openapi.TokenResponse{OAuthToken: openapi.OAuthToken{AccessToken: "test-token", CreatedAt: time.Now().Unix()}}); err != nil {
@@ -1582,6 +1772,190 @@ func TestOpenAPIProjectDeleteRequiresYesJSON(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), `"dry_run": true`) {
 		t.Fatalf("stdout missing dry_run: %s", stdout.String())
+	}
+}
+
+func TestOfficialTaskUsageErrorsBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	cases := [][]string{
+		{"official", "task", "search", "--json"},
+		{"official", "task", "get", "--json"},
+		{"official", "task", "get", "--bogus", "--json"},
+		{"official", "task", "query", "--json"},
+		{"official", "task", "batch-add", "--args-json", "{", "--json"},
+		{"official", "task", "complete-project", "--json"},
+		{"official", "task", "filter", "--status", "2x", "--json"},
+		{"official", "task", "nope", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if strings.Contains(fmt.Sprint(errPayload["message"]), "DIDA365_TOKEN") {
+				t.Fatalf("validation was hidden by auth error: %#v", errPayload)
+			}
+		})
+	}
+}
+
+func TestOfficialHabitUsageErrorsBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	cases := [][]string{
+		{"official", "habit", "list", "extra", "--json"},
+		{"official", "habit", "get", "--json"},
+		{"official", "habit", "get", "--bogus", "--json"},
+		{"official", "habit", "create", "--args-json", "{", "--json"},
+		{"official", "habit", "checkin", "h1", "--date", "2026-06-09", "--value", "1.5x", "--json"},
+		{"official", "habit", "checkin", "h1", "--date", "2026-06-09", "--value", "NaN", "--dry-run", "--json"},
+		{"official", "habit", "checkin", "h1", "--date", "2026-06-09", "--value", "+Inf", "--dry-run", "--json"},
+		{"official", "habit", "checkins", "--from", "20260609x", "--json"},
+		{"official", "habit", "nope", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if strings.Contains(fmt.Sprint(errPayload["message"]), "DIDA365_TOKEN") {
+				t.Fatalf("validation was hidden by auth error: %#v", errPayload)
+			}
+		})
+	}
+}
+
+func TestOfficialFocusUsageErrorsBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	cases := [][]string{
+		{"official", "focus", "get", "--bogus", "--type", "0", "--json"},
+		{"official", "focus", "get", "f1", "--type", "0x", "--json"},
+		{"official", "focus", "list", "--from-time", "2026-06-09T00:00:00Z", "--json"},
+		{"official", "focus", "delete", "f1", "--type", "2", "--json"},
+		{"official", "focus", "nope", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if strings.Contains(fmt.Sprint(errPayload["message"]), "DIDA365_TOKEN") {
+				t.Fatalf("validation was hidden by auth error: %#v", errPayload)
+			}
+		})
+	}
+}
+
+func TestFlagLikeIDsAreValidationErrors(t *testing.T) {
+	t.Setenv("DIDA365_TOKEN", "")
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	cases := [][]string{
+		{"openapi", "project", "update", "--bogus", "--args-json", "{}", "--dry-run", "--json"},
+		{"openapi", "task", "update", "--bogus", "--args-json", "{}", "--dry-run", "--json"},
+		{"openapi", "habit", "update", "--bogus", "--args-json", "{}", "--dry-run", "--json"},
+		{"openapi", "focus", "delete", "--bogus", "--type", "0", "--dry-run", "--json"},
+		{"openapi", "task", "comment", "--project", "--bogus", "--task", "t1", "--json"},
+		{"openapi", "task", "comment", "--project", "p1", "--task", "--bogus", "--json"},
+		{"openapi", "task", "delete-comment", "--project", "--bogus", "--task", "t1", "--dry-run", "--json"},
+		{"official", "habit", "update", "--bogus", "--args-json", "{}", "--dry-run", "--json"},
+		{"official", "habit", "checkin", "--bogus", "--date", "2026-06-09", "--value", "1", "--dry-run", "--json"},
+		{"official", "task", "complete-project", "--project", "--bogus", "--task", "t1", "--dry-run", "--json"},
+		{"official", "task", "complete-project", "--project", "p1", "--task", "--bogus", "--dry-run", "--json"},
+		{"official", "focus", "delete", "--bogus", "--type", "0", "--dry-run", "--json"},
+		{"task", "create", "--project", "--bogus", "--title", "T", "--dry-run", "--json"},
+		{"task", "create", "--project", "p1", "--column", "--bogus", "--title", "T", "--dry-run", "--json"},
+		{"task", "update", "--bogus", "--project", "p1", "--title", "T", "--dry-run", "--json"},
+		{"task", "update", "t1", "--project", "--bogus", "--title", "T", "--dry-run", "--json"},
+		{"task", "complete", "t1", "--project", "--bogus", "--dry-run", "--json"},
+		{"task", "move", "t1", "--from", "--bogus", "--to", "p2", "--dry-run", "--json"},
+		{"task", "parent", "t1", "--parent", "--bogus", "--project", "p1", "--dry-run", "--json"},
+		{"comment", "create", "--project", "--bogus", "--task", "t1", "--text", "hi", "--dry-run", "--json"},
+		{"comment", "create", "--project", "p1", "--task", "--bogus", "--text", "hi", "--dry-run", "--json"},
+		{"comment", "update", "--project", "p1", "--task", "t1", "--comment", "--bogus", "--text", "hi", "--dry-run", "--json"},
+		{"column", "create", "--project", "--bogus", "--name", "Col", "--dry-run", "--json"},
+		{"project", "create", "--id", "--bogus", "--name", "P", "--dry-run", "--json"},
+		{"project", "update", "--bogus", "--name", "P", "--dry-run", "--json"},
+		{"folder", "create", "--id", "--bogus", "--name", "F", "--dry-run", "--json"},
+		{"folder", "delete", "--bogus", "--dry-run", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if payload["ok"] == true {
+				t.Fatalf("flag-like id returned success: %#v", payload)
+			}
+		})
+	}
+}
+
+func TestWebAPIReadFlagLikeIDsAreValidationBeforeAuth(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	cases := [][]string{
+		{"task", "get", "--bogus", "--json"},
+		{"project", "tasks", "--bogus", "--json"},
+		{"project", "columns", "--bogus", "--json"},
+		{"column", "list", "--bogus", "--json"},
+	}
+	for _, args := range cases {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			code := Run(args, "test-version", &stdout, &stderr)
+			if code != 1 {
+				t.Fatalf("Run(%v) code = %d stdout=%s stderr=%s", args, code, stdout.String(), stderr.String())
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+				t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+			}
+			errPayload := payload["error"].(map[string]any)
+			if errPayload["type"] != "validation" {
+				t.Fatalf("error.type = %v, want validation", errPayload["type"])
+			}
+			if strings.Contains(fmt.Sprint(errPayload["message"]), "cookie") {
+				t.Fatalf("validation was hidden by auth error: %#v", errPayload)
+			}
+		})
 	}
 }
 

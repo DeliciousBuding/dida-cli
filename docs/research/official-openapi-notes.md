@@ -26,7 +26,7 @@ and `WWW-Authenticate: Bearer realm="oauth"`.
 
 - The official OpenAPI does not accept the above token as a direct bearer token.
 - The official MCP channel does accept the `dp_...` API token through `DIDA365_TOKEN`.
-- Therefore, the official OpenAPI is likely tied to an OAuth access-token flow, not the simple API-token flow used by official MCP.
+- The official OpenAPI uses an OAuth access-token flow. The simple API token is scoped to official MCP.
 
 ## Practical Conclusion
 
@@ -38,11 +38,11 @@ There are currently three distinct channels:
 
 2. Official MCP
    - auth: `DIDA365_TOKEN=dp_...`
-   - clean and officially exposed
+   - official task/project/habit/focus tools
 
 3. Official OpenAPI
    - auth: likely OAuth access token
-   - not directly usable with the tested non-OAuth token
+   - requires OAuth credentials; the tested API token is insufficient
 
 ## Recommendation
 

@@ -17,25 +17,25 @@ payload dumps, or local browser exports here.
 | Project writes | `POST /batch/project` | working | Used by project CRUD with confirmation for delete. |
 | Folder writes | `POST /batch/projectGroup` | working | Used by folder CRUD. |
 | Tag writes | `POST /batch/tag`, `PUT /tag/rename`, `PUT /tag/merge`, `DELETE /tag` | working with quirks | Merge may leave the source tag object present. |
-| Comments | comment list/create/update/delete paths | working | A 2026-05-10 live read against an existing task returned an empty comment list with the expected envelope. |
+| Comments | comment list/create/update/delete paths | working | Live smoke confirmed the comment list envelope without committing task data. |
 | Completed history | `GET /project/all/completed` | working | Date-only inputs caused server errors; full datetime strings work. |
 | Closed history | `GET /project/{projectIds|all}/closed` | working | Uses full datetime strings and status filters. |
 | Trash pagination | `GET /project/all/trash/page?from={cursor}` | working | Live-smoked on 2026-05-10. First page returns `next=20`; `from=20` returns the next page and `next=40`. `type=task` returned HTTP 500 and should not be sent. |
 | Search | Web indexed search endpoint | working | Compact mode avoids large content blobs by default. |
-| Attachment quota | legacy v1 attachment quota endpoints | working | 2026-05-10 live read returned `underQuota=true` and a numeric daily limit. |
+| Attachment quota | legacy v1 attachment quota endpoints | working | Live smoke confirmed the quota endpoints return a valid envelope. Keep exact quota values private. |
 | Comment attachment upload | `POST /api/v1/attachment/upload/comment/{projectId}/{taskId}` | working | 2026-05-10 reversible live probes confirmed multipart field `file`, successful PNG response keys, comment `attachments: [{id}]`, read-back through `comment list`, and cleanup. A repeat smoke with a 1x1 PNG created a disposable task, created a comment with one attachment, read it back, then deleted both the comment and task. |
 
 ## Failed Or Incomplete Probes
 
 | Surface | Endpoint | Observed result | Current interpretation | Next evidence needed |
 | --- | --- | --- | --- | --- |
-| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | 2026-05-10 raw CLI probes against real tasks returned HTTP 500 with `errorCode=need_pro` in the raw probe body snippet for no query, `skip=0`, and `skip=0&lastId=`; a later same-day repeat probe against another active task still returned `need_pro`; v2-style route returned 404 | Bundle evidence still points to the legacy v1 client. The route is reachable, but the observed account lacks the entitlement required to learn the success shape. | Pro account live read or browser trace that captures response fields and pagination semantics. |
+| Task activity detail | v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId` | Pro-gated probes reached the legacy v1 route; v2-style route returned 404. | Bundle evidence still points to the legacy v1 client. | Pro-entitled disposable trace or browser trace that captures response fields and pagination semantics. |
 | Project data by id | `GET /project/{id}/data` | HTTP 404 on observed CN Web API | Not the active private endpoint for current web app. | Recheck only if bundle or network trace changes. |
 | Project columns by id | `GET /project/{id}/columns` | HTTP 404 | Replaced by `/column/project/{projectId}`. | None unless webapp changes. |
 | Project direct get | `GET /project/{id}` | HTTP 405 | Method/path mismatch for private Web API. | Prefer sync or official channels. |
 | Column project batch | `POST /batch/columnProject` | visible but not mapped | Update/delete/reorder bodies unknown. | Capture real kanban column edit/delete/reorder traffic. |
 | Filter batch | `POST /batch/filter` | visible but not mapped | Create/update/delete bodies unknown. | Capture real filter edit traffic. |
-| Task attachment upload/download | `POST /api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` and `GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}` with optional `action=download` or `action=preview` | bundle-mapped, not live-verified | Comment attachment create is live-confirmed. Task-level upload uses a generated attachment id/refId and separate render/download paths, but the task association/persistence mutation is not yet proven. | Capture a reversible task attach trace, confirm the task payload or batch mutation, then test download, preview, file limits, quota failure, and orphan cleanup behavior. |
+| Task attachment upload/download | `POST /api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` and `GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}` with optional `action=download` or `action=preview` | bundle-mapped, pending live verification | Comment attachment create is live-confirmed. Task-level upload uses a generated attachment id/refId and separate render/download paths; the task association/persistence mutation still needs proof. | Capture a reversible task attach trace, confirm the task payload or batch mutation, then test download, preview, file limits, quota failure, and orphan cleanup behavior. |
 | Collaboration writes | invite and permission mutation paths | not mapped | Multi-user side effects and rollback unclear. | Trace with disposable project/user setup. |
 
 ## Implementation Rule

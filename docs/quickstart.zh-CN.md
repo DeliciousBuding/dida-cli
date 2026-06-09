@@ -20,7 +20,7 @@ iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 
 
 | 变量 | 作用 |
 | --- | --- |
-| `DIDA_VERSION` | 安装指定 release tag，例如 `v0.1.0`。 |
+| `DIDA_VERSION` | 安装指定 release tag，例如 `vX.Y.Z`。 |
 | `DIDA_INSTALL_DIR` | 覆盖安装目录。 |
 | `DIDA_REPO` | 覆盖 GitHub 仓库，例如安装 fork。 |
 

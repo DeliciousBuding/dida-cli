@@ -127,15 +127,15 @@ dida calendar archived --json
 dida calendar third-accounts --json
 dida stats general --json
 dida template project list --limit 50 --json
-dida search all --query "计算机" --limit 20 --json
-dida search all --query "计算机" --limit 20 --full --json
+dida search all --query "meeting" --limit 20 --json
+dida search all --query "meeting" --limit 20 --full --json
 dida user status --json
 dida user profile --json
 dida user sessions --limit 10 --json
 ```
 
 Use `dida official token clear --json` only when intentionally removing the
-saved local official MCP token. Use `dida official call ...` primarily for
+configured official MCP token. Use `dida official call ...` primarily for
 read-only exploration after checking `dida official show <tool-name> --json`;
 prefer first-class `official project/task/habit/focus` wrappers for normal
 work.
@@ -232,7 +232,7 @@ dida column create --project <project-id> --name "Doing" --dry-run --json
 dida column create --project <project-id> --name "Doing" --json
 ```
 
-Column list is backed by `GET /column/project/{projectId}`. Column create is backed by an observed private Web API endpoint. Column update/delete/order commands are intentionally not exposed until payloads are verified.
+Column list is backed by `GET /column/project/{projectId}`. Column create is backed by an observed private Web API endpoint. Column update, delete, and order commands wait on verified payloads.
 
 ## Comments
 
@@ -248,10 +248,9 @@ dida comment delete --project <project-id> --task <task-id> --comment <comment-i
 ```
 
 Comment attachment create is verified for the Web API v1 multipart field `file`.
-Use the real project id from `dida agent context --json`, not the logical
-`inbox` alias. Task-level attachment download/preview and task attachment
-mutation remain intentionally unexposed until separately verified. The CLI
-checks `dida attachment quota --json` before uploading files.
+Comment uploads require a concrete project id from `dida agent context --json`.
+Task-level attachment commands are tracked separately. The CLI checks
+`dida attachment quota --json` before uploading files.
 
 ## Filters
 
@@ -259,7 +258,7 @@ checks `dida attachment quota --json` before uploading files.
 dida filter list --json
 ```
 
-Filters are read from the sync payload. Filter writes are intentionally not exposed until `/batch/filter` payloads are verified from a real webapp trace.
+Filters are read from the sync payload. Filter writes wait on verified `/batch/filter` payloads from a webapp trace.
 
 Observed merge behavior: `tag merge` moves associations through the private endpoint but may leave the source tag object present. Delete the source tag explicitly when the intended outcome is full retirement.
 
@@ -414,7 +413,8 @@ dida upgrade --check --json      # Only check, do not install
 ```
 
 The updater queries GitHub Releases for the latest version, downloads the
-platform-matched binary archive, verifies the SHA-256 checksum against
-`checksums.txt`, extracts the binary, and replaces the current executable.
-Requires write permission to the binary location. On Windows, uses a
-rename-then-replace strategy to avoid file-lock issues.
+platform-matched archive, verifies the SHA-256 checksum against `checksums.txt`,
+and extracts the binary. Unix-like systems replace the executable during the
+command. Windows stages the new binary and schedules a helper script to replace
+`dida.exe` after the current process exits; JSON output reports
+`status: "scheduled"` for that path. The binary location must be writable.

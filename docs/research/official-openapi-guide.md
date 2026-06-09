@@ -121,9 +121,9 @@ The project-related models include:
 - Column
 - ProjectData
 
-This is notable because the official OpenAPI exposes both project CRUD and
-project-with-data responses with column shapes, even though the command surface
-is still much smaller than the private Web API we are currently using.
+The official OpenAPI exposes both project CRUD and project-with-data responses
+with column shapes. Its command surface remains smaller than the private Web API
+used for broad account coverage.
 
 ## Focus Endpoints
 

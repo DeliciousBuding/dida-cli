@@ -5,7 +5,7 @@
 <h1 align="center">DidaCLI</h1>
 
 <p align="center">
-  <b>Agent-friendly CLI for <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a></b>
+  <b>JSON-first CLI for <a href="https://dida365.com">Dida365</a> / <a href="https://ticktick.com">TickTick</a></b>
 </p>
 
 <p align="center">
@@ -24,7 +24,7 @@
 
 ---
 
-Single Go binary with three auth channels (Web API, Official MCP, OpenAPI). Stable JSON envelope on every response. Zero dependencies.
+DidaCLI builds as a single Go binary with no external Go modules. It keeps Web API cookie auth, Official MCP tokens, and OpenAPI OAuth separate. Commands return a consistent JSON envelope.
 
 ```bash
 $ dida task today --compact --json
@@ -34,8 +34,8 @@ $ dida task today --compact --json
 
 ```bash
 npm i -g @delicious233/dida-cli          # npm
-curl -fsSL .../install.sh | sh           # macOS / Linux
-iwr .../install.ps1 -UseB | iex          # Windows
+curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 -UseB | iex
 ```
 
 <details>
@@ -68,13 +68,14 @@ go install github.com/DeliciousBuding/dida-cli/cmd/dida@latest
 ### Pin a specific version
 
 ```bash
-DIDA_VERSION=v0.2.1 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+DIDA_VERSION=vX.Y.Z curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
 
 After install:
 
 ```bash
-dida version && dida doctor --json && dida upgrade
+dida version && dida doctor --json
+dida upgrade --check
 ```
 
 </details>
@@ -82,8 +83,11 @@ dida version && dida doctor --json && dida upgrade
 ## Quick Start
 
 ```bash
-# 1. Login — paste browser cookie "t" from dida365.com
+# 1. Login with the Dida365 browser cookie named "t"
 dida auth cookie set --token-stdin --json
+
+# Optional browser capture path
+dida auth login --browser --json
 
 # 2. Verify
 dida doctor --verify --json
@@ -144,10 +148,10 @@ Full reference: [docs/commands.md](docs/commands.md)
 | | Web API | Official MCP | Official OpenAPI |
 |---|---|---|---|
 | **Auth** | Browser cookie | Token | OAuth |
-| **Coverage** | Broadest | MCP tool-based | Standard REST |
+| **Coverage** | Web API resources outside official channels | MCP tool-based | Standard REST |
 | **Setup** | One login | Get token | Register app |
 
-All three are independent — never mixed.
+The three auth channels stay separate.
 
 ## Agent Integration
 
@@ -162,7 +166,7 @@ dida task create ... --dry-run --json    # preview writes
 | Claude Code | Copy [`skills/dida-cli/SKILL.md`](skills/dida-cli/SKILL.md) |
 | Codex / Others | See [docs/skill-installation.md](docs/skill-installation.md) |
 
-**Safety:** Always `--dry-run` before writes. `--yes` required for destructives. Token never leaves local disk. See [Agent Usage](docs/agent-usage.md).
+Preview resource writes with `--dry-run` when supported. Destructive commands require `--yes`. The CLI does not print full token values. See [Agent Usage](docs/agent-usage.md).
 
 ## Docs
 
@@ -186,4 +190,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-DidaCLI is an independent, third-party open-source project. Not affiliated with [Dida365](https://dida365.com) / [TickTick](https://ticktick.com) (杭州随笔记网络技术有限公司). Provided "as is" for personal learning and research. The author assumes no responsibility for any consequences arising from the use of this tool. When operated by AI agents, the human operator is solely responsible for all actions.
+DidaCLI is an independent open-source CLI for [Dida365](https://dida365.com) / [TickTick](https://ticktick.com)-compatible workflows. Use it with accounts and automations you control, subject to the upstream services' terms.

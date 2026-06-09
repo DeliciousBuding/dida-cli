@@ -115,9 +115,9 @@ dida comment update --project <project-id> --task <task-id> --comment <comment-i
 dida comment delete --project <project-id> --task <task-id> --comment <comment-id> --yes --json
 ```
 
-For comment attachments, use the real project id from `dida agent context
---json`, not the logical `inbox` alias. Preview with `--dry-run` first. Task-level
-attachment download/preview and task attachment mutation are not exposed yet.
+For comment attachments, use a concrete project id from `dida agent context
+--json`. Preview with `--dry-run` first. Task-level attachment commands are
+tracked separately.
 
 Use `dida sync checkpoint <checkpoint> --json` when an agent needs deletions, order deltas, or reminder deltas; those live under `data.deltas`.
 
