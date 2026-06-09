@@ -143,20 +143,23 @@ impl<T: HttpTransport> JsonClient<T> {
             let response = time::timeout(self.timeout_policy.request_timeout, fut)
                 .await
                 .map_err(|_| DidaHttpError::Timeout {
+                    surface: self.surface.label(),
+                    method: method.to_string(),
+                    path: path.clone(),
                     timeout: self.timeout_policy.request_timeout,
                 });
             let response = match response {
                 Ok(Ok(response)) => response,
-                Ok(Err(error)) => match self.retry_policy.classify_transport_error(attempt) {
-                    RetryDecision::RetryAfter(delay) => {
-                        attempt += 1;
-                        time::sleep(delay).await;
-                        let _ = error;
-                        continue;
+                Ok(Err(error)) | Err(error) => {
+                    match self.retry_policy.classify_error(&error, attempt) {
+                        RetryDecision::RetryAfter(delay) => {
+                            attempt += 1;
+                            time::sleep(delay).await;
+                            continue;
+                        }
+                        RetryDecision::DoNotRetry => return Err(error),
                     }
-                    RetryDecision::DoNotRetry => return Err(error),
-                },
-                Err(error) => return Err(error),
+                }
             };
 
             if response.status.is_success() {

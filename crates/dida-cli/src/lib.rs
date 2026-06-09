@@ -1,5 +1,6 @@
 use dida_core::{CliError, JsonEnvelope, failure, to_json_line};
 use serde_json::json;
+use std::env;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RunResult {
@@ -61,6 +62,19 @@ impl RunResult {
         }
     }
 
+    fn err_json_for(command: &str, err: CliError) -> Self {
+        let mut envelope = failure(err);
+        envelope.command = command.to_string();
+        let stdout = to_json_line(&envelope).unwrap_or_else(|_| {
+            "{\"ok\":false,\"command\":\"internal\",\"error\":{\"type\":\"internal\",\"message\":\"encode json\"}}\n".to_string()
+        });
+        Self {
+            code: 1,
+            stdout,
+            stderr: String::new(),
+        }
+    }
+
     fn err_text(command: &str, message: &str) -> Self {
         Self {
             code: 1,
@@ -102,10 +116,14 @@ pub fn run(args: Vec<String>, version: &str) -> RunResult {
             handler(ctx)
         }
         RouteOutcome::UnknownCommand { command, json } => {
-            let err = CliError::validation(&command, format!("unknown command {command:?}"))
-                .with_hint("run: dida --help");
+            let err = CliError {
+                kind: None,
+                message: format!("unknown command {command:?}"),
+                hint: None,
+                details: None,
+            };
             if json {
-                RunResult::err_json(err)
+                RunResult::err_json_for(&command, err)
             } else {
                 RunResult::err_text(&command, &err.message)
             }
@@ -174,53 +192,596 @@ fn render_version(version: &str) -> RunResult {
 pub fn root_commands() -> Vec<RootCommand> {
     vec![
         RootCommand {
+            name: "official",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "openapi",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "agent",
+            handler: command_handler,
+        },
+        RootCommand {
             name: "doctor",
-            handler: placeholder_handler,
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "sync",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "settings",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "schema",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "channel",
+            handler: command_handler,
         },
         RootCommand {
             name: "task",
-            handler: placeholder_handler,
+            handler: command_handler,
         },
         RootCommand {
             name: "project",
-            handler: placeholder_handler,
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "folder",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "tag",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "filter",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "column",
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "comment",
+            handler: command_handler,
         },
         RootCommand {
             name: "auth",
-            handler: placeholder_handler,
+            handler: command_handler,
+        },
+        RootCommand {
+            name: "+today",
+            handler: command_handler,
         },
     ]
 }
 
-pub fn placeholder_handler(ctx: CommandContext) -> RunResult {
-    if ctx.json {
-        let envelope = JsonEnvelope {
-            ok: true,
-            command: ctx.command,
-            meta: Some(json!({ "status": "placeholder" })),
-            data: Some(json!({ "args": ctx.args })),
-            error: None,
+pub fn command_handler(mut ctx: CommandContext) -> RunResult {
+    ctx.json = ctx.json || take_flag(&mut ctx.args, "--json") || take_flag(&mut ctx.args, "-j");
+
+    if take_flag(&mut ctx.args, "--help") || take_flag(&mut ctx.args, "-h") {
+        return match ctx.command.as_str() {
+            "task" => RunResult::ok(task_help()),
+            "auth" => RunResult::ok(auth_help()),
+            _ => RunResult::ok(root_help()),
         };
-        return RunResult::ok(to_json_line(&envelope).expect("placeholder envelope encodes"));
     }
-    RunResult::ok(format!("dida: {} is not implemented yet\n", ctx.command))
+
+    match ctx.command.as_str() {
+        "doctor" => doctor(ctx),
+        "schema" => schema(ctx),
+        "channel" => channel(ctx),
+        "project" | "folder" | "tag" | "column" | "task" | "comment" => dry_run_or_auth(ctx),
+        "official" => official(ctx),
+        "openapi" => openapi(ctx),
+        "auth" => auth(ctx),
+        "sync" => missing_cookie("sync all", false),
+        "+today" => missing_cookie("task list", true),
+        "filter" => missing_cookie("filter list", true),
+        "settings" => missing_cookie("settings get", false),
+        _ => placeholder_handler(ctx),
+    }
 }
 
 fn root_help() -> String {
     [
-        "DidaCLI",
+        "DidaCLI - Dida365 / TickTick command line client",
         "",
         "Usage:",
-        "  dida [--json] <command>",
+        "  dida <command> [options]",
         "",
         "Commands:",
-        "  version    Print CLI version",
-        "  task       Manage tasks",
-        "  project    Manage projects",
-        "  auth       Manage authentication",
+        "  doctor       Check local config, auth status, and optional endpoint health",
+        "  official     Inspect the official dida365 MCP channel",
+        "  openapi      Use the official OAuth-based OpenAPI channel",
+        "  agent        Agent-oriented context pack",
+        "  auth         Manage local cookie auth",
+        "  sync         Sync tasks/projects/tags",
+        "  settings     Read user preferences",
+        "  completed    Read completed task history",
+        "  closed       Read closed-history items from the Web API",
+        "  trash        Read deleted tasks from trash",
+        "  attachment   Read attachment quota and upload limits",
+        "  reminder     Read reminder preferences",
+        "  share        Read sharing and collaboration metadata",
+        "  calendar     Read calendar subscription metadata",
+        "  stats        Read account statistics",
+        "  template     Read project templates",
+        "  search       Search across Web API indexed content",
+        "  user         Read account and session metadata",
+        "  pomo         Read Pomodoro preferences and records",
+        "  habit        Read habit preferences, habits, and sections",
+        "  quadrant     View active tasks by Eisenhower quadrant",
+        "  schema       List machine-readable command contracts",
+        "  channel      Explain API channel selection and auth boundaries",
+        "  project      Project discovery and CRUD",
+        "  folder       Project folder CRUD",
+        "  tag          Tag discovery and CRUD",
+        "  filter       Filter discovery",
+        "  column       Kanban column discovery and experimental create",
+        "  comment      Task comment reads and writes",
+        "  task         Task reads and writes",
+        "  raw          Raw read-only API escape hatch",
+        "  version      Print version",
+        "  upgrade      Check for updates and self-upgrade",
+        "  +today       Shortcut for task today",
+        "",
+        "Global options:",
+        "  -j, --json   Emit machine-readable JSON",
+        "  -h, --help   Show help",
         "",
     ]
     .join("\n")
+}
+
+fn task_help() -> String {
+    [
+        "Usage:",
+        "  dida task today [--json] [--limit N] [--compact]",
+        "  dida task list [--json] [--filter today|all] [--limit N] [--compact]",
+        "  dida task search --query <text> [--limit N] [--compact] [--json]",
+        "  dida task upcoming [--days N] [--limit N] [--compact] [--json]",
+        "  dida task due-counts [--json]",
+        "  dida task get <task-id> [--json]",
+        "  dida task create --project <project-id> --title <title> [task fields...] [--dry-run] [--json]",
+        "  dida task update <task-id> --project <project-id> [task fields...] [--dry-run] [--json]",
+        "  dida task complete <task-id> --project <project-id> [--dry-run] [--json]",
+        "  dida task delete <task-id> --project <project-id> --yes [--dry-run] [--json]",
+        "  dida task move <task-id> --from <project-id> --to <project-id> [--dry-run] [--json]",
+        "  dida task parent <task-id> --parent <task-id> --project <project-id> [--dry-run] [--json]",
+        "  dida +today [--json] [--limit N] [--compact]",
+        "",
+        "Use --compact (or --brief) for agent reads that should omit large text, checklist,",
+        "reminder, and raw fields.",
+        "",
+        "Task fields:",
+        "  --content <text>        Task content",
+        "  --desc <markdown>       Rich description field",
+        "  --start <time>          Start date/time",
+        "  --due <time>            Due date/time",
+        "  --timezone <zone>       IANA timezone, e.g. Asia/Shanghai",
+        "  --priority 0|1|3|5      None, low, medium, high",
+        "  --tag <name>            Add a tag; repeatable",
+        "  --tags a,b              Add comma-separated tags",
+        "  --item <title>          Add a checklist item; repeatable",
+        "  --column <id>           Kanban column id",
+        "  --reminder <value>      Reminder value; repeatable",
+        "  --repeat <rule>         Repeat rule from Web API",
+        "  --repeat-from <value>   Repeat base",
+        "  --repeat-flag <value>   Repeat flag",
+        "  --all-day | --not-all-day",
+        "  --floating | --not-floating",
+        "",
+    ]
+    .join("\n")
+}
+
+fn auth_help() -> String {
+    [
+        "Usage:",
+        "  dida auth login --browser [--timeout 180] [--json]",
+        "  dida auth login [--json]",
+        "  dida auth status [--json]",
+        "  dida auth status --verify [--json]",
+        "  dida auth logout [--json]",
+        "  dida auth cookie set --token-stdin",
+        "  DIDA_ALLOW_TOKEN_ARG=1 dida auth cookie set --token <token>",
+        "",
+    ]
+    .join("\n")
+}
+
+pub fn placeholder_handler(ctx: CommandContext) -> RunResult {
+    if ctx.json {
+        return json_ok(&ctx.command, json!({ "args": ctx.args }));
+    }
+    RunResult::ok(format!("dida: {} is not implemented yet\n", ctx.command))
+}
+
+fn take_flag(args: &mut Vec<String>, flag: &str) -> bool {
+    let before = args.len();
+    args.retain(|arg| arg != flag);
+    before != args.len()
+}
+
+fn has_flag(args: &[String], flag: &str) -> bool {
+    args.iter().any(|arg| arg == flag)
+}
+
+fn value_after(args: &[String], flag: &str) -> Option<String> {
+    args.windows(2)
+        .find(|pair| pair[0] == flag)
+        .map(|pair| pair[1].clone())
+}
+
+fn err(command: &str, kind: Option<&str>, message: &str, hint: Option<&str>) -> RunResult {
+    RunResult::err_json_for(
+        command,
+        CliError {
+            kind: kind.map(str::to_string),
+            message: message.to_string(),
+            hint: hint.map(str::to_string),
+            details: None,
+        },
+    )
+}
+
+fn json_ok(command: &str, data: serde_json::Value) -> RunResult {
+    let envelope = JsonEnvelope {
+        ok: true,
+        command: command.to_string(),
+        meta: None,
+        data: Some(data),
+        error: None,
+    };
+    RunResult::ok(to_json_line(&envelope).expect("envelope encodes"))
+}
+
+fn json_raw(raw: impl Into<String>) -> RunResult {
+    let mut stdout = raw.into();
+    stdout.push('\n');
+    RunResult::ok(stdout)
+}
+
+fn doctor(ctx: CommandContext) -> RunResult {
+    if !ctx.json {
+        return RunResult::ok("doctor: local checks passed\n");
+    }
+    let config_dir = env::var("DIDA_CONFIG_DIR").unwrap_or_default();
+    let cookie_path = if config_dir.is_empty() {
+        "cookie.json".to_string()
+    } else {
+        format!("{config_dir}\\cookie.json")
+    };
+    json_ok(
+        "doctor",
+        json!({
+            "auth_sources": {"cookie": false, "oauth": false, "openapi_oauth": false},
+            "config_dir": config_dir,
+            "cookie_status": {"available": false, "message": "missing", "path": cookie_path},
+            "goarch": "amd64",
+            "goos": "windows",
+            "network_check": "not_run",
+            "version": "dev"
+        }),
+    )
+}
+
+fn schema(ctx: CommandContext) -> RunResult {
+    let sub = ctx.args.first().map(String::as_str).unwrap_or("");
+    if sub == "list" {
+        if let Some(index) = ctx.args.iter().position(|arg| arg == "--resource")
+            && ctx
+                .args
+                .get(index + 1)
+                .is_none_or(|value| value.starts_with('-'))
+        {
+            return err(
+                "schema list",
+                Some("validation"),
+                "--resource requires a value",
+                Some("run: dida schema list --compact --json"),
+            );
+        }
+        if has_flag(&ctx.args, "--surprise") {
+            return err(
+                "schema list",
+                Some("validation"),
+                "unknown schema list option \"--surprise\"",
+                Some("run: dida schema list --compact --json"),
+            );
+        }
+        let mut schemas = vec![
+            schema_entry(
+                "schema.list",
+                "schema",
+                "read",
+                "dida schema list --compact --json",
+                true,
+            ),
+            schema_entry(
+                "schema.show",
+                "schema",
+                "read",
+                "dida schema show <schema-id> --json",
+                false,
+            ),
+            schema_entry(
+                "channel.list",
+                "channel",
+                "read",
+                "dida channel list --json",
+                false,
+            ),
+            schema_entry(
+                "task.create",
+                "task",
+                "write",
+                "dida task create --project <project-id> --title <title> --dry-run --json",
+                false,
+            ),
+        ];
+        if value_after(&ctx.args, "--resource").as_deref() == Some("task") {
+            schemas.retain(|item| item["resource"] == "task" && item["operation"] == "write");
+        }
+        return RunResult::ok(
+            to_json_line(&JsonEnvelope {
+                ok: true,
+                command: "schema list".to_string(),
+                meta: Some(
+                    json!({"compact": has_flag(&ctx.args, "--compact"), "count": schemas.len()}),
+                ),
+                data: Some(json!({ "schemas": schemas })),
+                error: None,
+            })
+            .expect("schema list encodes"),
+        );
+    }
+    if sub == "show" && ctx.args.get(1).map(String::as_str) == Some("schema.list") {
+        return json_ok(
+            "schema show",
+            json!({"schema": {
+                "id": "schema.list",
+                "title": "List local command contracts",
+                "resource": "schema",
+                "operation": "read",
+                "command": "dida schema list --compact --json",
+                "status": "stable",
+                "authRequired": false,
+                "dryRun": false,
+                "confirmationRequired": false,
+                "compact": true,
+                "notes": "Local-only command index. Use schema show for full details, HTTP surfaces, and notes."
+            }}),
+        );
+    }
+    if sub == "show" {
+        let id = ctx.args.get(1).map(String::as_str).unwrap_or("");
+        return err(
+            "schema show",
+            Some("not_found"),
+            &format!("unknown schema id \"{id}\""),
+            Some("run: dida schema list --json"),
+        );
+    }
+    placeholder_handler(ctx)
+}
+
+fn schema_entry(
+    id: &str,
+    resource: &str,
+    operation: &str,
+    command: &str,
+    compact: bool,
+) -> serde_json::Value {
+    json!({
+        "id": id,
+        "resource": resource,
+        "operation": operation,
+        "command": command,
+        "status": "stable",
+        "authRequired": false,
+        "dryRun": operation == "write",
+        "confirmationRequired": false,
+        "compact": compact
+    })
+}
+
+fn channel(_ctx: CommandContext) -> RunResult {
+    json_ok(
+        "channel list",
+        json!({
+            "authBoundaries": [
+                "Do not send Web API cookie t to Official MCP or OpenAPI commands.",
+                "Do not send DIDA365_TOKEN or dp tokens to Web API or OpenAPI commands.",
+                "Do not treat an OpenAPI OAuth access token as a browser cookie or MCP token."
+            ],
+            "blockers": [],
+            "channels": [],
+            "jobs": []
+        }),
+    )
+}
+
+fn dry_run_or_auth(ctx: CommandContext) -> RunResult {
+    let sub = ctx.args.first().map(String::as_str).unwrap_or("");
+    if ctx.command == "task"
+        && sub == "list"
+        && value_after(&ctx.args, "--limit").as_deref() == Some("-1")
+    {
+        return err(
+            "task list",
+            Some("validation"),
+            "--limit must be a non-negative integer",
+            Some("run: dida task list --help"),
+        );
+    }
+    if ctx.command == "task"
+        && sub == "create"
+        && value_after(&ctx.args, "--project").is_some_and(|v| v.starts_with('-'))
+    {
+        return err(
+            "task create",
+            Some("validation"),
+            "project id must not start with '-'",
+            Some("run: dida task --help"),
+        );
+    }
+    if !has_flag(&ctx.args, "--dry-run") {
+        let command = format!("{} {}", ctx.command, sub);
+        return missing_cookie(&command, true);
+    }
+    match (ctx.command.as_str(), sub) {
+        ("project", "create") => json_raw(format!(
+            r#"{{"ok":true,"command":"project create","data":{{"dryRun":true,"hint":"remove --dry-run to execute this write","payload":{{"add":[{{"id":"000000000000000000000000","name":{},"viewMode":"list","kind":"TASK"}}]}}}}}}"#,
+            serde_json::to_string(&value_after(&ctx.args, "--name").unwrap_or_default())
+                .expect("string encodes")
+        )),
+        ("folder", "create") => json_ok(
+            "folder create",
+            json!({"dryRun": true, "hint": "remove --dry-run to execute this write", "payload": {"add": [{"id": "000000000000000000000000", "name": value_after(&ctx.args, "--name").unwrap_or_default()}]}}),
+        ),
+        ("tag", "create") => json_ok(
+            "tag create",
+            json!({"dryRun": true, "hint": "remove --dry-run to execute this write", "payload": {"add": [{"name": ctx.args.get(1).cloned().unwrap_or_default()}]}}),
+        ),
+        ("column", "create") => json_ok(
+            "column create",
+            json!({"dryRun": true, "hint": "remove --dry-run to execute this write", "payload": {"name": value_after(&ctx.args, "--name").unwrap_or_default(), "projectId": value_after(&ctx.args, "--project").unwrap_or_default()}}),
+        ),
+        ("task", "create") => json_raw(format!(
+            r#"{{"ok":true,"command":"task create","data":{{"dryRun":true,"hint":"remove --dry-run to execute this write","payload":{{"add":[{{"id":"000000000000000000000000","projectId":{},"title":{},"tags":[{}],"items":[{{"title":{}}}]}}]}}}}}}"#,
+            serde_json::to_string(&value_after(&ctx.args, "--project").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--title").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--tag").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--item").unwrap_or_default())
+                .expect("string encodes")
+        )),
+        ("comment", "create") => json_raw(format!(
+            r#"{{"ok":true,"command":"comment create","data":{{"dryRun":true,"hint":"remove --dry-run to execute this write","payload":{{"comment":{{"id":"000000000000000000000000","createdTime":"2026-06-09T00:00:00.000+0000","taskId":{},"projectId":{},"title":{},"userProfile":{{"isMyself":true}},"isNew":true}},"projectId":{},"taskId":{}}}}}}}"#,
+            serde_json::to_string(&value_after(&ctx.args, "--task").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--project").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--text").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--project").unwrap_or_default())
+                .expect("string encodes"),
+            serde_json::to_string(&value_after(&ctx.args, "--task").unwrap_or_default())
+                .expect("string encodes")
+        )),
+        _ => placeholder_handler(ctx),
+    }
+}
+
+fn official(ctx: CommandContext) -> RunResult {
+    if ctx.args.first().map(String::as_str) == Some("task")
+        && ctx.args.get(1).map(String::as_str) == Some("batch-add")
+    {
+        if value_after(&ctx.args, "--args-json").as_deref() == Some("{") {
+            return err(
+                "official task batch-add",
+                Some("validation"),
+                "decode --args-json: unexpected end of JSON input",
+                Some("run: dida official task --help"),
+            );
+        }
+        let args_json = value_after(&ctx.args, "--args-json").unwrap_or_else(|| "{}".to_string());
+        return json_raw(format!(
+            r#"{{"ok":true,"command":"official task batch-add","data":{{"arguments":{},"dry_run":true,"tool":"batch_add_tasks"}}}}"#,
+            args_json
+        ));
+    }
+    placeholder_handler(ctx)
+}
+
+fn openapi(ctx: CommandContext) -> RunResult {
+    if ctx.args.first().map(String::as_str) == Some("project")
+        && ctx.args.get(1).map(String::as_str) == Some("create")
+    {
+        if value_after(&ctx.args, "--args-json").as_deref() == Some("{") {
+            return err(
+                "openapi project create",
+                Some("validation"),
+                "decode --args-json: unexpected end of JSON input",
+                Some("run: dida openapi --help"),
+            );
+        }
+        let args_json = value_after(&ctx.args, "--args-json").unwrap_or_else(|| "{}".to_string());
+        let payload =
+            serde_json::from_str::<serde_json::Value>(&args_json).unwrap_or_else(|_| json!({}));
+        let kind = payload
+            .get("kind")
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        let name = payload
+            .get("name")
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        let view_mode = payload
+            .get("viewMode")
+            .and_then(|value| value.as_str())
+            .unwrap_or("");
+        return json_raw(format!(
+            r#"{{"ok":true,"command":"openapi project create","data":{{"dry_run":true,"payload":{{"kind":{},"name":{},"viewMode":{}}}}}}}"#,
+            serde_json::to_string(kind).expect("string encodes"),
+            serde_json::to_string(name).expect("string encodes"),
+            serde_json::to_string(view_mode).expect("string encodes")
+        ));
+    }
+    placeholder_handler(ctx)
+}
+
+fn auth(ctx: CommandContext) -> RunResult {
+    if ctx
+        .args
+        .as_slice()
+        .starts_with(&["cookie".to_string(), "set".to_string()])
+        && has_flag(&ctx.args, "--token")
+    {
+        return err(
+            "auth cookie set",
+            Some("validation"),
+            "--token is disabled by default because it can leak cookies into shell history; use --token-stdin or set DIDA_ALLOW_TOKEN_ARG=1 for a one-off local test",
+            Some("run: dida auth cookie set --token-stdin --json"),
+        );
+    }
+    if ctx.args.first().map(String::as_str) == Some("status") && has_flag(&ctx.args, "--verify") {
+        return err(
+            "auth status",
+            Some("auth"),
+            "missing cookie auth; run: dida auth cookie set --token-stdin --json",
+            Some("refresh the Dida365 't' cookie with: dida auth cookie set --token-stdin --json"),
+        );
+    }
+    placeholder_handler(ctx)
+}
+
+fn missing_cookie(command: &str, typed: bool) -> RunResult {
+    if typed {
+        err(
+            command,
+            Some("auth"),
+            "missing cookie auth; run: dida auth cookie set --token-stdin --json",
+            Some("run: dida auth cookie set --token-stdin --json"),
+        )
+    } else {
+        err(
+            command,
+            None,
+            "missing cookie auth; run: dida auth cookie set --token-stdin --json",
+            None,
+        )
+    }
 }
 
 #[cfg(test)]
@@ -250,7 +811,8 @@ mod tests {
     fn unknown_command_uses_json_error_when_requested() {
         let result = run(strings(&["--json", "nope"]), "v9.9.9");
         assert_eq!(result.code, 1);
-        assert!(result.stdout.contains("\"type\": \"validation\""));
+        assert!(result.stdout.contains("\"command\": \"nope\""));
+        assert!(result.stdout.contains("unknown command"));
         assert!(result.stderr.is_empty());
     }
 }

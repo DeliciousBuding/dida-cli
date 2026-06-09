@@ -20,6 +20,53 @@ The Rust rewrite preserves:
 
 Any intentional difference needs a migration note, a test, and a README or command-doc update before release.
 
+## Migration Architecture
+
+The migration follows the crate boundaries in `docs/rust-architecture.md`:
+
+- `dida-cli` lands first and stays process-only.
+- `dida-core` ports command behavior in small slices: root parser, output, config, auth, local commands, Web API reads, Web API writes, official MCP, OpenAPI, upgrade.
+- `dida-http` ports reusable network mechanics separately from command handlers: transport, bounded response reads, retry policy, timeout policy, channel clients, downloads, checksums.
+
+Porting order within each command family:
+
+1. Add the command ID to the manifest or schema surface.
+2. Add parser tests for flags, aliases, positionals, validation order, and JSON mode.
+3. Add output fixtures for success, validation failure, auth failure, dry-run, confirmation, and transport failure where relevant.
+4. Implement local parsing and dry-run behavior in `dida-core`.
+5. Add auth provider and config/state tests.
+6. Wire the HTTP call through `dida-http` with fake-transport tests.
+7. Run representative Go/Rust parity fixtures.
+8. Mark the command status in the migration tracker.
+
+Do not port commands by copying Go file order. Port by user-facing contract and failure risk.
+
+## Command Status Tracker
+
+Track every command with these fields:
+
+| Field | Meaning |
+| --- | --- |
+| `id` | Stable schema or command ID, such as `task.create` |
+| `family` | Root family, such as `task`, `openapi`, or `official` |
+| `channel` | `local`, `webapi`, `official-mcp`, `official-openapi`, or `upgrade` |
+| `stage` | `not-started`, `skeleton`, `local`, `network`, `parity`, or `released` |
+| `auth` | Required auth channel or `none` |
+| `dry_run` | Whether dry-run parity is required |
+| `confirm` | Whether `--yes` parity is required |
+| `fixtures` | Golden fixture files or test names |
+| `notes` | Known compatibility gaps |
+
+The tracker can start as a checked-in Markdown table or JSON file. Release gates should read it once the command list is stable.
+
+Stage rules:
+
+- `skeleton` commands parse enough to return a stable `not_implemented` or `not_ported` error.
+- `local` commands pass parse, validation, output, config, dry-run, and confirmation tests.
+- `network` commands pass fake-transport tests and never use live network in normal CI.
+- `parity` commands match Go fixtures for representative outcomes.
+- `released` commands are included in archive and npm smoke tests.
+
 ## Phase 0: Contract Inventory
 
 Freeze the current Go behavior before writing Rust command handlers.
@@ -70,6 +117,14 @@ cargo clippy --all-targets --all-features -- -D warnings
 cargo test --workspace
 ```
 
+Exit criteria:
+
+- `dida-cli` has no command logic beyond process wiring.
+- `dida-core` exposes one testable app entrypoint.
+- Root JSON flag stripping matches Go for repeated `--json` and `-j`.
+- No network client is initialized for version, help, missing command, or unknown command.
+- Unknown command JSON failures write stdout only and return exit code `1`.
+
 ## Phase 2: Config and Auth
 
 Port local credential handling before network commands.
@@ -94,6 +149,14 @@ Parity tests:
 - `auth status --verify --json` returns an auth error before Web API reads are available.
 - Official and OpenAPI status commands never print full secrets.
 
+Exit criteria:
+
+- All existing Go-written credential files load without migration.
+- Auth file writes are atomic at the file level.
+- Secret status output is produced by auth modules as redacted summaries.
+- Env precedence is tested per channel and never crosses channels.
+- Failed token normalization leaves existing files unchanged.
+
 ## Phase 3: Local Discovery Commands
 
 Port commands that do not need remote calls.
@@ -112,6 +175,13 @@ Parity tests:
 - `docs/commands.md` mentions each schema command prefix.
 - `channel list --json` lists exactly the three auth channels.
 - `openapi doctor --json` includes `default_redirect_uri`, `default_scope`, and `next`.
+
+Exit criteria:
+
+- Local commands work without any credential files.
+- Schema and channel outputs are stable fixtures.
+- `agent context` returns a stable not-ported remote-read error until Web API reads are available.
+- Docs coverage checks fail when a schema command is missing from `docs/commands.md`.
 
 ## Phase 4: Web API Reads
 
@@ -135,6 +205,14 @@ Parity tests:
 
 Live checks stay opt-in and require an operator-controlled account.
 
+Exit criteria:
+
+- Web API client tests use fake transport or local servers only.
+- Missing cookie errors keep current type, message, hint, and output stream behavior.
+- Sync checkpoint writes occur after successful response normalization.
+- Raw GET probes reject non-GET methods by construction.
+- Compact output fixtures cover representative task shapes with large fields present upstream.
+
 ## Phase 5: Web API Writes
 
 Port first-class Web API writes after read parity is stable.
@@ -156,6 +234,14 @@ Parity tests:
 - Comment attachment dry-run reports quota and upload intent without reading or uploading more than needed.
 - Multipart upload uses field name `file`.
 
+Exit criteria:
+
+- Every write has a local dry-run fixture or a documented reason it cannot support dry-run.
+- Every destructive command has a missing-`--yes` fixture.
+- Validation-before-auth tests cover malformed IDs, dates, integers, and enum values.
+- Network mutation tests assert method, path, headers, and payload through fake transport.
+- Failed mutation responses never update local state.
+
 ## Phase 6: Official MCP
 
 Port official token commands, schema discovery, generic calls, and first-class wrappers.
@@ -174,6 +260,13 @@ Parity tests:
 - `official call` remains explicit and has no generic dry-run layer.
 - First-class task, habit, and focus writes support local `--dry-run`.
 - Floating-point habit values reject invalid values such as `NaN` and infinities.
+
+Exit criteria:
+
+- Official MCP token loading uses `DIDA365_TOKEN` before saved token files.
+- Generic `official call` stays schema-backed and does not gain implicit dry-run.
+- MCP RPC errors map into stable CLI error bodies.
+- First-class wrappers can be tested without network through fake transport.
 
 ## Phase 7: Official OpenAPI
 
@@ -194,6 +287,13 @@ Parity tests:
 - Usage errors happen before missing-token errors.
 - OpenAPI dry-run writes do not require a saved token when current Go behavior allows it.
 - Focus `--type` values and habit date formats match current parsing.
+
+Exit criteria:
+
+- OAuth callback listener tests cover success, error, timeout, and port conflict.
+- Browser launch failures keep manual authorization URL details in JSON.
+- OAuth refresh failures do not remove saved client credentials.
+- OpenAPI request wrappers share timeout, retry, and response-size policy with the other clients.
 
 ## Phase 8: Upgrade and Packaging
 
@@ -220,6 +320,14 @@ Parity tests:
 - npm install downloads to `bin/dida.exe` on Windows and `bin/dida-bin` on Unix-like systems.
 - `npm pack --dry-run --json` contains only the wrapper, installer script, and package metadata.
 
+Exit criteria:
+
+- Archive verification passes for every release target.
+- Checksum mismatch fails before extraction.
+- Extraction validates the expected archive root directory.
+- Windows staged replacement reports `status: "scheduled"` and leaves the running binary intact.
+- npm smoke tests install from Rust release assets on Windows and Linux.
+
 ## Phase 9: Cutover
 
 Make Rust the primary implementation after parity and release smoke pass.
@@ -234,6 +342,14 @@ Steps:
 6. Replace `go install` guidance with a Rust source-install path only after it is tested.
 7. Remove Go CI gates after the Go command tree is deleted.
 8. Keep privacy, packaging, npm, and archive-verifier gates.
+
+Exit criteria:
+
+- The stable release contains Rust binaries under the existing asset names.
+- npm stable install resolves those assets and runs `dida version`.
+- Go fallback assets remain reachable for one release cycle.
+- README, command docs, and install docs no longer describe Go as the primary implementation.
+- The command status tracker has no `network` commands left below `parity` for released surfaces.
 
 ## Regression Matrix
 
@@ -251,6 +367,70 @@ Run this matrix before the first Rust release candidate:
 | OpenAPI | `dida openapi doctor --json`, `dida openapi auth-url --json`, `dida openapi project create --args-json '{"name":"P","viewMode":"list","kind":"TASK"}' --dry-run --json` |
 | Upgrade | `dida upgrade --check --json`, `dida upgrade --json` from a writable test install |
 | Distribution | install scripts, npm postinstall, release archive verifier, packaging template validator |
+
+## Rollout Controls
+
+Rollout moves through named channels:
+
+| Channel | Published Asset | npm Behavior | Intended Use |
+| --- | --- | --- | --- |
+| `dev-only` | none | unchanged | CI and local implementation |
+| `shadow` | CI artifacts only | unchanged | Go/Rust fixture comparison |
+| `preview` | prerelease Rust archives | stable npm still uses Go release | manual operator testing |
+| `staging` | staging Rust release | npm smoke points at staging release | install and upgrade validation |
+| `stable` | normal Rust release archives | npm downloads Rust assets | user cutover |
+
+Promotion requirements:
+
+- `dev-only` to `shadow`: root, output, config, and auth tests pass.
+- `shadow` to `preview`: local discovery commands and representative Web API reads reach parity.
+- `preview` to `staging`: Web API writes, official MCP, OpenAPI, and upgrade flows pass fake-transport tests.
+- `staging` to `stable`: regression matrix passes on Windows, Linux, and macOS release artifacts.
+
+Rollback requirements:
+
+- Keep the last Go-backed stable release documented until the first Rust stable release completes one release cycle.
+- Do not change npm package names, wrapper paths, or postinstall environment variables during Rust rollout.
+- If a stable Rust release is pulled, publish a patch release that points npm back to the last known-good asset set.
+
+## Performance Targets
+
+Performance is a release gate for local command paths:
+
+| Command | Target |
+| --- | --- |
+| `dida version` | under 20 ms process time |
+| `dida --help` | under 50 ms process time |
+| `dida schema list --compact --json` | under 100 ms process time |
+| `dida auth status --json` | under 100 ms process time without verification |
+| `dida upgrade --check --json` | no slower than the Go implementation by more than 25% on the same network |
+
+Implementation rules:
+
+- Local commands should not create HTTP clients.
+- Pure local commands should not start a Tokio runtime.
+- Tests should use fake clocks and fake transports instead of sleeps.
+- Upgrade downloads may use parallel archive and checksum fetches, but final output order stays deterministic.
+- Large response handling uses bounded reads and streaming downloads.
+
+Record performance in release-candidate smoke logs. A local-command regression above 2x the Go baseline blocks stable promotion.
+
+## Failure Isolation Checks
+
+Add tests or release smoke cases for these failure boundaries:
+
+- Parser and validation failures do not read credential files.
+- Missing Web API cookie does not affect official MCP or OpenAPI commands.
+- Missing official MCP token does not affect Web API commands.
+- Missing OpenAPI OAuth token does not affect saved OpenAPI client credentials.
+- Browser OAuth failure returns manual login details and leaves existing OAuth files intact.
+- Web API raw GET failures do not update sync checkpoints.
+- Write-command upstream failures do not update local state.
+- Upgrade checksum failure leaves the current binary and staged files untouched.
+- Archive-root mismatch fails before replacement.
+- Redaction runs on all error paths that include headers, URLs, request bodies, or filesystem paths.
+
+The first error visible to the operator should be the one they can act on. Cleanup failures can be recorded in details, but they must not hide the command failure.
 
 ## Remaining Decisions
 

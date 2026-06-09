@@ -45,17 +45,16 @@ pub async fn download_bounded<T: HttpTransport>(
             Some(options.max_bytes),
         )
         .await?;
-    if let Some(length) = response
+    if let Some(_length) = response
         .headers
         .get(header::CONTENT_LENGTH)
         .and_then(|value| value.to_str().ok())
         .and_then(|value| value.parse::<u64>().ok())
+        .filter(|length| *length > options.max_bytes)
     {
-        if length > options.max_bytes {
-            return Err(DidaHttpError::DownloadTooLarge {
-                max_bytes: options.max_bytes,
-            });
-        }
+        return Err(DidaHttpError::DownloadTooLarge {
+            max_bytes: options.max_bytes,
+        });
     }
     if response.body.len() as u64 > options.max_bytes {
         return Err(DidaHttpError::DownloadTooLarge {

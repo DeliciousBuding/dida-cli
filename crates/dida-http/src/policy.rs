@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use crate::error::DidaHttpError;
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RetryDecision {
     RetryAfter(Duration),
@@ -44,7 +46,10 @@ impl RetryPolicy {
         RetryDecision::RetryAfter(self.delay_for_attempt(attempt))
     }
 
-    pub fn classify_transport_error(&self, attempt: usize) -> RetryDecision {
+    pub fn classify_error(&self, error: &DidaHttpError, attempt: usize) -> RetryDecision {
+        if !is_retryable_error(error) {
+            return RetryDecision::DoNotRetry;
+        }
         if attempt >= self.max_retries {
             return RetryDecision::DoNotRetry;
         }
@@ -57,6 +62,13 @@ impl RetryPolicy {
             .saturating_mul(multiplier)
             .min(self.max_delay)
     }
+}
+
+fn is_retryable_error(error: &DidaHttpError) -> bool {
+    matches!(
+        error,
+        DidaHttpError::Transport(_) | DidaHttpError::Timeout { .. }
+    )
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

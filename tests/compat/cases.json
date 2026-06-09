@@ -19,10 +19,42 @@
       "expectExit": 0
     },
     {
+      "id": "root-json-help",
+      "category": "help",
+      "args": ["--json", "--help"],
+      "expectExit": 0
+    },
+    {
       "id": "root-no-args-help",
       "category": "help",
       "args": [],
       "expectExit": 0
+    },
+    {
+      "id": "task-help",
+      "category": "help",
+      "args": ["task", "--help"],
+      "expectExit": 0
+    },
+    {
+      "id": "auth-help",
+      "category": "help",
+      "args": ["auth", "--help"],
+      "expectExit": 0
+    },
+    {
+      "id": "root-json-missing-command-validation",
+      "category": "validation",
+      "args": ["--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "doctor-json-local-status",
+      "category": "no-network",
+      "args": ["doctor", "--json"],
+      "expectExit": 0,
+      "stdoutJson": true
     },
     {
       "id": "schema-list-compact-json",
@@ -116,6 +148,20 @@
       "stdoutJson": true
     },
     {
+      "id": "schema-list-unknown-option-validation",
+      "category": "validation",
+      "args": ["schema", "list", "--surprise", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "schema-show-missing-id-validation",
+      "category": "validation",
+      "args": ["schema", "show", "missing.id", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
       "id": "unknown-command-json-validation",
       "category": "validation",
       "args": ["nope", "--json"],
@@ -140,6 +186,55 @@
       "id": "official-task-batch-add-invalid-json-validation",
       "category": "validation",
       "args": ["official", "task", "batch-add", "--args-json", "{", "--dry-run", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "auth-cookie-token-arg-disabled-validation",
+      "category": "validation",
+      "args": ["auth", "cookie", "set", "--token", "secret-token", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "task-list-negative-limit-validation",
+      "category": "validation",
+      "args": ["task", "list", "--limit", "-1", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "auth-status-verify-missing-cookie-json",
+      "category": "no-network",
+      "args": ["auth", "status", "--verify", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "sync-all-missing-cookie-json",
+      "category": "no-network",
+      "args": ["sync", "all", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "today-shortcut-missing-cookie-json",
+      "category": "no-network",
+      "args": ["+today", "--limit", "2", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "filter-list-missing-cookie-json",
+      "category": "no-network",
+      "args": ["filter", "list", "--json"],
+      "expectExit": 1,
+      "stdoutJson": true
+    },
+    {
+      "id": "settings-get-include-web-missing-cookie-json",
+      "category": "no-network",
+      "args": ["settings", "get", "--include-web", "--json"],
       "expectExit": 1,
       "stdoutJson": true
     }

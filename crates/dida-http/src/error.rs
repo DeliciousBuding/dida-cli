@@ -33,8 +33,13 @@ pub enum DidaHttpError {
     ResponseTooLarge { max_bytes: u64 },
     #[error("download exceeded {max_bytes} bytes")]
     DownloadTooLarge { max_bytes: u64 },
-    #[error("request timed out after {timeout:?}")]
-    Timeout { timeout: Duration },
+    #[error("{surface} {method} {path} timed out after {timeout:?}")]
+    Timeout {
+        surface: &'static str,
+        method: String,
+        path: String,
+        timeout: Duration,
+    },
     #[error("checksum mismatch for {name}: got {actual}, want {expected}")]
     ChecksumMismatch {
         name: String,

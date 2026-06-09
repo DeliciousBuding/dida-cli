@@ -44,6 +44,8 @@ function Normalize-VolatileJson([string]$Text) {
   $normalized = $normalized -replace '"createdTime":"[^"]+"', '"createdTime":"<generated-time>"'
   $normalized = $normalized -replace '"modifiedTime":"[^"]+"', '"modifiedTime":"<generated-time>"'
   $normalized = $normalized -replace '"sortOrder":\d+', '"sortOrder":<generated-number>'
+  $normalized = $normalized -replace '"config_dir":"[^"]+"', '"config_dir":"<config-dir>"'
+  $normalized = $normalized -replace '"path":"[^"]*cookie\.json"', '"path":"<cookie-path>"'
   return $normalized
 }
 

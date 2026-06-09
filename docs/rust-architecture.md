@@ -24,9 +24,9 @@ The Rust binary keeps these visible behaviors:
 
 Golden tests should pin these shapes before command handlers are ported.
 
-## Crate Layout
+## Crate Boundaries
 
-Use one workspace with a small binary crate and a library crate:
+Use one workspace with three production crates:
 
 ```text
 Cargo.toml
@@ -40,18 +40,52 @@ crates/
       cli/
       config/
       auth/
-      webapi/
-      official/
-      openapi/
       model/
       output/
       privacy/
       upgrade/
+      state/
+  dida-http/
+    src/
+      client.rs
+      transport.rs
+      webapi.rs
+      mcp.rs
+      openapi.rs
+      upgrade.rs
+      policy.rs
+      download.rs
+      checksum.rs
 ```
 
 `crates/dida-cli` should only collect process arguments, inject the build version, pass stdout and stderr handles, and exit with the returned code. The testable entrypoint lives in `dida_core::app::run(args, version, stdout, stderr) -> ExitCode`.
 
-`dida-core` owns all behavior. Keep command code inside the library so tests can call handlers without spawning a child process.
+`dida-core` owns CLI behavior, command parsing, config paths, auth files, state files, output shaping, model normalization, dry-run previews, confirmation gates, privacy redaction, and upgrade orchestration. Keep command code inside the library so tests can call handlers without spawning a child process.
+
+`dida-http` owns network transport, retry policy, timeout policy, bounded downloads, checksums, API-surface clients, and upgrade release downloads. It does not read config files, inspect process args, print output, open browsers, or decide whether a command is safe to execute.
+
+No crate should depend on the binary crate. `dida-core` may depend on `dida-http`; `dida-http` must stay reusable from tests with an injected transport. Shared DTOs that are part of the CLI JSON contract live in `dida-core`. Request and response structs that are only used by an upstream API stay beside the client that sends them.
+
+### Boundary Rules
+
+- `dida-cli`: process wiring only.
+- `dida-core::cli`: token normalization, root dispatch, family dispatch, argument validation, and handler selection.
+- `dida-core::config`: exact path helpers for `~/.dida-cli`, `DIDA_CONFIG_DIR`, and known file names.
+- `dida-core::auth`: credential file schemas, redaction, env precedence, stdin secret loading, browser-login coordination.
+- `dida-core::state`: non-secret local state such as sync checkpoints, browser cleanup markers, and future migration markers.
+- `dida-core::model`: normalized task, project, folder, tag, filter, comment, habit, focus, and productivity shapes used in CLI output.
+- `dida-core::output`: plain text rendering, JSON envelopes, error bodies, stdout/stderr routing, exit codes.
+- `dida-core::privacy`: redaction helpers and release/CI guard integration.
+- `dida-core::upgrade`: CLI-level upgrade flow, asset selection errors, installed-binary replacement decisions.
+- `dida-http`: raw HTTP execution and API-surface wrappers with testable transports.
+
+Keep cross-crate data flow one-way:
+
+```text
+dida-cli -> dida-core -> dida-http
+```
+
+The output layer is the only place that turns a command result into bytes. HTTP clients return structured errors; command handlers map those errors into CLI error types with compatibility details.
 
 ## Runtime Dependencies
 
@@ -90,6 +124,45 @@ Each command family should expose `run(args, ctx) -> Result<CommandResult, CliEr
 - stdin reader for secret input
 
 The command family list should match the Go root commands: `doctor`, `official`, `openapi`, `agent`, `auth`, `sync`, `settings`, `completed`, `closed`, `trash`, `attachment`, `reminder`, `share`, `calendar`, `stats`, `template`, `search`, `user`, `pomo`, `habit`, `quadrant`, `schema`, `channel`, `raw`, `project`, `folder`, `tag`, `filter`, `column`, `comment`, `task`, `upgrade`, and `+today`.
+
+## Command Pipeline
+
+Every command runs through the same stages. The order is part of the compatibility contract:
+
+1. Collect process args in `dida-cli`.
+2. Build `AppContext` in `dida-core`, including writers, clock, config provider, stdin, browser opener, and HTTP clients.
+3. Strip root-level JSON flags and record JSON mode.
+4. Handle root help and version fast paths.
+5. Resolve aliases such as `+today`.
+6. Select the command family and command ID.
+7. Parse command-local flags and positional arguments.
+8. Validate required arguments, integer ranges, dates, enum values, and flag-like IDs.
+9. Apply local safety gates: `--yes`, `--dry-run`, token-argument restrictions, and privacy redaction.
+10. Build dry-run previews when requested and supported.
+11. Load config, auth, and state needed for the selected command.
+12. Execute local work or call the selected HTTP client.
+13. Normalize upstream data into CLI models.
+14. Render through the output layer.
+
+Validation precedes auth loading. Local dry-run previews precede auth loading where the Go command already supports credential-free previews. Network calls happen only after parse, validation, confirmation, and dry-run stages complete.
+
+Command handlers return:
+
+```rust
+pub enum CommandResult {
+    Json(serde_json::Value),
+    Text(String),
+    Empty,
+}
+
+pub struct HandlerOutput {
+    pub command: &'static str,
+    pub result: CommandResult,
+    pub meta: Option<serde_json::Value>,
+}
+```
+
+Command handlers may write progress only for explicitly streaming operations. Normal commands return data and let `output` render it.
 
 ## Output Layer
 
@@ -143,6 +216,48 @@ Existing JSON files must continue to load. Field names stay unchanged:
 
 The Rust config module should expose exact path helpers and tests for env override, default path, and file-name compatibility.
 
+## Config, Auth, and State Ownership
+
+Treat the config directory as a compatibility surface. The Rust rewrite may add files only after naming them in this document and adding migration tests.
+
+File ownership:
+
+| File | Owner | Secret | Purpose |
+| --- | --- | --- | --- |
+| `cookie.json` | `auth::webapi` | yes | Private Web API cookie token and save timestamp |
+| `official-mcp-token.json` | `auth::official` | yes | Official MCP token and save timestamp |
+| `openapi-client.json` | `auth::openapi` | yes | OAuth client ID and client secret |
+| `openapi-oauth.json` | `auth::openapi` | yes | OAuth access, refresh, scope, type, and creation time |
+| future `state/*.json` | `state` | no | Sync checkpoints, migration markers, cached non-secret metadata |
+
+Rules:
+
+- Secret file readers return typed structs and never return printable token strings by default.
+- Status commands receive redacted summaries from auth modules.
+- Env credentials override saved files only for the channel they belong to.
+- Failed writes must leave the previous credential file intact. Write to a temporary file in the same directory, fsync where practical, then rename.
+- State files may be recreated from remote data. Auth files must be treated as user-owned.
+- Schema and agent metadata are static program data, not config state.
+
+The command pipeline receives auth through typed providers:
+
+```rust
+pub trait WebApiAuth {
+    fn load_cookie(&self) -> Result<WebApiCookie, AuthError>;
+}
+
+pub trait OfficialAuth {
+    fn load_token(&self) -> Result<OfficialToken, AuthError>;
+}
+
+pub trait OpenApiAuth {
+    fn load_client(&self) -> Result<OpenApiClientCredentials, AuthError>;
+    fn load_oauth(&self) -> Result<OpenApiOAuthToken, AuthError>;
+}
+```
+
+Tests should inject in-memory providers for command behavior and use temp directories for file compatibility.
+
 ## Auth Channels
 
 The three auth channels stay separate.
@@ -176,6 +291,43 @@ Each client should accept a base URL override in tests. Production defaults stay
 
 Raw Web API commands remain GET-only. JSON parse failures must include `error.details.statusCode`, `error.details.path`, and a short `error.details.bodySnippet`.
 
+### HTTP Client Contract
+
+`dida-http` exposes a small transport contract:
+
+```rust
+pub trait HttpTransport: Send + Sync + 'static {
+    async fn execute(&self, request: HttpRequest) -> Result<HttpResponse>;
+}
+```
+
+All API clients use this transport. Tests can run without network by injecting a fake transport or a local server.
+
+Client requirements:
+
+- Every request has a per-request timeout.
+- Response bodies are bounded before decoding.
+- Retry policy is explicit and limited to transient transport errors and selected 5xx/429 responses.
+- Non-2xx responses include API surface, method, path, status code, and a short body snippet.
+- JSON decoding errors preserve the API surface and path when available.
+- Cookie and bearer headers are built inside channel-specific clients, then redacted before any error reaches the output layer.
+- Upgrade downloads use bounded streaming and checksum verification before extraction.
+- Raw Web API probes never send mutating methods.
+
+`dida-core` maps `dida-http` errors into stable CLI error types:
+
+| HTTP condition | CLI error type |
+| --- | --- |
+| invalid URL built by command code | `internal` |
+| timeout | `network` |
+| connection failure | `network` |
+| non-2xx upstream status | `http` |
+| JSON decode failure | `parse` |
+| checksum mismatch | `checksum` |
+| bounded download exceeded | `download` |
+
+The mapping tests should pin JSON envelopes and plain stderr text for each condition.
+
 ## Dry-Run Model
 
 Dry-run behavior belongs beside each write command, not in a transport interceptor. The preview must be built before auth loading when the current Go command allows local dry-run without credentials, such as schema-backed official and OpenAPI writes.
@@ -201,6 +353,29 @@ The guard must continue to reject:
 - Dida365 tokens, OAuth access or refresh tokens, OAuth client secrets, cookie headers, bearer tokens, JWTs, and local user paths.
 
 Rust tests should also cover redaction in `auth status`, OpenAPI status, official token status, browser errors, and upgrade errors.
+
+## Compatibility Gates
+
+Compatibility is tested at five levels:
+
+| Gate | Scope | Required Before |
+| --- | --- | --- |
+| parser golden tests | root dispatch, aliases, flags, validation order | adding command handlers |
+| output golden tests | JSON envelope, plain text, stdout/stderr, exit codes | first Rust preview binary |
+| config/auth tests | path helpers, file schemas, env precedence, redaction | auth command cutover |
+| command parity tests | representative reads, writes, dry-run, confirmation, errors | release candidate |
+| distribution smoke | archives, checksums, npm wrapper, upgrade flow | Go binary replacement |
+
+Each migrated command needs one of these statuses in the migration tracker:
+
+- `not-started`: Go remains authoritative.
+- `skeleton`: parser exists and returns a stable not-ported error.
+- `local`: parsing, validation, dry-run, and config behavior are ported.
+- `network`: HTTP behavior is ported behind local tests.
+- `parity`: golden fixtures match representative Go behavior.
+- `released`: included in signed release assets and npm smoke tests.
+
+A command cannot move to `network` until validation-before-auth tests pass. A write command cannot move to `parity` until `--dry-run` and `--yes` behavior are pinned.
 
 ## Schema and Agent Surface
 
@@ -233,6 +408,57 @@ The npm package remains a Node wrapper package named `@delicious233/dida-cli`. T
 - npm postinstall continues to resolve GitHub Release assets and verify `checksums.txt`.
 
 `go install` disappears after the Rust cutover. Do not remove it from user docs until a Rust source-install replacement exists, such as `cargo install --git` or a published crate, and only after release assets pass install smoke tests.
+
+## Rollout Stages
+
+Use staged rollout so the Go binary stays the fallback until the Rust path has release evidence:
+
+1. `dev-only`: Rust crates compile and tests run in CI. No published assets.
+2. `shadow`: Rust binary is built in CI and compared against Go golden fixtures. Go remains the released binary.
+3. `preview`: Rust archives are attached to prereleases with distinct release notes. npm still downloads stable Go assets.
+4. `dual-smoke`: release workflow builds Go and Rust artifacts, runs archive verification, runs npm install smoke against Rust artifacts in a staging release, and records parity results.
+5. `cutover`: stable release assets contain the Rust binary under the existing archive names. npm downloads those assets without wrapper changes.
+6. `cleanup`: Go command tree, Go CI gates, and Go install docs are removed after one stable Rust release cycle with no rollback.
+
+Rollback rule: keep the last Go release assets installable through npm and direct download until the first Rust stable release has passed the regression matrix on Windows, Linux, and macOS.
+
+## Performance Goals
+
+The rewrite should improve startup and network behavior without changing output contracts.
+
+Targets for local commands on a typical developer machine:
+
+- `dida version`: under 20 ms process time.
+- `dida --help`: under 50 ms process time.
+- `dida schema list --compact --json`: under 100 ms process time.
+- `dida auth status --json`: under 100 ms process time without `--verify`.
+- No local command should initialize a Tokio runtime unless it may perform async work.
+- Command tests should avoid sleeps and live network calls.
+
+Targets for network commands:
+
+- Default per-request timeout: 30 seconds unless current Go behavior uses a shorter bounded operation.
+- Bounded JSON response size: default 16 MiB, lowered for commands that only expect small metadata.
+- Upgrade archive downloads stream to disk or bounded memory and verify SHA-256 before extraction.
+- Parallel downloads are allowed for upgrade archive plus checksum, but command output remains deterministic.
+
+Regression checks should record command duration for the root, schema, auth-status, and upgrade-check smoke paths. Treat a 2x slowdown on local commands as a release blocker unless explained by added compatibility coverage.
+
+## Failure Isolation
+
+Failures should stay inside the command family that caused them.
+
+- Parser failures do not load auth or call HTTP.
+- Missing auth in one channel does not affect other channels.
+- OpenAPI OAuth refresh failure does not delete saved client credentials.
+- Browser login failure returns manual authorization details and does not corrupt saved tokens.
+- Raw Web API failures do not modify sync checkpoints.
+- Sync checkpoint writes happen after successful remote reads and normalized output preparation.
+- Upgrade extraction happens into a staging directory. Replacement starts only after checksum and archive-root validation pass.
+- Windows self-upgrade stages replacement and reports `scheduled`; it does not delete the running binary.
+- Privacy guard failures block release and packaging jobs, not local unit tests.
+
+Error handling should preserve the first actionable cause. Secondary cleanup failures may appear in `error.details.cleanup`, but they must not replace the primary error type or message.
 
 ## CI Shape
 

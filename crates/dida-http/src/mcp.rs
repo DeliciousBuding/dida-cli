@@ -230,15 +230,14 @@ fn unwrap_tool_result(result: Value) -> Value {
     if let Some(value) = result.get("structuredContent") {
         return unwrap_envelope(value.clone());
     }
-    if let Some(content) = result.get("content").and_then(Value::as_array) {
-        if content.len() == 1 {
-            if let Some(text) = content[0].get("text").and_then(Value::as_str) {
-                if let Ok(decoded) = serde_json::from_str::<Value>(text) {
-                    return unwrap_envelope(decoded);
-                }
-                return Value::String(text.to_owned());
-            }
+    if let Some(content) = result.get("content").and_then(Value::as_array)
+        && content.len() == 1
+        && let Some(text) = content[0].get("text").and_then(Value::as_str)
+    {
+        if let Ok(decoded) = serde_json::from_str::<Value>(text) {
+            return unwrap_envelope(decoded);
         }
+        return Value::String(text.to_owned());
     }
     unwrap_envelope(result)
 }

@@ -16,6 +16,7 @@ pub fn verify_sha256_from_checksums(data: &[u8], checksums: &str, name: &str) ->
         let Some(candidate_name) = fields.next() else {
             continue;
         };
+        let candidate_name = candidate_name.trim_start_matches('*');
         if candidate_name == name {
             let actual = sha256_hex(data);
             if actual == expected {
