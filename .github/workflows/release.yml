@@ -325,6 +325,7 @@ jobs:
             printf '%s\n' "| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
             printf '%s\n' "| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | PowerShell / Scoop |"
             printf '%s\n' "| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | PowerShell / Scoop |"
+            # shellcheck disable=SC2016
             printf '%s\n' '' '### Quick Install' '' '**npm:**' '```bash' 'npm install -g @delicious233/dida-cli' '```' '' '**macOS / Linux:**' '```bash' 'curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh | sh' '```' '' '**Windows PowerShell:**' '```powershell' 'iwr https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.ps1 -UseB | iex' '```' '' '**Go:**' '```bash' 'go install github.com/REPO_PLACEHOLDER/cmd/dida@latest' '```' '' '**Self-update check:**' '```bash' 'dida upgrade --check' '```' '' '### Verify' '' '```bash' 'dida version' 'dida doctor --json' '```' '' 'SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).'
           } >> release-notes.md
 
