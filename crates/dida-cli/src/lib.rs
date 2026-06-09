@@ -2,6 +2,8 @@ use dida_core::{CliError, JsonEnvelope, failure, to_json_line};
 use serde_json::json;
 use std::env;
 
+mod schema;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RunResult {
     pub code: i32,
@@ -476,93 +478,26 @@ fn doctor(ctx: CommandContext) -> RunResult {
 fn schema(ctx: CommandContext) -> RunResult {
     let sub = ctx.args.first().map(String::as_str).unwrap_or("");
     if sub == "list" {
-        if let Some(index) = ctx.args.iter().position(|arg| arg == "--resource")
-            && ctx
-                .args
-                .get(index + 1)
-                .is_none_or(|value| value.starts_with('-'))
-        {
-            return err(
-                "schema list",
-                Some("validation"),
-                "--resource requires a value",
-                Some("run: dida schema list --compact --json"),
-            );
-        }
-        if has_flag(&ctx.args, "--surprise") {
-            return err(
-                "schema list",
-                Some("validation"),
-                "unknown schema list option \"--surprise\"",
-                Some("run: dida schema list --compact --json"),
-            );
-        }
-        let mut schemas = vec![
-            schema_entry(
-                "schema.list",
-                "schema",
-                "read",
-                "dida schema list --compact --json",
-                true,
-            ),
-            schema_entry(
-                "schema.show",
-                "schema",
-                "read",
-                "dida schema show <schema-id> --json",
-                false,
-            ),
-            schema_entry(
-                "channel.list",
-                "channel",
-                "read",
-                "dida channel list --json",
-                false,
-            ),
-            schema_entry(
-                "task.create",
-                "task",
-                "write",
-                "dida task create --project <project-id> --title <title> --dry-run --json",
-                false,
-            ),
-        ];
-        if value_after(&ctx.args, "--resource").as_deref() == Some("task") {
-            schemas.retain(|item| item["resource"] == "task" && item["operation"] == "write");
-        }
-        return RunResult::ok(
-            to_json_line(&JsonEnvelope {
-                ok: true,
-                command: "schema list".to_string(),
-                meta: Some(
-                    json!({"compact": has_flag(&ctx.args, "--compact"), "count": schemas.len()}),
-                ),
-                data: Some(json!({ "schemas": schemas })),
-                error: None,
-            })
-            .expect("schema list encodes"),
-        );
-    }
-    if sub == "show" && ctx.args.get(1).map(String::as_str) == Some("schema.list") {
-        return json_ok(
-            "schema show",
-            json!({"schema": {
-                "id": "schema.list",
-                "title": "List local command contracts",
-                "resource": "schema",
-                "operation": "read",
-                "command": "dida schema list --compact --json",
-                "status": "stable",
-                "authRequired": false,
-                "dryRun": false,
-                "confirmationRequired": false,
-                "compact": true,
-                "notes": "Local-only command index. Use schema show for full details, HTTP surfaces, and notes."
-            }}),
-        );
+        let options = match parse_schema_list_options(&ctx.args[1..]) {
+            Ok(options) => options,
+            Err(message) => {
+                return err(
+                    "schema list",
+                    Some("validation"),
+                    &message,
+                    Some("run: dida schema list --compact --json"),
+                );
+            }
+        };
+        return RunResult::ok(schema::list_json(options));
     }
     if sub == "show" {
-        let id = ctx.args.get(1).map(String::as_str).unwrap_or("");
+        let Some(id) = ctx.args.get(1).map(String::as_str) else {
+            return err("schema show", None, "missing schema id", None);
+        };
+        if let Some(schema) = schema::find_schema(id) {
+            return RunResult::ok(schema::show_json(schema));
+        }
         return err(
             "schema show",
             Some("not_found"),
@@ -573,24 +508,47 @@ fn schema(ctx: CommandContext) -> RunResult {
     placeholder_handler(ctx)
 }
 
-fn schema_entry(
-    id: &str,
-    resource: &str,
-    operation: &str,
-    command: &str,
-    compact: bool,
-) -> serde_json::Value {
-    json!({
-        "id": id,
-        "resource": resource,
-        "operation": operation,
-        "command": command,
-        "status": "stable",
-        "authRequired": false,
-        "dryRun": operation == "write",
-        "confirmationRequired": false,
-        "compact": compact
-    })
+fn parse_schema_list_options(args: &[String]) -> Result<schema::ListOptions<'_>, String> {
+    let mut options = schema::ListOptions::default();
+    let mut index = 0;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--compact" | "--brief" => {
+                options.compact = true;
+            }
+            "--resource" => {
+                let value = required_schema_option_value(args, index, "--resource")?;
+                options.resource = Some(value);
+                index += 1;
+            }
+            "--operation" => {
+                let value = required_schema_option_value(args, index, "--operation")?;
+                options.operation = Some(value);
+                index += 1;
+            }
+            "--status" => {
+                let value = required_schema_option_value(args, index, "--status")?;
+                options.status = Some(value);
+                index += 1;
+            }
+            other => {
+                return Err(format!("unknown schema list option {other:?}"));
+            }
+        }
+        index += 1;
+    }
+    Ok(options)
+}
+
+fn required_schema_option_value<'a>(
+    args: &'a [String],
+    index: usize,
+    option: &str,
+) -> Result<&'a str, String> {
+    args.get(index + 1)
+        .filter(|value| !value.starts_with('-'))
+        .map(String::as_str)
+        .ok_or_else(|| format!("{option} requires a value"))
 }
 
 fn channel(ctx: CommandContext) -> RunResult {
