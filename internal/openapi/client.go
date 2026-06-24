@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -19,8 +20,12 @@ type Client struct {
 }
 
 func NewClient(token string) *Client {
+	baseURL := os.Getenv("DIDA_OPENAPI_BASE_URL")
+	if baseURL == "" {
+		baseURL = DefaultAPIBaseURL
+	}
 	return &Client{
-		BaseURL: DefaultAPIBaseURL,
+		BaseURL: baseURL,
 		Token:   token,
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,

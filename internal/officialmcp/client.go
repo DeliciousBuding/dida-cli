@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/config"
 )
 
@@ -72,28 +73,19 @@ func SaveTokenConfig(token string) (*TokenConfig, error) {
 	if token == "" {
 		return nil, fmt.Errorf("empty official mcp token")
 	}
-	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
-		return nil, fmt.Errorf("create config dir: %w", err)
-	}
 	cfg := &TokenConfig{Token: token, SavedAt: time.Now().Unix()}
-	payload, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("encode official mcp token config: %w", err)
-	}
-	if err := os.WriteFile(TokenConfigPath(), append(payload, '\n'), 0o600); err != nil {
-		return nil, fmt.Errorf("write official mcp token config: %w", err)
+	store := auth.NewTokenStore(TokenConfigPath())
+	if err := store.Save(cfg); err != nil {
+		return nil, err
 	}
 	return cfg, nil
 }
 
 func LoadTokenConfig() (*TokenConfig, error) {
-	data, err := os.ReadFile(TokenConfigPath())
-	if err != nil {
-		return nil, err
-	}
 	var cfg TokenConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("decode official mcp token config: %w", err)
+	store := auth.NewTokenStore(TokenConfigPath())
+	if err := store.Load(&cfg); err != nil {
+		return nil, err
 	}
 	if strings.TrimSpace(cfg.Token) == "" {
 		return nil, fmt.Errorf("official mcp token config has no token")
@@ -102,10 +94,8 @@ func LoadTokenConfig() (*TokenConfig, error) {
 }
 
 func ClearTokenConfig() error {
-	if err := os.Remove(TokenConfigPath()); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove official mcp token config: %w", err)
-	}
-	return nil
+	store := auth.NewTokenStore(TokenConfigPath())
+	return store.Clear()
 }
 
 func TokenConfigStatus() map[string]any {
@@ -139,8 +129,12 @@ func RedactForStatus(value string) string {
 }
 
 func NewClient(token string) *Client {
+	baseURL := os.Getenv("DIDA_MCP_BASE_URL")
+	if baseURL == "" {
+		baseURL = DefaultURL
+	}
 	return &Client{
-		URL:   DefaultURL,
+		URL:   baseURL,
 		Token: token,
 		HTTPClient: &http.Client{
 			Timeout: 60 * time.Second,

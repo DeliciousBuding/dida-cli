@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/config"
 )
 
@@ -85,28 +86,19 @@ func SaveClientConfig(clientID string, clientSecret string) (*ClientConfig, erro
 	if clientSecret == "" {
 		return nil, fmt.Errorf("empty openapi client secret")
 	}
-	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
-		return nil, fmt.Errorf("create config dir: %w", err)
-	}
 	cfg := &ClientConfig{ClientID: clientID, ClientSecret: clientSecret, SavedAt: time.Now().Unix()}
-	payload, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("encode openapi client config: %w", err)
-	}
-	if err := os.WriteFile(ClientConfigPath(), append(payload, '\n'), 0o600); err != nil {
-		return nil, fmt.Errorf("write openapi client config: %w", err)
+	store := auth.NewTokenStore(ClientConfigPath())
+	if err := store.Save(cfg); err != nil {
+		return nil, err
 	}
 	return cfg, nil
 }
 
 func LoadClientConfig() (*ClientConfig, error) {
-	data, err := os.ReadFile(ClientConfigPath())
-	if err != nil {
-		return nil, err
-	}
 	var cfg ClientConfig
-	if err := json.Unmarshal(data, &cfg); err != nil {
-		return nil, fmt.Errorf("decode openapi client config: %w", err)
+	store := auth.NewTokenStore(ClientConfigPath())
+	if err := store.Load(&cfg); err != nil {
+		return nil, err
 	}
 	if strings.TrimSpace(cfg.ClientID) == "" {
 		return nil, fmt.Errorf("openapi client config has no client id")
@@ -118,10 +110,8 @@ func LoadClientConfig() (*ClientConfig, error) {
 }
 
 func ClearClientConfig() error {
-	if err := os.Remove(ClientConfigPath()); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove openapi client config: %w", err)
-	}
-	return nil
+	store := auth.NewTokenStore(ClientConfigPath())
+	return store.Clear()
 }
 
 func ClientConfigStatus() map[string]any {
@@ -191,27 +181,15 @@ func SaveToken(token *TokenResponse) error {
 	if token == nil || strings.TrimSpace(token.AccessToken) == "" {
 		return fmt.Errorf("empty oauth token")
 	}
-	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
-		return fmt.Errorf("create config dir: %w", err)
-	}
-	payload, err := json.MarshalIndent(token, "", "  ")
-	if err != nil {
-		return fmt.Errorf("encode oauth token: %w", err)
-	}
-	if err := os.WriteFile(TokenPath(), append(payload, '\n'), 0o600); err != nil {
-		return fmt.Errorf("write oauth token: %w", err)
-	}
-	return nil
+	store := auth.NewTokenStore(TokenPath())
+	return store.Save(token)
 }
 
 func LoadToken() (*TokenResponse, error) {
-	data, err := os.ReadFile(TokenPath())
-	if err != nil {
-		return nil, err
-	}
 	var out TokenResponse
-	if err := json.Unmarshal(data, &out); err != nil {
-		return nil, fmt.Errorf("decode oauth token: %w", err)
+	store := auth.NewTokenStore(TokenPath())
+	if err := store.Load(&out); err != nil {
+		return nil, err
 	}
 	if strings.TrimSpace(out.AccessToken) == "" {
 		return nil, fmt.Errorf("oauth token file has no access token")
@@ -220,10 +198,8 @@ func LoadToken() (*TokenResponse, error) {
 }
 
 func ClearToken() error {
-	if err := os.Remove(TokenPath()); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove oauth token: %w", err)
-	}
-	return nil
+	store := auth.NewTokenStore(TokenPath())
+	return store.Clear()
 }
 
 func TokenStatus() map[string]any {
