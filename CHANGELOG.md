@@ -7,7 +7,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [v0.2.4] - 2026-06-09
+## [v0.2.4] - 2026-06-24
+
+### Added
+- `dida attachment download` — download existing task attachments via the Web API v1 download endpoint. Supports `--project`, `--task`, `--attachment`, `--output`, and `--force`. Uses atomic temp-file writes and refuses to overwrite local files by default.
 
 ### Fixed
 - Release workflow shell lint issues are fixed for formatting, checksum generation, release notes, and npm smoke packaging.
