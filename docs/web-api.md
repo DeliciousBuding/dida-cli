@@ -49,6 +49,7 @@ x-device: browser-like Dida device descriptor
 | `POST` | `/habitCheckins/query` | Habit check-ins with `habitIds` and optional `afterStamp` |
 | `GET` | `/api/v1/attachment/isUnderQuota` | Attachment quota boolean |
 | `GET` | `/api/v1/attachment/dailyLimit` | Attachment daily upload limit |
+| `GET` | `/api/v1/attachment/{projectId}/{taskId}/{attachmentId}?action=download` | Download an existing task attachment |
 | `GET` | `/user/preferences/dailyReminder` | Daily reminder preferences |
 | `GET` | `/share/shareContacts` | Share contacts |
 | `GET` | `/project/share/recentProjectUsers` | Recent project users |
@@ -156,6 +157,15 @@ field `file`, then sends `attachments: [{"id":"<uploaded attachment id>"}]` in
 the comment create body. Use the real project id from `dida agent context
 --json`; the logical `inbox` alias is not accepted by the upload endpoint. The
 CLI checks the Web API attachment quota endpoints before uploading.
+
+Existing task attachments can be downloaded with:
+
+```bash
+dida attachment download --project <project-id> --task <task-id> --attachment <attachment-id> --output ./file.doc --json
+```
+
+This only downloads an attachment that is already associated with a task. It
+does not create, upload, associate, preview, or delete task attachments.
 
 Task relationship shapes:
 

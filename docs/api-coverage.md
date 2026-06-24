@@ -31,6 +31,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Column create | `POST /column` | `column create` | Experimental | Unit request test; live write avoided because delete endpoint is unknown |
 | Task comments | `GET/POST/PUT/DELETE /project/{projectId}/task/{taskId}/comment(s)` | `comment list/create/update/delete` | Stable without attachments | Unit request tests and reversible live smoke; live empty-list read on 2026-05-10 |
 | Comment attachment upload | `POST /api/v1/attachment/upload/comment/{projectId}/{taskId}` plus comment `attachments` body | `comment create --file <path>` | Stable comment attachment create | Reversible live probe on 2026-05-10 confirmed multipart field `file`, PNG upload response keys, comment create attach payload, read-back, and cleanup; unit tests cover multipart request shape and dry-run discovery |
+| Task attachment download | `GET /api/v1/attachment/{projectId}/{taskId}/{attachmentId}?action=download` | `attachment download` | Stable existing-attachment read | Unit endpoint test; live read of an existing `.doc` attachment on 2026-06-07 returned the expected binary size and OLE document signature |
 | Attachment quota | `GET /api/v1/attachment/isUnderQuota`, `GET /api/v1/attachment/dailyLimit` | `attachment quota` | Stable read | Unit endpoint test and live read on 2026-05-10 |
 | Daily reminder preferences | `GET /user/preferences/dailyReminder` | `reminder daily` | Stable read | Unit endpoint test and live read |
 | Sharing contacts | `GET /share/shareContacts`, `GET /project/share/recentProjectUsers` | `share contacts`, `share recent-users` | Stable read | Unit endpoint test and live read |
@@ -47,7 +48,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Task Pomodoro records | `GET /pomodoros/task?projectId=...&taskId=...` | `pomo task` | Stable read | Unit endpoint test and live read |
 | Habit preferences | `GET /user/preferences/habit?platform=web` | `habit preferences` | Stable read | Live read |
 | Habits and sections | `GET /habits`, `GET /habitSections` | `habit list`, `habit sections` | Stable read | Live read |
-| Habit check-ins | `POST /habitCheckins/query` | `habit checkins` | Stable read | Unit endpoint test and live read with count-only evidence |
+| Habit check-ins | `POST /habitCheckins/query` | `habit checkins` | Stable read | Unit endpoint test and live read with empty account |
 | Raw read | any GET path under base URL | `raw get` | Stable read-only | Live reads |
 | Quadrant view | derived from sync | `quadrant list/view` | Stable derived command | Unit classifier test and live read |
 
@@ -56,9 +57,9 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 These surfaces are visible in payloads or product behavior but do not yet have verified command coverage:
 
 - Column update/delete/order: exact `/batch/columnProject` endpoint is visible in the webapp bundle, but add/update/delete/order body shapes and rollback behavior are not verified.
-- Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 in live testing. Use `GET /column/project/{projectId}` instead.
-- Attachments/media upload: comment attachment upload and association are exposed through `comment create --file <path>`; task-level upload and render/download path shapes are bundle-mapped as `/api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}` and `/api/v1/attachment/{projectId}/{taskId}/{attachmentId}`, but task-level association/persistence, accepted file matrix, and uploaded-but-not-attached cleanup behavior are not verified.
-- Task activity: the webapp bundle maps detail reads to legacy v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId`; live probes reached a Pro-gated route, so response shape and pagination still need a Pro account or browser trace.
+- Legacy named column probes: read-only probes for `/project/{id}/data` and `/project/{id}/columns` returned 404 on the observed CN Web API. Use `GET /column/project/{projectId}` instead.
+- Attachments/media upload: comment attachment upload and association are exposed through `comment create --file <path>`; task-level existing attachment download is exposed through `attachment download`; task-level upload is bundle-mapped as `/api/v1/attachment/upload/{projectId}/{taskId}/{attachmentId}`, but task-level association/persistence, accepted file matrix, uploaded-but-not-attached cleanup behavior, preview, and delete behavior are not verified.
+- Task activity: the webapp bundle maps detail reads to legacy v1 `GET /task/activity/{taskId}` with optional `skip` and `lastId`; 2026-05-10 raw CLI probes returned HTTP 500 with `errorCode=need_pro` for no query, `skip=0`, and `skip=0&lastId=`, so response shape and pagination still need a Pro account or browser trace.
 - Comment attachments: multipart upload and attachment body flow are exposed through `comment create --file <path>`.
 - Collaboration/team permission writes: read-only share metadata is mapped, but invite creation/deletion and user permission changes are not exposed until multi-user behavior and rollback paths are mapped.
 - Filter writes: `/batch/filter` is visible in the webapp bundle, but create/update/delete payloads are not mapped.
