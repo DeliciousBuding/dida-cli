@@ -1825,3 +1825,329 @@ func TestCompanionSkillMentionsAgentCriticalCommands(t *testing.T) {
 		}
 	}
 }
+
+func TestTaskUpdateDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "update", "t1", "--project", "p1", "--title", "Renamed", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "task update" {
+		t.Fatalf("command = %v, want task update", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	update := requestPayload["update"].([]any)
+	task := update[0].(map[string]any)
+	if task["title"] != "Renamed" {
+		t.Fatalf("title = %v, want Renamed", task["title"])
+	}
+	if task["projectId"] != "p1" {
+		t.Fatalf("projectId = %v, want p1", task["projectId"])
+	}
+	if task["id"] != "t1" {
+		t.Fatalf("id = %v, want t1", task["id"])
+	}
+}
+
+func TestTaskCompleteDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "complete", "t1", "--project", "p1", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "task complete" {
+		t.Fatalf("command = %v, want task complete", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	update := requestPayload["update"].([]any)
+	task := update[0].(map[string]any)
+	if task["id"] != "t1" {
+		t.Fatalf("id = %v, want t1", task["id"])
+	}
+	status := int(task["status"].(float64))
+	if status != 2 {
+		t.Fatalf("status = %d, want 2", status)
+	}
+}
+
+func TestTaskListRequiresFilter(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "list", "--filter", "bogus", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "task list" {
+		t.Fatalf("command = %v, want task list", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+}
+
+func TestTaskDueCountsJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "due-counts", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "task due-counts" {
+		t.Fatalf("command = %v, want task due-counts", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "api" {
+		t.Fatalf("error.type = %v, want api", errPayload["type"])
+	}
+	if !strings.Contains(fmt.Sprint(errPayload["message"]), "missing cookie auth") {
+		t.Fatalf("error.message missing auth hint: %v", errPayload["message"])
+	}
+}
+
+func TestTagRenameDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"tag", "rename", "old-tag", "new-tag", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "tag rename" {
+		t.Fatalf("command = %v, want tag rename", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	if requestPayload["name"] != "old-tag" {
+		t.Fatalf("name = %v, want old-tag", requestPayload["name"])
+	}
+	if requestPayload["newName"] != "new-tag" {
+		t.Fatalf("newName = %v, want new-tag", requestPayload["newName"])
+	}
+}
+
+func TestTagMergeDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"tag", "merge", "old-tag", "new-tag", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "tag merge" {
+		t.Fatalf("command = %v, want tag merge", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	if requestPayload["from"] != "old-tag" {
+		t.Fatalf("from = %v, want old-tag", requestPayload["from"])
+	}
+	if requestPayload["to"] != "new-tag" {
+		t.Fatalf("to = %v, want new-tag", requestPayload["to"])
+	}
+}
+
+func TestColumnCreateDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"column", "create", "--project", "p1", "--name", "Doing", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "column create" {
+		t.Fatalf("command = %v, want column create", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	if requestPayload["projectId"] != "p1" {
+		t.Fatalf("projectId = %v, want p1", requestPayload["projectId"])
+	}
+	if requestPayload["name"] != "Doing" {
+		t.Fatalf("name = %v, want Doing", requestPayload["name"])
+	}
+}
+
+func TestFolderCreateDryRunJSON(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"folder", "create", "--name", "Work", "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "folder create" {
+		t.Fatalf("command = %v, want folder create", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if data["dryRun"] != true {
+		t.Fatalf("dryRun = %v, want true", data["dryRun"])
+	}
+	requestPayload := data["payload"].(map[string]any)
+	add := requestPayload["add"].([]any)
+	group := add[0].(map[string]any)
+	if group["name"] != "Work" {
+		t.Fatalf("name = %v, want Work", group["name"])
+	}
+}
+
+func TestShareContactsJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"share", "contacts", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "share contacts" {
+		t.Fatalf("command = %v, want share contacts", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "api" {
+		t.Fatalf("error.type = %v, want api", errPayload["type"])
+	}
+}
+
+func TestCalendarSubscriptionsJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"calendar", "subscriptions", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "calendar subscriptions" {
+		t.Fatalf("command = %v, want calendar subscriptions", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "api" {
+		t.Fatalf("error.type = %v, want api", errPayload["type"])
+	}
+}
+
+func TestStatsGeneralJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"stats", "general", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "stats general" {
+		t.Fatalf("command = %v, want stats general", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "api" {
+		t.Fatalf("error.type = %v, want api", errPayload["type"])
+	}
+}
+
+func TestPomoPreferencesJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"pomo", "preferences", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "pomo preferences" {
+		t.Fatalf("command = %v, want pomo preferences", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "api" {
+		t.Fatalf("error.type = %v, want api", errPayload["type"])
+	}
+}
+
+func TestUserStatusJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"user", "status", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "user status" {
+		t.Fatalf("command = %v, want user status", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "api" {
+		t.Fatalf("error.type = %v, want api", errPayload["type"])
+	}
+}

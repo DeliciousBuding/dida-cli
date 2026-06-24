@@ -1,6 +1,6 @@
 # 任务附件下载功能说明
 
-本文只说明 `feature/task-attachment-download` 分支新增的能力，不替代项目原有 `README.md`。项目安装、认证、完整命令列表仍以原 README 和 `docs/commands.md` 为准。
+本文说明 `dida attachment download` 命令的用法与实现边界。项目安装、认证、完整命令列表以 `README.md` 和 `docs/commands.md` 为准。
 
 ## 功能目标
 

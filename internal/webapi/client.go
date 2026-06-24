@@ -12,6 +12,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const DefaultBaseURL = "https://api.dida365.com/api/v2"
@@ -51,7 +52,7 @@ func NewClient(token string) *Client {
 	return &Client{
 		BaseURL:          DefaultBaseURL,
 		BaseURLV1:        DefaultBaseURLV1,
-		HTTPClient:       http.DefaultClient,
+		HTTPClient:       &http.Client{Timeout: 30 * time.Second},
 		Token:            token,
 		UserAgent:        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:95.0) Gecko/20100101 Firefox/95.0",
 		DeviceID:         randomDeviceID(),

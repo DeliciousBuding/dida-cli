@@ -417,6 +417,9 @@ func runOpenAPIListenCallback(args []string, jsonOut bool, stdout io.Writer, std
 	if err != nil {
 		return failTyped("openapi listen-callback", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
 	}
+	if !isLoopbackHost(host) {
+		return failTyped("openapi listen-callback", "validation", fmt.Sprintf("--host %q is not a loopback address; use 127.0.0.1 or localhost to avoid exposing the OAuth callback to the network", host), "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
 	redirectURI := fmt.Sprintf("http://%s:%d/callback", host, port)
 	codeCh := make(chan map[string]string, 1)
 	mux := http.NewServeMux()

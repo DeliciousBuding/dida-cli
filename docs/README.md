@@ -8,6 +8,7 @@ This directory is the maintained documentation entrypoint for DidaCLI.
 | --- | --- | --- |
 | Users | [quickstart.md](quickstart.md) | Install, verify, authenticate, and run common commands. |
 | Chinese users | [quickstart.zh-CN.md](quickstart.zh-CN.md) | 中文快速开始。 |
+| Attachment download (中文) | [attachment-download.md](attachment-download.md) | `dida attachment download` 功能说明与用法。 |
 | OpenAPI operators | [openapi-setup.md](openapi-setup.md) | Configure `client_id`, `client_secret`, redirect URL, and OAuth login. |
 | 中文 OpenAPI 配置 | [openapi-setup.zh-CN.md](openapi-setup.zh-CN.md) | 官方 OpenAPI 设置与回调指南。 |
 | LLM / Agent operators | [llm-quickstart.md](llm-quickstart.md) | Short JSON-first command path for agents. |
