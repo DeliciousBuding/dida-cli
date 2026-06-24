@@ -273,7 +273,7 @@ jobs:
         run: |
           set -euo pipefail
           cd dist
-          sha256sum ./*.zip ./*.tar.gz > checksums.txt
+          sha256sum ./*.zip ./*.tar.gz | sed 's|  \./|  |' > checksums.txt
 
       - name: Generate release notes
         shell: bash
