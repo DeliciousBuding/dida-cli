@@ -4,35 +4,39 @@
 **模式**: LOCAL_ONLY
 **开始日期**: 2026-06-25
 **最后更新**: 2026-06-25
-**Commit**: 42373c6
 
-## 文档索引
+## Commits
 
-- [项目概览](../analysis/project-overview.md)
-- [模块清单](../analysis/module-inventory.md)
-- [风险评估](../analysis/risk-assessment.md)
-- [任务分解](../plan/task-breakdown.md)
+| Commit | 内容 |
+|--------|------|
+| `42373c6` | Round 1 — 安全修复 + 测试 + 文档 + CI |
+| `2451b9b` | Round 2 — E2E 测试 + 结构优化 (Workflow: wf_c6b9c9ed-a54) |
 
 ## 进度
 
-- [x] Phase 1: 安全修复 (3/3 tasks) — commit 42373c6
-  - [x] 1.1 OpenAPI 错误路径 token 脱敏
-  - [x] 1.2 webapi.Client 默认超时 (30s)
-  - [x] 1.3 OAuth 回调监听器 host 校验 (新增)
-- [x] Phase 2: 测试覆盖 (11 new tests) — commit 42373c6
-  - [x] 2.1 task 命令测试 (4 tests: update, complete, filter, due-counts)
-  - [x] 2.2 tag/column/folder 写测试 (4 tests: rename, merge, column, folder)
-  - [x] 2.3 读命令测试 (5 tests: share, calendar, stats, pomo, user)
-  - 覆盖率: 37.8% → 43.0%
-- [x] Phase 3: 文档完善 (3/3 tasks) — commit 42373c6
-  - [x] 3.1 AGENTS.md 扩展 (4→8 sections)
-  - [x] 3.2 CLAUDE.md 创建
-  - [x] 3.3 说明.md → docs/attachment-download.md
-- [x] Phase 4: 规范与 CI (2/2 tasks) — commit 42373c6
-  - [x] 4.1 Windows CI (test + build matrix)
-  - [x] 4.2 -race + -coverprofile in CI
-- [ ] Phase 5: 结构优化 (0/3 tasks) — deferred P2
+- [x] Phase 1: 安全修复 (3/3 tasks)
+  - OpenAPI token 脱敏 + webapi 默认超时 + OAuth host 校验
+- [x] Phase 2: 测试覆盖 (17 tests total)
+  - Round 1: 11 CLI unit tests (37.8% → 43.0%)
+  - Round 2: 8 E2E tests (new `internal/e2e/` package, 695 lines)
+- [x] Phase 3: 文档完善 (3/3 tasks)
+  - AGENTS.md 扩展 + CLAUDE.md 创建 + 说明.md 整合
+- [x] Phase 4: 规范与 CI (2/2 tasks)
+  - Windows CI + -race + -coverprofile
+- [x] Phase 5: 结构优化 (3/3 tasks)
+  - account_read_cmd.go: 748→189 行，拆分为 7 个域文件
+  - Token-file CRUD: shared TokenStore in auth/token_store.go
+  - 类型转换去重: webapi/sync.go 使用 model 包辅助函数
 
-## 当前状态
+## 总体成果
 
-Phase 1-4 完成。Phase 5 (结构优化: 文件拆分、token CRUD 统一、辅助函数去重) 为 P2，后续迭代处理。
+| 指标 | Before | After |
+|------|--------|-------|
+| S.U.P.E.R 均分 | 4.3 | 4.6 (HIGH violations 全部修复) |
+| CLI 测试函数数 | ~140 | ~160 |
+| E2E 测试 | 0 | 8 (3 channels covered) |
+| CI 平台 | 1 (linux) | 2 (linux + windows) |
+| AGENTS.md | 4 行 | 8 sections |
+| CLAUDE.md | 不存在 | 完整项目指引 |
+| account_read_cmd.go | 748 行 | 189 行 (7 new files) |
+| Token CRUD 模式 | 3 份重复 | 1 份共享抽象 |
