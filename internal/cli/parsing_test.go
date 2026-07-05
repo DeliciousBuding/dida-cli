@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/model"
 )
@@ -391,12 +392,12 @@ func TestCompactListMissingKeyNoOp(t *testing.T) {
 
 func TestParseTaskListFlags(t *testing.T) {
 	cases := []struct {
-		name   string
-		args   []string
-		filter string
-		limit  int
+		name    string
+		args    []string
+		filter  string
+		limit   int
 		compact bool
-		err    string
+		err     string
 	}{
 		{name: "defaults", args: nil, filter: "all", limit: 50},
 		{name: "filter today", args: []string{"--filter", "today"}, filter: "today", limit: 50},
@@ -576,6 +577,7 @@ func TestParsePriority(t *testing.T) {
 		{"5", 5, ""},
 		{"2", 0, "must be one of"},
 		{"abc", 0, "must be one of"},
+		{"5x", 0, "must be one of"},
 	}
 	for _, tc := range cases {
 		got, err := parsePriority(tc.input)
@@ -592,6 +594,59 @@ func TestParsePriority(t *testing.T) {
 		if got != tc.want {
 			t.Errorf("parsePriority(%q) = %d, want %d", tc.input, got, tc.want)
 		}
+	}
+}
+
+func TestStrictIntegerFlagsRejectTrailingJunk(t *testing.T) {
+	now := time.Date(2026, 6, 9, 12, 0, 0, 0, time.Local)
+	cases := []struct {
+		name string
+		err  func() error
+	}{
+		{name: "task list limit", err: func() error { _, _, _, err := parseTaskListFlags([]string{"--limit", "10x"}); return err }},
+		{name: "task search limit", err: func() error { _, _, _, err := parseSearchFlags([]string{"query", "--limit", "10x"}); return err }},
+		{name: "upcoming days", err: func() error { _, _, _, err := parseUpcomingFlags([]string{"--days", "7x"}); return err }},
+		{name: "project tasks limit", err: func() error { _, _, _, err := parseProjectTasksArgs([]string{"p1", "--limit", "2x"}); return err }},
+		{name: "search all limit", err: func() error { _, _, _, err := parseSearchAllFlags([]string{"query", "--limit", "2x"}); return err }},
+		{name: "user sessions limit", err: func() error { _, _, _, err := parseUserSessionsFlags([]string{"--limit", "2x"}); return err }},
+		{name: "template timestamp", err: func() error { _, _, err := parseTemplateListFlags([]string{"--timestamp", "123x"}); return err }},
+		{name: "timeline limit", err: func() error { _, _, err := parseTimelineFlags([]string{"--limit", "2x"}); return err }},
+		{name: "range limit", err: func() error {
+			_, err := parseRangeListFlags([]string{"--limit", "2x"}, now, 30)
+			return err
+		}},
+		{name: "closed status", err: func() error { _, err := parseClosedListFlags([]string{"--status", "2x"}, now); return err }},
+		{name: "closed limit", err: func() error { _, err := parseClosedListFlags([]string{"--limit", "10x"}, now); return err }},
+		{name: "completed limit", err: func() error { _, _, _, _, err := parseCompletedListFlags([]string{"--limit", "10x"}, now); return err }},
+		{name: "trash cursor", err: func() error { _, err := parseTrashListFlags([]string{"--cursor", "1x"}); return err }},
+		{name: "trash limit", err: func() error { _, err := parseTrashListFlags([]string{"--limit", "10x"}); return err }},
+		{name: "habit checkin after stamp", err: func() error { _, _, err := parseHabitCheckinFlags([]string{"--after-stamp", "171x"}); return err }},
+		{name: "template limit", err: func() error { _, _, err := parseTemplateListFlags([]string{"--limit", "10x"}); return err }},
+		{name: "agent days", err: func() error { _, err := parseAgentContextFlags([]string{"--days", "14x"}); return err }},
+		{name: "agent limit", err: func() error { _, err := parseAgentContextFlags([]string{"--limit", "10x"}); return err }},
+		{name: "official tools limit", err: func() error { _, _, err := parseOfficialToolsFlags([]string{"--limit", "10x"}); return err }},
+		{name: "official int csv", err: func() error { _, err := parseOfficialIntCSV("1,2x"); return err }},
+		{name: "official date stamp", err: func() error { _, err := parseOfficialDateStamp("20260510x", "--from"); return err }},
+		{name: "official habit checkin value", err: func() error {
+			_, _, err := parseHabitCheckinWriteArgs([]string{"--date", "2026-06-09", "--value", "1.5x"})
+			return err
+		}},
+		{name: "openapi client port", err: func() error { _, _, err := parseOpenAPIListenFlags([]string{"--port", "17890x"}); return err }},
+		{name: "openapi login timeout", err: func() error {
+			_, _, _, _, _, _, _, err := parseOpenAPILoginFlags([]string{"--timeout", "60x"})
+			return err
+		}},
+		{name: "openapi callback port", err: func() error {
+			_, _, _, err := normalizeOpenAPICallback("http://127.0.0.1:17890x/callback", "", 0)
+			return err
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if err := tc.err(); err == nil {
+				t.Fatalf("error = nil, want validation error")
+			}
+		})
 	}
 }
 

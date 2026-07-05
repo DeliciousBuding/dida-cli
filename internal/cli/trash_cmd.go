@@ -68,17 +68,21 @@ func parseTrashListFlags(args []string) (trashListOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a non-negative integer", args[i])
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Cursor); err != nil || opts.Cursor < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return opts, fmt.Errorf("%s must be a non-negative integer", args[i])
 			}
+			opts.Cursor = parsed
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--limit requires a positive integer")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Limit); err != nil || opts.Limit <= 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed <= 0 {
 				return opts, fmt.Errorf("--limit must be a positive integer")
 			}
+			opts.Limit = parsed
 			i++
 		case "--compact", "--brief":
 			opts.Compact = true

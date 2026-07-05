@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"strconv"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
@@ -128,9 +127,11 @@ func parseTimelineFlags(args []string) (string, int, error) {
 			if i+1 >= len(args) {
 				return "", 0, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return "", 0, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		default:
 			return "", 0, fmt.Errorf("unknown flag %q", args[i])
@@ -278,7 +279,7 @@ func parseHabitCheckinFlags(args []string) ([]string, int64, error) {
 			if i+1 >= len(args) {
 				return nil, 0, fmt.Errorf("--after-stamp requires a millisecond timestamp")
 			}
-			value, err := strconv.ParseInt(args[i+1], 10, 64)
+			value, err := parseInt64Strict(args[i+1])
 			if err != nil || value < 0 {
 				return nil, 0, fmt.Errorf("--after-stamp must be a non-negative integer")
 			}
@@ -321,9 +322,11 @@ func parseRangeListFlags(args []string, now time.Time, defaultDays int) (rangeLi
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &opts.Limit); err != nil || opts.Limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return opts, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			opts.Limit = parsed
 			i++
 		default:
 			return opts, fmt.Errorf("unknown flag %q", args[i])

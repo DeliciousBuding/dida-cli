@@ -21,7 +21,7 @@ Optional environment variables:
 
 | Variable | Purpose |
 | --- | --- |
-| `DIDA_VERSION` | Install a specific release tag, for example `v0.1.0`. |
+| `DIDA_VERSION` | Install a specific release tag, for example `vX.Y.Z`. |
 | `DIDA_INSTALL_DIR` | Override the install directory. |
 | `DIDA_REPO` | Override the GitHub repository, for example for forks. |
 

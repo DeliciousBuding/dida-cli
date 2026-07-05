@@ -136,7 +136,7 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 			Title:       title,
 			Content:     str(item["content"]),
 			Desc:        str(item["desc"]),
-			AllDay:      boolish(firstPresent(item, "allDay", "isAllDay")),
+			AllDay:      boolish(FirstPresent(item, "allDay", "isAllDay")),
 			DueDate:     due,
 			StartDate:   start,
 			CompletedAt: completed,
@@ -145,12 +145,12 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 			Deleted:     intish(item["deleted"]),
 			ColumnID:    str(item["columnId"]),
 			Tags:        stringSlice(item["tags"]),
-			Items:       objectSlice(item["items"]),
+			Items:       ObjectSlice(item["items"]),
 			Reminders:   anySlice(item["reminders"]),
 			Repeat:      str(item["repeat"]),
 			RepeatFrom:  str(item["repeatFrom"]),
 			RepeatFlag:  str(item["repeatFlag"]),
-			IsFloating:  boolish(firstPresent(item, "isFloating")),
+			IsFloating:  boolish(FirstPresent(item, "isFloating")),
 			Raw:         item,
 		}
 		if dueOK {
@@ -376,7 +376,7 @@ func stringSlice(value any) []string {
 	return out
 }
 
-func objectSlice(value any) []map[string]any {
+func ObjectSlice(value any) []map[string]any {
 	items, ok := value.([]any)
 	if !ok {
 		return nil
@@ -398,7 +398,7 @@ func anySlice(value any) []any {
 	return items
 }
 
-func firstPresent(item map[string]any, keys ...string) any {
+func FirstPresent(item map[string]any, keys ...string) any {
 	for _, key := range keys {
 		if value, ok := item[key]; ok && value != nil {
 			return value

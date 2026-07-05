@@ -31,7 +31,11 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		if len(args) != 2 {
 			return failTyped("task get", "validation", "usage: dida task get <task-id>", "run: dida task --help", jsonOut, stdout, stderr)
 		}
-		return runTaskGet(args[1], jsonOut, stdout, stderr)
+		taskID, err := parseIDValue(args, 1, "task")
+		if err != nil {
+			return failTyped("task get", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
+		}
+		return runTaskGet(taskID, jsonOut, stdout, stderr)
 	case "create":
 		return runTaskCreate(args[1:], jsonOut, stdout, stderr)
 	case "update":
@@ -323,8 +327,8 @@ func parseTaskListFlags(args []string) (string, int, bool, error) {
 			if i+1 >= len(args) {
 				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
-			var parsed int
-			if _, err := fmt.Sscanf(args[i+1], "%d", &parsed); err != nil || parsed < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
 			limit = parsed
@@ -354,9 +358,11 @@ func parseSearchFlags(args []string) (string, int, bool, error) {
 			if i+1 >= len(args) {
 				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		case "--compact", "--brief":
 			compact = true
@@ -384,17 +390,21 @@ func parseUpcomingFlags(args []string) (int, int, bool, error) {
 			if i+1 >= len(args) {
 				return 0, 0, false, fmt.Errorf("--days requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &days); err != nil || days <= 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed <= 0 {
 				return 0, 0, false, fmt.Errorf("--days must be a positive integer")
 			}
+			days = parsed
 			i++
 		case "--limit":
 			if i+1 >= len(args) {
 				return 0, 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return 0, 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		case "--compact", "--brief":
 			compact = true
@@ -466,13 +476,21 @@ func parseTaskCreateFlags(args []string) (taskCreateOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--id requires a value")
 			}
-			opts.ID = args[i+1]
+			id, err := parseIDValue(args, i+1, "task")
+			if err != nil {
+				return opts, err
+			}
+			opts.ID = id
 			i++
 		case "--project", "-p":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a project id", args[i])
 			}
-			opts.ProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ProjectID = projectID
 			i++
 		case "--title", "-t":
 			if i+1 >= len(args) {
@@ -554,7 +572,11 @@ func parseTaskCreateFlags(args []string) (taskCreateOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--column requires a column id")
 			}
-			opts.ColumnID = args[i+1]
+			columnID, err := parseIDValue(args, i+1, "column")
+			if err != nil {
+				return opts, err
+			}
+			opts.ColumnID = columnID
 			i++
 		case "--tag":
 			if i+1 >= len(args) {
@@ -606,14 +628,22 @@ func parseTaskUpdateFlags(args []string) (taskUpdateOptions, error) {
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida task update <task-id> --project <project-id> [--title ...]")
 	}
-	opts.TaskID = args[0]
+	taskID, err := parseIDValue(args, 0, "task")
+	if err != nil {
+		return opts, err
+	}
+	opts.TaskID = taskID
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--project", "-p":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a project id", args[i])
 			}
-			opts.ProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ProjectID = projectID
 			i++
 		case "--title", "-t":
 			if i+1 >= len(args) {
@@ -695,7 +725,11 @@ func parseTaskUpdateFlags(args []string) (taskUpdateOptions, error) {
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("--column requires a column id")
 			}
-			opts.ColumnID = args[i+1]
+			columnID, err := parseIDValue(args, i+1, "column")
+			if err != nil {
+				return opts, err
+			}
+			opts.ColumnID = columnID
 			i++
 		case "--tag":
 			if i+1 >= len(args) {
@@ -743,14 +777,22 @@ func parseTaskIDProjectFlags(args []string, action string) (taskIDProjectOptions
 	if len(args) == 0 || strings.HasPrefix(args[0], "-") {
 		return opts, fmt.Errorf("usage: dida task %s <task-id> --project <project-id>", action)
 	}
-	opts.TaskID = args[0]
+	taskID, err := parseIDValue(args, 0, "task")
+	if err != nil {
+		return opts, err
+	}
+	opts.TaskID = taskID
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
 		case "--project", "-p":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("%s requires a project id", args[i])
 			}
-			opts.ProjectID = args[i+1]
+			projectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return opts, err
+			}
+			opts.ProjectID = projectID
 			i++
 		case "--dry-run":
 			opts.DryRun = true
@@ -758,7 +800,11 @@ func parseTaskIDProjectFlags(args []string, action string) (taskIDProjectOptions
 			opts.Yes = true
 		default:
 			if opts.ProjectID == "" && !strings.HasPrefix(args[i], "-") {
-				opts.ProjectID = args[i]
+				projectID, err := parseIDValue(args, i, "project")
+				if err != nil {
+					return opts, err
+				}
+				opts.ProjectID = projectID
 				continue
 			}
 			return opts, fmt.Errorf("unknown flag %q", args[i])
@@ -771,8 +817,8 @@ func parseTaskIDProjectFlags(args []string, action string) (taskIDProjectOptions
 }
 
 func parsePriority(value string) (int, error) {
-	var priority int
-	if _, err := fmt.Sscanf(value, "%d", &priority); err != nil {
+	priority, err := parseIntStrict(value)
+	if err != nil {
 		return 0, fmt.Errorf("--priority must be one of 0, 1, 3, 5")
 	}
 	switch priority {

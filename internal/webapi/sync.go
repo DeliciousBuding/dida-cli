@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/DeliciousBuding/dida-cli/internal/model"
 )
 
 type SyncPayload struct {
@@ -50,13 +52,13 @@ func (c *Client) SyncSince(ctx context.Context, checkpoint int64) (*SyncPayload,
 		payload.TaskAdds = payload.Tasks
 	}
 	payload.Projects = firstObjectSlice(raw, "projects", "projectProfiles")
-	payload.ProjectGroups = objectSlice(raw["projectGroups"])
-	payload.Tags = objectSlice(raw["tags"])
-	payload.Checks = objectSlice(raw["checks"])
-	payload.Filters = objectSlice(raw["filters"])
+	payload.ProjectGroups = model.ObjectSlice(raw["projectGroups"])
+	payload.Tags = model.ObjectSlice(raw["tags"])
+	payload.Checks = model.ObjectSlice(raw["checks"])
+	payload.Filters = model.ObjectSlice(raw["filters"])
 	payload.SyncOrder = raw["syncOrderBean"]
 	payload.SyncTaskOrder = raw["syncTaskOrderBean"]
-	payload.Reminders = firstPresent(raw, "reminders", "reminderChanges", "syncReminderBean")
+	payload.Reminders = model.FirstPresent(raw, "reminders", "reminderChanges", "syncReminderBean")
 	return payload, nil
 }
 
@@ -118,7 +120,7 @@ func (c *Client) ClosedItems(ctx context.Context, projectIDs []string, statuses 
 
 func firstObjectSlice(item map[string]any, keys ...string) []map[string]any {
 	for _, key := range keys {
-		if values := objectSlice(item[key]); len(values) > 0 {
+		if values := model.ObjectSlice(item[key]); len(values) > 0 {
 			return values
 		}
 	}
@@ -130,30 +132,7 @@ func nestedObjectSlice(item map[string]any, parent string, child string) []map[s
 	if !ok {
 		return nil
 	}
-	return objectSlice(parentObj[child])
-}
-
-func firstPresent(item map[string]any, keys ...string) any {
-	for _, key := range keys {
-		if value, ok := item[key]; ok && value != nil {
-			return value
-		}
-	}
-	return nil
-}
-
-func objectSlice(value any) []map[string]any {
-	items, ok := value.([]any)
-	if !ok {
-		return nil
-	}
-	out := make([]map[string]any, 0, len(items))
-	for _, item := range items {
-		if obj, ok := item.(map[string]any); ok {
-			out = append(out, obj)
-		}
-	}
-	return out
+	return model.ObjectSlice(parentObj[child])
 }
 
 func int64ish(value any) int64 {

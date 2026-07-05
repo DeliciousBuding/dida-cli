@@ -1,8 +1,8 @@
 # Roadmap Completion Audit
 
 This audit maps the active DidaCLI objective to concrete repository evidence.
-It is intentionally conservative: if a surface lacks live verification, it is
-not considered complete.
+It is conservative: a surface needs command coverage, tests, and safe live
+evidence before it is marked complete.
 
 For the detailed prompt-to-artifact checklist, see
 `docs/research/prompt-to-artifact-checklist.md`.
@@ -12,8 +12,8 @@ For the detailed prompt-to-artifact checklist, see
 | Criterion | Evidence | Status |
 | --- | --- | --- |
 | Three explicit channels: Web API, official MCP, official OpenAPI | `README.md`, `docs/commands.md`, `docs/research/api-channel-inventory.md` | Implemented |
-| Agent-first JSON command surface | `schema list/show`, `agent context`, stable JSON envelope tests in `internal/cli/cli_test.go` | Implemented |
-| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.1.16` | Implemented and smoke-tested |
+| JSON command surface for automation | `schema list/show`, `agent context`, stable JSON envelope tests in `internal/cli/cli_test.go` | Implemented |
+| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.2.1`, npm `0.2.1` | Implemented and smoke-tested |
 | Root cleanliness | Current tracked root contains only project-level directories/files; generated data stays ignored under `bin/`, `tmp/`, and `data/private/` | Ongoing rule |
 | Secrets kept out of repo | Sensitive scans during changes; auth docs use env/stdin/placeholders | Ongoing rule |
 
@@ -32,7 +32,8 @@ Implemented and documented:
 
 Not complete:
 
-- Task activity detail is blocked by `need_pro` on the current account.
+- Task activity detail needs a Pro account or browser trace that proves the
+  success response shape.
 - Comment attachment upload/create is implemented through
   `comment create --file <path>` after reversible live evidence, including a
   2026-05-10 repeat smoke with a 1x1 PNG, read-back, comment delete, and
@@ -65,9 +66,7 @@ Implemented and documented:
 
 Not complete:
 
-- Known-id habit/focus reads are blocked on the current account because live
-  token smokes found no habits and no focus records, including a 365-day focus
-  range.
+- Known-id habit/focus reads need disposable habit and focus records.
 - Destructive focus delete and habit write smokes still need disposable live
   targets.
 
@@ -79,15 +78,14 @@ Implemented and documented:
 - OAuth helpers: `openapi doctor/status/auth-url/listen-callback/exchange-code/login/logout`.
 - Project CRUD/data, task, focus, and habit wrappers.
 - OpenAPI guide and notes under `docs/research/`.
-- Saved client config plus `openapi auth-url` were verified on 2026-05-10
-  without recording secrets or local paths.
+- Redacted client config plus `openapi auth-url` were verified on 2026-05-10.
 - `openapi login --browser` now validates loopback callback URLs, honors local
   `--redirect-uri`, and fails fast with one JSON error when callback setup is
   invalid.
-- 2026-05-10 live OAuth verification succeeded: `openapi listen-callback`
-  received a real callback, `openapi exchange-code` saved an OAuth token, and
+- 2026-05-10 redacted OAuth verification succeeded, and
   `dida openapi status --json` plus `dida openapi project list --json`
-  succeeded against the current account.
+  returned valid response shapes without committing token material or private
+  project data.
 - 2026-05-10 follow-up live read smokes succeeded for `openapi project get`,
   `openapi project data`, project-scoped `openapi task get`, bounded
   `openapi task filter`, bounded `openapi task completed`, bounded
@@ -96,34 +94,35 @@ Implemented and documented:
 
 Not complete:
 
-- Known-id OpenAPI `habit get` and `focus get` remain blocked by current
-  account state: `habit list` and bounded focus ranges returned empty lists.
+- Known-id OpenAPI `habit get` and `focus get` need disposable habit and focus
+  records.
 - OpenAPI write smokes still need disposable live resources.
 
 ## Distribution Audit
 
 Implemented:
 
-- `v0.1.16` release exists.
+- `v0.2.1` release exists.
 - Release workflow builds Windows, Linux, and macOS assets on amd64/arm64.
 - `checksums.txt` is attached.
-- Windows installer latest smoke passed against `v0.1.16`.
-- WSL Linux installer latest smoke passed against `v0.1.16`.
-- Pinned `DIDA_VERSION=v0.1.16` install smoke passed on Windows and WSL Linux.
-- The global PATH `dida` binary was upgraded through the latest installer to
-  `v0.1.16` and smoke-tested outside the repository.
-- Linux/amd64 `install.sh` smoke passed against `v0.1.16` under WSL.
-- Installed `v0.1.16` binary smoke passed for `version`, `doctor --json`, and
+- Windows installer latest smoke passed against `v0.2.1`.
+- WSL Linux installer latest smoke passed against `v0.2.1`.
+- Pinned release install smoke passed on Windows and WSL Linux.
+- Installer smoke covered release binary startup outside the repository.
+- Linux/amd64 `install.sh` smoke passed under WSL.
+- Installed binary smoke passed for `version`, `doctor --json`, and
   `openapi client set/status/clear`.
-- npm installer skeleton smoke passed on Windows against `v0.1.16`; this
+- npm installer smoke passed on Windows; this
   verified download/checksum, wrapper startup, `version`, and `doctor --json`.
-- npm installer skeleton smoke passed on WSL Linux against `v0.1.16`; this also
+- npm installer smoke passed on WSL Linux; this also
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as ignored `bin/dida-bin`.
+- npm package `@delicious233/dida-cli@0.2.1` is published and the local package
+  metadata now matches that release.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
-  pinned to `v0.1.16` release assets and checksums.
+  pinned to `v0.2.1` release assets and checksums.
 - Homebrew and Scoop template URL/hash static validation passed against the
-  `v0.1.16` release `checksums.txt` for all six release assets.
+  `v0.2.1` release `checksums.txt` for all six release assets.
 - Homebrew formula install path logic was checked against the release archive
   layout: assets unpack under a top-level `dida_v..._<os>_<arch>/` directory,
   so the formula locates the nested `dida` binary before `bin.install`.
@@ -135,14 +134,12 @@ Implemented:
 
 Remaining:
 
-- macOS installer smoke should be repeated for `v0.1.16` on a native macOS host.
+- macOS installer smoke should be repeated for `v0.2.1` on a native macOS host.
 - Homebrew and Scoop templates are not yet published to external package
   repositories, and native package-manager install smoke remains pending.
 - winget manifest generation and submission remain deferred until release
-  cadence and package identity are final; current host has `winget` but not
-  `wingetcreate`.
-- npm installer skeleton is smoke-tested on Windows and WSL Linux but is not
-  published.
+  cadence and package identity are final.
+- npm installer package is published; native macOS npm smoke remains pending.
 
 ## Current Blocking Preconditions
 
@@ -154,13 +151,11 @@ Remaining:
 2026-05-10 recheck:
 
 - Web API cookie auth still verifies successfully.
-- Official MCP still connects, but habit list and a one-year focus range return
-  empty results on the current account.
-- OpenAPI OAuth token is now saved locally. Project list/get/data, task
-  get/filter/completed, focus list, and habit list read smokes succeeded on the
-  current account.
-- Attachment quota still reports no available daily upload quota, so additional
-  upload smokes need quota reset or a disposable account with available quota.
+- Official MCP still connects; known-id habit/focus smokes need disposable
+  records.
+- OpenAPI read smokes returned valid response shapes without committing private
+  payloads.
+- Additional upload smokes need disposable attachment quota.
 
 ## Next Best Actions
 

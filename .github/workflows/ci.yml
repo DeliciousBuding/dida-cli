@@ -9,9 +9,13 @@ on:
 permissions:
   contents: read
 
+env:
+  GOVULNCHECK_VERSION: v1.3.0
+  ACTIONLINT_VERSION: v1.7.12
+
 jobs:
-  test:
-    name: Go test
+  hygiene:
+    name: Hygiene
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,16 +25,125 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-          cache: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Check formatting
+        run: |
+          git ls-files '*.go' | xargs gofmt -w
+          git diff --check
+          git diff --exit-code
+
+      - name: Check private state
+        run: bash scripts/check-private-state.sh
+
+      - name: Test private-state guard
+        run: bash scripts/check-private-state.test.sh
+
+      - name: Validate packaging templates
+        run: bash scripts/validate-packaging.sh --metadata-only
+
+      - name: Test packaging validator
+        run: bash scripts/validate-packaging.test.sh
+
+      - name: Test release archive verifier
+        run: bash scripts/verify-release-archives.test.sh
+
+      - name: Lint workflows
+        run: go run "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
+
+  test:
+    name: Go test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
 
       - name: Test
-        run: go test ./...
+        run: go test -race -count=1 -coverprofile=coverage.out ./...
+
+      - name: Coverage summary
+        run: go tool cover -func=coverage.out
+
+  vet:
+    name: Go vet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
 
       - name: Vet
         run: go vet ./...
 
+  vuln:
+    name: Vulnerability check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
       - name: Vulnerability check
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+        run: go run "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}" ./...
+
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        include:
+          - goos: windows
+            goarch: amd64
+            binary: dida.exe
+          - goos: windows
+            goarch: arm64
+            binary: dida.exe
+          - goos: linux
+            goarch: amd64
+            binary: dida
+          - goos: linux
+            goarch: arm64
+            binary: dida
+          - goos: darwin
+            goarch: amd64
+            binary: dida
+          - goos: darwin
+            goarch: arm64
+            binary: dida
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
 
       - name: Build
-        run: go build -o bin/dida ./cmd/dida
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -trimpath -o bin/${{ matrix.goos }}-${{ matrix.goarch }}/${{ matrix.binary }} ./cmd/dida

@@ -10,7 +10,7 @@ cloning the repository. GitHub Releases are the canonical binary source.
 | GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS. |
 | `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`; latest resolution uses release checksum assets instead of the GitHub API. |
 | `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables; latest resolution uses release checksum assets instead of the GitHub API. |
-| npm installer package | Smoke-tested skeleton | `npm/` contains a placeholder package that downloads GitHub Release binaries; latest resolution also uses release checksum assets. Not published yet. |
+| npm installer package | Published | `@delicious233/dida-cli` downloads the matching GitHub Release binary during postinstall and verifies release checksums. |
 | `go install` | Developer fallback | Works when Go is installed, but does not use release archives. |
 
 ## Planned Channels
@@ -38,8 +38,8 @@ Release workflow:
 Create a release:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag vX.Y.Z
+git push origin vX.Y.Z
 ```
 
 ## Install Scripts
@@ -59,7 +59,7 @@ iwr https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.ps1 
 Pin a version:
 
 ```bash
-DIDA_VERSION=v0.1.0 curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
+DIDA_VERSION=vX.Y.Z curl -fsSL https://raw.githubusercontent.com/DeliciousBuding/dida-cli/main/install.sh | sh
 ```
 
 Custom repo or install directory:
@@ -68,37 +68,34 @@ Custom repo or install directory:
 DIDA_REPO=DeliciousBuding/dida-cli DIDA_INSTALL_DIR="$HOME/bin" sh install.sh
 ```
 
-## npm Installer Skeleton
+## npm Installer
 
-The `npm/` directory is a package skeleton for a future npm distribution:
+The `npm/` directory contains the published npm wrapper package:
 
 - package name: `@delicious233/dida-cli`
-- postinstall downloads the matching GitHub Release archive
-- latest release resolution reads `checksums.txt` from `latest/download`
-  instead of using the GitHub API
+- package version is tracked in `npm/package.json`
+- postinstall downloads the GitHub Release archive matching the package version
+- checksum verification uses the release `checksums.txt`
 - `bin/dida` is the stable Node wrapper
 - Windows stores the downloaded binary as `bin/dida.exe`
 - Unix-like systems store the downloaded binary as `bin/dida-bin` so the
   wrapper is not overwritten
-- local Windows smoke tests installed `v0.1.16` from GitHub Releases in a
-  temporary copy and verified `node bin/dida version` plus
-  `node bin/dida doctor --json`
-- local WSL Linux smoke tests installed `v0.1.16` from GitHub Releases in a
-  temporary copy and verified `node bin/dida version` plus
-  `node bin/dida doctor --json`
-- local Windows latest smoke verified the npm installer can resolve `v0.1.16`
-  from release `checksums.txt` without the GitHub API, then run
-  `node bin/dida version` and `node bin/dida doctor --json`
-- Windows `install.ps1` latest smoke installed `v0.1.16` from GitHub Releases
-  and verified `dida version` plus the installer's `dida doctor --json` check
-- WSL Linux `install.sh` latest smoke installed `v0.1.16` from GitHub Releases
-  and verified `dida version` plus the installer's `dida doctor --json` check
+- Windows and Linux smoke coverage installs the release binary and runs
+  `dida version` plus `dida doctor --json`
+- Linux smoke coverage verifies the Unix wrapper/binary split where
+  `bin/dida` remains a Node wrapper and the downloaded binary is stored as
+  ignored `bin/dida-bin`
+- `npm pack --dry-run --json` verifies that the package contains only
+  `bin/dida`, `scripts/install.js`, and `package.json`
+- release workflow npm preflight checks the npm token, duplicate package
+  version, package contents, and provenance-ready publish path before creating
+  the GitHub Release
 
-Do not publish it until:
+Before each publish:
 
-1. Package ownership and final npm scope are confirmed.
-2. macOS npm installer smoke is repeated on a native macOS host.
-3. Publishing automation and provenance policy are defined.
+1. Confirm the GitHub tag, npm package version, and binary version match.
+2. Run `npm pack --dry-run --json` from `npm/`.
+3. Run a native macOS npm installer smoke when macOS packaging changes.
 
 ## `go install`
 
@@ -116,23 +113,20 @@ toolchain and may not match packaged release behavior.
 `packaging/` contains maintainer templates for package managers that generally
 live outside this repository:
 
-- `packaging/homebrew/dida.rb` pins `v0.1.16` macOS and Linux release archives
+- `packaging/homebrew/dida.rb` pins macOS and Linux release archives
   with checksums. The formula installs the binary from the release archive's
   top-level platform directory.
-- `packaging/scoop/dida.json` pins `v0.1.16` Windows amd64 and arm64 release
+- `packaging/scoop/dida.json` pins Windows amd64 and arm64 release
   archives with checksums.
-- `packaging/winget/README.md` records the future winget submission boundary
-  without committing generated manifests prematurely.
+- `packaging/winget/README.md` records the maintainer handoff for winget
+  manifest generation.
 
-Static validation on Windows confirmed the Homebrew and Scoop template URLs
-and SHA-256 hashes match the `v0.1.16` release `checksums.txt` for all six
-release assets. Release archive listing checks confirmed Homebrew must install
-from the nested `dida_v.../dida` path and Scoop's `extract_dir` matches the
-Windows zip's top-level `dida_v..._windows_<arch>/` directory. Native
-`brew`/`scoop` install smoke is still pending because those package managers
-are not available in the current environment.
-`winget` is available, but `wingetcreate` is not installed, so winget manifest
-generation and local validation remain deferred.
+Static validation can compare Homebrew and Scoop template URLs plus SHA-256
+hashes against a release `checksums.txt` after the release archives exist.
+Release archive listing checks confirm Homebrew must install from the nested
+`dida_v.../dida` path and Scoop's `extract_dir` matches the Windows zip's
+top-level `dida_v..._windows_<arch>/` directory. Native package-manager smoke
+tests still need hosts with `brew`, Scoop, and `wingetcreate` installed.
 
-These files are not published channels yet. Treat them as release engineering
-inputs for a future tap, bucket, or winget submission.
+Homebrew, Scoop, and winget files are maintainer templates for external
+package-manager submissions.

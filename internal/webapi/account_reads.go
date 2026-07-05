@@ -8,13 +8,26 @@ import (
 )
 
 func (c *Client) AttachmentQuota(ctx context.Context) (map[string]any, error) {
-	var underQuota bool
-	if err := c.DoV1(ctx, http.MethodGet, "/attachment/isUnderQuota", nil, &underQuota); err != nil {
-		return nil, err
+	type quotaResult struct {
+		err error
 	}
+	var underQuota bool
 	var dailyLimit int64
-	if err := c.DoV1(ctx, http.MethodGet, "/attachment/dailyLimit", nil, &dailyLimit); err != nil {
-		return nil, err
+	childCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	results := make(chan quotaResult, 2)
+	go func() {
+		results <- quotaResult{err: c.DoV1(childCtx, http.MethodGet, "/attachment/isUnderQuota", nil, &underQuota)}
+	}()
+	go func() {
+		results <- quotaResult{err: c.DoV1(childCtx, http.MethodGet, "/attachment/dailyLimit", nil, &dailyLimit)}
+	}()
+	for range 2 {
+		result := <-results
+		if result.err != nil {
+			cancel()
+			return nil, result.err
+		}
 	}
 	return map[string]any{
 		"underQuota": underQuota,

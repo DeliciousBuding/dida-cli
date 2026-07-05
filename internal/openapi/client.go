@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 )
@@ -19,8 +20,12 @@ type Client struct {
 }
 
 func NewClient(token string) *Client {
+	baseURL := os.Getenv("DIDA_OPENAPI_BASE_URL")
+	if baseURL == "" {
+		baseURL = DefaultAPIBaseURL
+	}
 	return &Client{
-		BaseURL: DefaultAPIBaseURL,
+		BaseURL: baseURL,
 		Token:   token,
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
@@ -58,7 +63,7 @@ func (c *Client) Do(ctx context.Context, method string, path string, body io.Rea
 		return fmt.Errorf("read response: %w", err)
 	}
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("openapi returned HTTP %d: %s", resp.StatusCode, summarizeBody(string(data)))
+		return fmt.Errorf("openapi returned HTTP %d: %s", resp.StatusCode, c.redactForError(string(data)))
 	}
 	if out == nil || len(data) == 0 {
 		return nil
@@ -260,4 +265,16 @@ func (c *Client) doJSON(ctx context.Context, method string, path string, payload
 		return fmt.Errorf("encode request: %w", err)
 	}
 	return c.Do(ctx, method, path, bytes.NewReader(data), out)
+}
+
+func (c *Client) redactForError(value string) string {
+	value = strings.TrimSpace(value)
+	if c != nil && strings.TrimSpace(c.Token) != "" {
+		value = strings.ReplaceAll(value, c.Token, "[REDACTED]")
+		value = strings.ReplaceAll(value, "Bearer "+c.Token, "Bearer [REDACTED]")
+	}
+	if len(value) > 300 {
+		return value[:300] + "..."
+	}
+	return value
 }

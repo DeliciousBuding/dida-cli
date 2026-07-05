@@ -1,9 +1,7 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -26,16 +24,10 @@ func SaveCookieToken(token string) (*CookieToken, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := os.MkdirAll(config.DefaultDir(), 0o700); err != nil {
-		return nil, fmt.Errorf("create config dir: %w", err)
-	}
 	item := &CookieToken{Token: token, SavedAt: time.Now().UnixMilli()}
-	payload, err := json.MarshalIndent(item, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("encode token: %w", err)
-	}
-	if err := os.WriteFile(CookiePath(), append(payload, '\n'), 0o600); err != nil {
-		return nil, fmt.Errorf("write cookie token: %w", err)
+	store := NewTokenStore(CookiePath())
+	if err := store.Save(item); err != nil {
+		return nil, err
 	}
 	return item, nil
 }
@@ -70,13 +62,10 @@ func NormalizeCookieToken(input string) (string, error) {
 }
 
 func LoadCookieToken() (*CookieToken, error) {
-	payload, err := os.ReadFile(CookiePath())
-	if err != nil {
-		return nil, err
-	}
 	var item CookieToken
-	if err := json.Unmarshal(payload, &item); err != nil {
-		return nil, fmt.Errorf("decode cookie token: %w", err)
+	store := NewTokenStore(CookiePath())
+	if err := store.Load(&item); err != nil {
+		return nil, err
 	}
 	if strings.TrimSpace(item.Token) == "" {
 		return nil, fmt.Errorf("cookie token file has no token")
@@ -85,8 +74,9 @@ func LoadCookieToken() (*CookieToken, error) {
 }
 
 func ClearCookieToken() error {
-	if err := os.Remove(CookiePath()); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove cookie token: %w", err)
+	store := NewTokenStore(CookiePath())
+	if err := store.Clear(); err != nil {
+		return err
 	}
 	if err := ClearBrowserLoginProfile(); err != nil {
 		return err

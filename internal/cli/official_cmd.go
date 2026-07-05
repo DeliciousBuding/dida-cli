@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
@@ -246,9 +245,11 @@ func parseOfficialToolsFlags(args []string) (int, bool, error) {
 			if i+1 >= len(args) {
 				return 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		case "--full":
 			full = true
@@ -339,6 +340,9 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 		printOfficialProjectHelp(stdout)
 		return 0
 	}
+	if err := validateOfficialProjectArgs(args); err != nil {
+		return failTyped("official project "+args[0], "validation", err.Error(), "run: dida official project --help", jsonOut, stdout, stderr)
+	}
 
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
@@ -353,9 +357,6 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 
 	switch args[0] {
 	case "list":
-		if len(args) != 1 {
-			return failTyped("official project list", "validation", "usage: dida official project list", "run: dida official project --help", jsonOut, stdout, stderr)
-		}
 		result, err := client.CallTool(ctx, "list_projects", map[string]any{})
 		if err != nil {
 			return failTyped("official project list", "api", err.Error(), "", jsonOut, stdout, stderr)
@@ -365,9 +366,6 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 		}
 		return writeJSON(stdout, result)
 	case "get":
-		if len(args) != 2 {
-			return failTyped("official project get", "validation", "usage: dida official project get <project-id>", "run: dida official project --help", jsonOut, stdout, stderr)
-		}
 		result, err := client.CallTool(ctx, "get_project_by_id", map[string]any{"project_id": args[1]})
 		if err != nil {
 			return failTyped("official project get", "api", err.Error(), "", jsonOut, stdout, stderr)
@@ -377,9 +375,6 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 		}
 		return writeJSON(stdout, result)
 	case "data":
-		if len(args) != 2 {
-			return failTyped("official project data", "validation", "usage: dida official project data <project-id>", "run: dida official project --help", jsonOut, stdout, stderr)
-		}
 		result, err := client.CallTool(ctx, "get_project_with_undone_tasks", map[string]any{"project_id": args[1]})
 		if err != nil {
 			return failTyped("official project data", "api", err.Error(), "", jsonOut, stdout, stderr)
@@ -391,6 +386,28 @@ func runOfficialProject(args []string, jsonOut bool, stdout io.Writer, stderr io
 	default:
 		return fail("official project", fmt.Sprintf("unknown project subcommand %q", args[0]), jsonOut, stdout, stderr)
 	}
+}
+
+func validateOfficialProjectArgs(args []string) error {
+	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: dida official project list")
+		}
+	case "get":
+		if len(args) != 2 {
+			return fmt.Errorf("usage: dida official project get <project-id>")
+		}
+		return validateIDArg("project", args[1])
+	case "data":
+		if len(args) != 2 {
+			return fmt.Errorf("usage: dida official project data <project-id>")
+		}
+		return validateIDArg("project", args[1])
+	default:
+		return fmt.Errorf("unknown project subcommand %q", args[0])
+	}
+	return nil
 }
 
 func printOfficialProjectHelp(stdout io.Writer) {
@@ -409,6 +426,9 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	}
 	if handled, code := runOfficialTaskDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
+	}
+	if err := validateOfficialTaskArgs(args); err != nil {
+		return failTyped("official task "+args[0], "validation", err.Error(), "run: dida official task --help", jsonOut, stdout, stderr)
 	}
 
 	token, err := officialmcp.ResolveToken("")
@@ -538,6 +558,34 @@ func runOfficialTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	}
 }
 
+func validateOfficialTaskArgs(args []string) error {
+	switch args[0] {
+	case "get":
+		_, _, err := parseOfficialTaskGetFlags(args[1:])
+		return err
+	case "search":
+		_, err := parseOfficialTaskSearchFlags(args[1:])
+		return err
+	case "query":
+		_, err := parseOfficialTaskQueryFlags(args[1:])
+		return err
+	case "undone":
+		_, err := parseOfficialTaskDateSearchFlags(args[1:])
+		return err
+	case "filter":
+		_, err := parseOfficialTaskFilterFlags(args[1:])
+		return err
+	case "batch-add", "batch-update":
+		_, _, err := parseOfficialTaskBatchPayloadFlags(args[1:])
+		return err
+	case "complete-project":
+		_, _, err := parseOfficialTaskCompleteProjectFlags(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown task subcommand %q", args[0])
+	}
+}
+
 func printOfficialTaskHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
 	fmt.Fprintln(stdout, "  dida official task get <task-id> [--project <project-id>] [--json]")
@@ -557,6 +605,9 @@ func parseOfficialTaskGetFlags(args []string) (string, string, error) {
 		return "", "", fmt.Errorf("usage: dida official task get <task-id> [--project <project-id>]")
 	}
 	taskID := args[0]
+	if err := validateIDArg("task", taskID); err != nil {
+		return "", "", err
+	}
 	projectID := ""
 	for i := 1; i < len(args); i++ {
 		switch args[i] {
@@ -564,7 +615,11 @@ func parseOfficialTaskGetFlags(args []string) (string, string, error) {
 			if i+1 >= len(args) {
 				return "", "", fmt.Errorf("--project requires a value")
 			}
-			projectID = args[i+1]
+			parsedProjectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return "", "", err
+			}
+			projectID = parsedProjectID
 			i++
 		default:
 			return "", "", fmt.Errorf("unknown flag %q", args[i])
@@ -757,19 +812,32 @@ func parseOfficialTaskCompleteProjectFlags(args []string) (map[string]any, bool,
 			if i+1 >= len(args) {
 				return nil, false, fmt.Errorf("--project requires a value")
 			}
-			projectID = args[i+1]
+			parsedProjectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return nil, false, err
+			}
+			projectID = parsedProjectID
 			i++
 		case "--task":
 			if i+1 >= len(args) {
 				return nil, false, fmt.Errorf("--task requires a value")
 			}
-			taskIDs = append(taskIDs, args[i+1])
+			taskID, err := parseIDValue(args, i+1, "task")
+			if err != nil {
+				return nil, false, err
+			}
+			taskIDs = append(taskIDs, taskID)
 			i++
 		case "--tasks":
 			if i+1 >= len(args) {
 				return nil, false, fmt.Errorf("--tasks requires a comma-separated value")
 			}
-			taskIDs = append(taskIDs, splitCSV(args[i+1])...)
+			for _, taskID := range splitCSV(args[i+1]) {
+				if err := validateIDArg("task", taskID); err != nil {
+					return nil, false, err
+				}
+				taskIDs = append(taskIDs, taskID)
+			}
 			i++
 		case "--dry-run":
 			dryRun = true
@@ -799,8 +867,8 @@ func parseOfficialIntCSV(value string) ([]int, error) {
 	parts := splitCSV(value)
 	out := make([]int, 0, len(parts))
 	for _, part := range parts {
-		var item int
-		if _, err := fmt.Sscanf(part, "%d", &item); err != nil {
+		item, err := parseIntStrict(part)
+		if err != nil {
 			return nil, fmt.Errorf("invalid integer %q", part)
 		}
 		out = append(out, item)
@@ -812,6 +880,9 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	if len(args) == 0 || hasHelpFlag(args) {
 		printOfficialHabitHelp(stdout)
 		return 0
+	}
+	if err := validateOfficialHabitArgs(args); err != nil {
+		return failTyped("official habit "+args[0], "validation", err.Error(), "run: dida official habit --help", jsonOut, stdout, stderr)
 	}
 	if handled, code := runOfficialHabitDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
@@ -942,6 +1013,51 @@ func runOfficialHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	}
 }
 
+func validateOfficialHabitArgs(args []string) error {
+	switch args[0] {
+	case "list":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: dida official habit list")
+		}
+	case "sections":
+		if len(args) != 1 {
+			return fmt.Errorf("usage: dida official habit sections")
+		}
+	case "get":
+		if len(args) != 2 {
+			return fmt.Errorf("usage: dida official habit get <habit-id>")
+		}
+		return validateIDArg("habit", args[1])
+	case "create":
+		_, _, err := parseHabitCreateWriteArgs(args[1:])
+		return err
+	case "update":
+		if len(args) < 2 {
+			return fmt.Errorf("usage: dida official habit update <habit-id> [--args-json <json>]")
+		}
+		if err := validateIDArg("habit", args[1]); err != nil {
+			return err
+		}
+		_, _, err := parseOfficialPayloadWriteFlags(args[2:])
+		return err
+	case "checkin":
+		if len(args) < 2 {
+			return fmt.Errorf("usage: dida official habit checkin <habit-id> --date YYYY-MM-DD --value <number>")
+		}
+		if err := validateIDArg("habit", args[1]); err != nil {
+			return err
+		}
+		_, _, err := parseHabitCheckinWriteArgs(args[2:])
+		return err
+	case "checkins":
+		_, err := parseOfficialHabitCheckinsArgs(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown habit subcommand %q", args[0])
+	}
+	return nil
+}
+
 func printOfficialHabitHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
 	fmt.Fprintln(stdout, "  dida official habit list [--json]")
@@ -990,8 +1106,8 @@ func parseHabitCheckinWriteArgs(args []string) (map[string]any, bool, error) {
 			if i+1 >= len(args) {
 				return nil, false, fmt.Errorf("--value requires a numeric value")
 			}
-			var value float64
-			if _, err := fmt.Sscanf(args[i+1], "%f", &value); err != nil {
+			value, err := parseFloatStrict(args[i+1])
+			if err != nil {
 				return nil, false, fmt.Errorf("--value must be a number")
 			}
 			payload["value"] = value
@@ -1097,8 +1213,8 @@ func parseOfficialHabitCheckinsArgs(args []string) (map[string]any, error) {
 }
 
 func parseOfficialDateStamp(value string, flag string) (int, error) {
-	var stamp int
-	if _, err := fmt.Sscanf(value, "%d", &stamp); err != nil {
+	stamp, err := parseIntStrict(value)
+	if err != nil {
 		return 0, fmt.Errorf("%s must be an integer date stamp in YYYYMMDD format", flag)
 	}
 	if stamp < 10000101 || stamp > 99991231 {
@@ -1111,6 +1227,9 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	if len(args) == 0 || hasHelpFlag(args) {
 		printOfficialFocusHelp(stdout)
 		return 0
+	}
+	if err := validateOfficialFocusArgs(args); err != nil {
+		return failTyped("official focus "+args[0], "validation", err.Error(), "run: dida official focus --help", jsonOut, stdout, stderr)
 	}
 	if handled, code := runOfficialFocusDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
@@ -1178,6 +1297,22 @@ func runOfficialFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	}
 }
 
+func validateOfficialFocusArgs(args []string) error {
+	switch args[0] {
+	case "get":
+		_, err := parseOfficialFocusIDTypeArgs(args[1:])
+		return err
+	case "list":
+		_, err := parseFocusListArgs(args[1:])
+		return err
+	case "delete":
+		_, _, _, err := parseOfficialFocusDeleteArgs(args[1:])
+		return err
+	default:
+		return fmt.Errorf("unknown focus subcommand %q", args[0])
+	}
+}
+
 func printOfficialFocusHelp(stdout io.Writer) {
 	fmt.Fprintln(stdout, "Usage:")
 	fmt.Fprintln(stdout, "  dida official focus get <focus-id> --type 0|1 [--json]")
@@ -1205,6 +1340,9 @@ func parseOfficialFocusIDTypeArgs(args []string) (map[string]any, error) {
 		return nil, fmt.Errorf("focus id is required")
 	}
 	focusID := args[0]
+	if err := validateIDArg("focus", focusID); err != nil {
+		return nil, err
+	}
 	focusType, hasType, err := parseOfficialFocusTypeFlag(args[1:])
 	if err != nil {
 		return nil, err
@@ -1234,6 +1372,9 @@ func parseOfficialFocusDeleteArgs(args []string) (map[string]any, bool, bool, er
 		return nil, false, false, fmt.Errorf("focus id is required")
 	}
 	focusID := args[0]
+	if err := validateIDArg("focus", focusID); err != nil {
+		return nil, false, false, err
+	}
 	confirmed := false
 	dryRun := false
 	focusType := 0
@@ -1335,7 +1476,7 @@ func parseOfficialFocusTypeFlag(args []string) (int, bool, error) {
 }
 
 func parseFocusType(value string) (int, error) {
-	focusType, err := strconv.Atoi(value)
+	focusType, err := parseIntStrict(value)
 	if err != nil || (focusType != 0 && focusType != 1) {
 		return 0, fmt.Errorf("--type must be 0 for Pomodoro or 1 for timing")
 	}

@@ -28,8 +28,7 @@ in DidaCLI.
   - batch operations and focus/habit write support
 - Weaknesses:
   - smaller surface than Web API
-  - known-id habit/focus live smokes depend on disposable records in the
-    current account
+  - known-id habit/focus live smokes need disposable records
 
 DidaCLI keeps generic `official tools/show/call` access, but high-value
 project, task, habit, and focus reads plus safe task write wrappers now have
@@ -59,7 +58,7 @@ first-class commands.
 | --- | --- | --- | --- |
 | Web API | deep | broad | yes |
 | Official MCP | moderate to deep | generic tool call plus first-class project/task/habit/focus wrappers | yes for project/task reads and task writes; blocked for known-id habit/focus targets |
-| Official OpenAPI | moderate to deep | OAuth helpers plus project/task/focus/habit wrappers | local/dry-run verified; live resource calls blocked on OAuth approval |
+| Official OpenAPI | moderate to deep | OAuth helpers plus project/task/focus/habit wrappers | reads live-verified where safe; writes need disposable targets |
 
 ## Agent Channel Selection
 
@@ -93,7 +92,7 @@ resolved when the matching evidence exists:
 
 | Blocker | Evidence needed to unblock |
 | --- | --- |
-| OpenAPI live resource calls | `dida openapi login --browser --json` saves an OAuth token, then at least one read such as `dida openapi project list --json` succeeds. |
+| OpenAPI live resource calls | `dida openapi login --browser --json` completes OAuth setup, then at least one read such as `dida openapi project list --json` succeeds. |
 | Official MCP known-id habit/focus reads | The account has a disposable habit or focus record, and `official habit get` or `official focus get --type 0|1` succeeds against that ID. |
 | Official MCP habit/focus writes | A disposable target exists and the command has already been previewed with `--dry-run`; destructive focus delete also requires `--yes`. |
 | Web API task activity | A Pro-entitled account or browser trace returns a successful `GET /task/activity/{taskId}` response with pagination semantics. |

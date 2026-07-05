@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/model"
@@ -34,7 +35,11 @@ func runProject(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		if len(args) != 2 {
 			return failTyped("project columns", "validation", "usage: dida project columns <project-id>", "run: dida project --help", jsonOut, stdout, stderr)
 		}
-		return runProjectColumns(args[1], jsonOut, stdout, stderr)
+		projectID, err := parseIDValue(args, 1, "project")
+		if err != nil {
+			return failTyped("project columns", "validation", err.Error(), "run: dida project --help", jsonOut, stdout, stderr)
+		}
+		return runProjectColumns(projectID, jsonOut, stdout, stderr)
 	default:
 		return fail("project", fmt.Sprintf("unknown project command %q", args[0]), jsonOut, stdout, stderr)
 	}
@@ -94,13 +99,22 @@ func parseProjectTasksArgs(args []string) (string, int, bool, error) {
 			if i+1 >= len(args) {
 				return "", 0, false, fmt.Errorf("--limit requires a value")
 			}
-			if _, err := fmt.Sscanf(args[i+1], "%d", &limit); err != nil || limit < 0 {
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
 				return "", 0, false, fmt.Errorf("--limit must be a non-negative integer")
 			}
+			limit = parsed
 			i++
 		default:
 			if projectID == "" {
-				projectID = args[i]
+				if strings.HasPrefix(args[i], "-") {
+					return "", 0, false, fmt.Errorf("unknown flag %q", args[i])
+				}
+				parsedProjectID, err := parseIDValue(args, i, "project")
+				if err != nil {
+					return "", 0, false, err
+				}
+				projectID = parsedProjectID
 				continue
 			}
 			return "", 0, false, fmt.Errorf("unknown flag %q", args[i])
@@ -108,6 +122,9 @@ func parseProjectTasksArgs(args []string) (string, int, bool, error) {
 	}
 	if projectID == "" {
 		return "", 0, false, fmt.Errorf("usage: dida project tasks <project-id> [--limit N] [--compact]")
+	}
+	if err := validateIDArg("project", projectID); err != nil {
+		return "", 0, false, err
 	}
 	return projectID, limit, compact, nil
 }

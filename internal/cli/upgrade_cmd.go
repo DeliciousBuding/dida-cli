@@ -1,11 +1,11 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"runtime"
-	"time"
 )
 
 var versionFromBuild = "dev"
@@ -17,9 +17,10 @@ func runUpgrade(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	}
 
 	checkOnly := hasFlag(args, "--check")
-	httpClient := &http.Client{Timeout: 30 * time.Second}
+	metadataClient := &http.Client{Timeout: metadataDownloadTimeout}
+	artifactClient := &http.Client{Timeout: artifactDownloadTimeout}
 
-	release, err := fetchLatestRelease(httpClient)
+	release, err := fetchLatestRelease(metadataClient)
 	if err != nil {
 		return failTyped("upgrade", "network", fmt.Sprintf("check for updates failed: %v", err), "check your internet connection and try again", jsonOut, stdout, stderr)
 	}
@@ -59,26 +60,55 @@ func runUpgrade(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	if !jsonOut {
 		fmt.Fprintf(stdout, "Downloading %s (%s -> %s)...\n", asset.Name, current, release.TagName)
 	}
+	checksumsAsset := findChecksumsAsset(release)
+	if checksumsAsset == nil {
+		return failTyped("upgrade", "checksum", "checksums.txt not found in release assets", "the release may be incomplete; try again later or download manually from "+info.ReleaseURL, jsonOut, stdout, stderr)
+	}
 
 	var progressWriter io.Writer
 	if !jsonOut {
 		progressWriter = stderr
 	}
-	archiveData, err := downloadBytesProgress(httpClient, asset.BrowserDownloadURL, progressWriter)
-	if err != nil {
-		return failTyped("upgrade", "download", fmt.Sprintf("download failed: %v", err), "try again or download manually from "+info.ReleaseURL, jsonOut, stdout, stderr)
-	}
 
-	checksumsAsset := findChecksumsAsset(release)
-	if checksumsAsset == nil {
-		return failTyped("upgrade", "checksum", "checksums.txt not found in release assets", "the release may be incomplete; try again later or download manually from "+info.ReleaseURL, jsonOut, stdout, stderr)
+	type downloadResult struct {
+		kind string
+		data []byte
+		err  error
 	}
+	downloadCtx, cancelDownloads := context.WithCancel(context.Background())
+	defer cancelDownloads()
+	results := make(chan downloadResult, 2)
+	go func() {
+		data, err := downloadBytesProgressContext(downloadCtx, artifactClient, asset.BrowserDownloadURL, progressWriter)
+		results <- downloadResult{kind: "archive", data: data, err: err}
+	}()
+	go func() {
+		data, err := downloadBytesProgressContext(downloadCtx, artifactClient, checksumsAsset.BrowserDownloadURL, nil)
+		results <- downloadResult{kind: "checksums", data: data, err: err}
+	}()
+
+	var archiveData []byte
+	var checksums []byte
+	for completed := 0; completed < 2; completed++ {
+		result := <-results
+		if result.err != nil {
+			cancelDownloads()
+			if result.kind == "checksums" {
+				return failTyped("upgrade", "download", fmt.Sprintf("download checksums.txt failed: %v", result.err), "", jsonOut, stdout, stderr)
+			}
+			return failTyped("upgrade", "download", fmt.Sprintf("download failed: %v", result.err), "try again or download manually from "+info.ReleaseURL, jsonOut, stdout, stderr)
+		}
+		switch result.kind {
+		case "archive":
+			archiveData = result.data
+		case "checksums":
+			checksums = result.data
+		}
+	}
+	cancelDownloads()
+
 	if !jsonOut {
 		fmt.Fprintln(stdout, "Verifying checksum...")
-	}
-	checksums, err := downloadBytes(httpClient, checksumsAsset.BrowserDownloadURL)
-	if err != nil {
-		return failTyped("upgrade", "download", fmt.Sprintf("download checksums.txt failed: %v", err), "", jsonOut, stdout, stderr)
 	}
 	if err := verifyChecksum(archiveData, checksums, asset.Name); err != nil {
 		return failTyped("upgrade", "checksum", err.Error(), "the download may be corrupted; try again", jsonOut, stdout, stderr)
@@ -95,16 +125,28 @@ func runUpgrade(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	if !jsonOut {
 		fmt.Fprintln(stdout, "Installing...")
 	}
-	if err := replaceBinary(binary); err != nil {
+	replace, err := replaceBinaryForUpgrade(binary)
+	if err != nil {
 		return failTyped("upgrade", "install", fmt.Sprintf("replace binary failed: %v", err), "try running with elevated permissions or download manually", jsonOut, stdout, stderr)
 	}
 
 	if jsonOut {
+		data := map[string]any{"previous_version": current, "new_version": release.TagName, "asset": asset.Name, "status": replace.Status}
+		if replace.Message != "" {
+			data["message"] = replace.Message
+		}
 		return writeJSON(stdout, envelope{
 			OK: true, Command: "upgrade",
-			Data: map[string]any{"previous_version": current, "new_version": release.TagName, "asset": asset.Name},
+			Data: data,
 		})
 	}
-	fmt.Fprintf(stdout, "Updated %s -> %s\n", current, release.TagName)
+	if replace.Status == "scheduled" {
+		fmt.Fprintf(stdout, "Update scheduled: %s -> %s\n", current, release.TagName)
+		if replace.Message != "" {
+			fmt.Fprintln(stdout, replace.Message)
+		}
+	} else {
+		fmt.Fprintf(stdout, "Updated %s -> %s\n", current, release.TagName)
+	}
 	return 0
 }

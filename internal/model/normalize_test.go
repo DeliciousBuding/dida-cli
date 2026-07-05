@@ -104,8 +104,8 @@ func TestInferColumns(t *testing.T) {
 		{ID: "t1", ProjectID: "p1", ColumnID: "c1"},
 		{ID: "t2", ProjectID: "p1", ColumnID: "c1"},
 		{ID: "t3", ProjectID: "p1", ColumnID: "c2"},
-		{ID: "t4", ProjectID: "p2", ColumnID: "c1"},    // different project
-		{ID: "t5", ProjectID: "p1", ColumnID: ""},       // no column
+		{ID: "t4", ProjectID: "p2", ColumnID: "c1"}, // different project
+		{ID: "t5", ProjectID: "p1", ColumnID: ""},   // no column
 	}
 	columns := InferColumns("p1", tasks)
 	if len(columns) != 2 {
@@ -193,11 +193,11 @@ func TestObjectSlice(t *testing.T) {
 		map[string]any{"id": "2"},
 		42,
 	}
-	got := objectSlice(input)
+	got := ObjectSlice(input)
 	if len(got) != 2 || got[0]["id"] != "1" || got[1]["id"] != "2" {
 		t.Fatalf("objectSlice = %#v", got)
 	}
-	if got := objectSlice("not-array"); got != nil {
+	if got := ObjectSlice("not-array"); got != nil {
 		t.Fatalf("objectSlice(string) = %#v", got)
 	}
 }
@@ -215,10 +215,10 @@ func TestAnySlice(t *testing.T) {
 
 func TestFirstPresent(t *testing.T) {
 	item := map[string]any{"a": 1, "b": nil, "c": "hello"}
-	if got := firstPresent(item, "b", "c", "a"); got != "hello" {
+	if got := FirstPresent(item, "b", "c", "a"); got != "hello" {
 		t.Fatalf("firstPresent(b,c,a) = %#v, want hello", got)
 	}
-	if got := firstPresent(item, "missing", "also-missing"); got != nil {
+	if got := FirstPresent(item, "missing", "also-missing"); got != nil {
 		t.Fatalf("firstPresent(missing) = %#v, want nil", got)
 	}
 }

@@ -1,13 +1,14 @@
 {
   "name": "@delicious233/dida-cli",
-  "version": "0.2.0",
+  "version": "0.2.4",
   "private": false,
-  "description": "Agent-friendly CLI for Dida365 / TickTick — task automation with stable JSON output.",
+  "description": "JSON-first CLI for Dida365 / TickTick task automation with stable JSON output.",
   "bin": {
     "dida": "bin/dida"
   },
   "scripts": {
-    "postinstall": "node scripts/install.js"
+    "postinstall": "node scripts/install.js",
+    "test": "node --test scripts/install.test.js"
   },
   "files": [
     "bin/dida",

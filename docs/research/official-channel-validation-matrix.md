@@ -2,17 +2,17 @@
 
 This matrix separates the two official channels:
 
-- `official mcp`: token-based MCP server accessed with `DIDA365_TOKEN` or
-  saved local official token config.
+- `official mcp`: token-based MCP server accessed with `DIDA365_TOKEN` or a
+  configured official token store.
 - `official openapi`: OAuth REST API under `/open/v1`.
 
-They are intentionally not interchangeable.
+These channels use different auth models and command paths.
 
 ## Status Legend
 
 | Status | Meaning |
 | --- | --- |
-| `live-verified` | A real request succeeded against the current account. |
+| `live-verified` | A real request succeeded without committing private payloads. |
 | `implemented` | Command exists and tests pass, but live verification may need a safe target. |
 | `documented` | Official docs or schemas exist, but DidaCLI has not wrapped it yet. |
 | `blocked` | Requires user OAuth approval, a safe write target, or missing request evidence. |
@@ -27,19 +27,19 @@ They are intentionally not interchangeable.
 | Schema | `tools/list` by name | `official show <tool>` | live-verified | Used to inspect tool contracts before wrapping. |
 | Generic call | `tools/call` | `official call <tool>` | live-verified | Works for read tools such as project list and time-query tasks. |
 | Project list | `list_projects` | `official project list` | live-verified | Live smoke succeeded on 2026-05-10; promoted after evidence because it is the official-channel project discovery read. |
-| Habit list | `list_habits` | `official habit list` | live-verified | Live smoke succeeded on 2026-05-10; current account returned an empty list. |
+| Habit list | `list_habits` | `official habit list` | live-verified | Live smoke succeeded on 2026-05-10 with count-only evidence. |
 | Habit sections | `list_habit_sections` | `official habit sections` | live-verified | Live smoke succeeded on 2026-05-10; output was summarized by count only. |
-| Habit read | `get_habit` | `official habit get` | blocked | Command exists, but the 2026-05-10 token smoke found zero habits on the current account, so no safe known habit id is available for live read smoke. |
+| Habit read | `get_habit` | `official habit get` | blocked | Command exists; live read smoke needs a disposable known habit id. |
 | Habit create | `create_habit` | `official habit create` | implemented with dry-run | Local dry-run works without a token. Live smoke needs a reversible live habit create/update plan; no delete wrapper exists yet. |
-| Habit update | `update_habit` | `official habit update` | implemented with dry-run | Local dry-run works without a token. Live update requires a known test habit. Current account has no habits. |
-| Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented with dry-run | Local dry-run works without a token. Live write requires a known test habit and reversible check-in date. Current account has no habits. |
-| Habit check-ins | `get_habit_checkins` | `official habit checkins` | implemented | Requires known habit ids and a bounded date stamp range. Current account has no habits. |
-| Focus read | `get_focus` | `official focus get --type 0|1` | blocked | Command exists, but 2026-05-10 token smokes found no type 0 or type 1 focus records in the current account, including a 365-day range. |
-| Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10; repeat 365-day smokes also succeeded and returned empty lists. |
+| Habit update | `update_habit` | `official habit update` | implemented with dry-run | Local dry-run works without a token. Live update requires a disposable known habit. |
+| Habit check-in | `upsert_habit_checkins` | `official habit checkin` | implemented with dry-run | Local dry-run works without a token. Live write requires a disposable known habit and reversible check-in date. |
+| Habit check-ins | `get_habit_checkins` | `official habit checkins` | implemented | Requires known habit ids and a bounded date stamp range. |
+| Focus read | `get_focus` | `official focus get --type 0|1` | blocked | Command exists; live read smoke needs a disposable known focus record. |
+| Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10 with count-only evidence. |
 | Focus delete | `delete_focus` | `official focus delete --type 0|1 --yes` | implemented with dry-run | Local dry-run works without a token. Destructive live delete requires `--yes` and a disposable focus record. |
 | Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
-| Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 and returned an empty array for the current account. |
+| Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10 with count-only evidence. |
 | Task detail | `get_task_by_id`, `get_task_in_project` | `official task get` | live-verified | Project-scoped task detail smoke succeeded on 2026-05-10; private task payload was not committed. |
 | Batch task add | `batch_add_tasks` | `official task batch-add` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke created a disposable task and cleaned it up after verification. |
 | Batch task update | `batch_update_tasks` | `official task batch-update` | live-verified | Local `--dry-run` preview works without token; 2026-05-10 live smoke updated a disposable task title/content/priority, verified it through `official task get`, and cleaned it up. |
@@ -56,13 +56,13 @@ They are intentionally not interchangeable.
 | OAuth URL | `GET https://dida365.com/oauth/authorize` | `openapi auth-url` | implemented | Generates authorization URL from env or saved client credentials. |
 | Callback listener | local HTTP callback | `openapi listen-callback` | live-verified | 2026-05-10 listener received a real callback with `code` and matching `state`. |
 | Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | live-verified | 2026-05-10 real callback code exchange saved a bearer token locally. |
-| Interactive login | OAuth URL + listener + token exchange | `openapi login` | live-verified | OAuth browser approval, callback handling, and token persistence are now proven on the current account. |
-| Project list | `GET /open/v1/project` | `openapi project list` | live-verified | 2026-05-10 live smoke succeeded and returned six projects from the current account. |
+| Interactive login | OAuth URL + listener + token exchange | `openapi login` | live-verified | OAuth browser approval, callback handling, and token persistence are proven without committing token material. |
+| Project list | `GET /open/v1/project` | `openapi project list` | live-verified | 2026-05-10 live smoke returned a valid list shape; project names, ids, and counts were not committed. |
 | Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | live-verified | 2026-05-10 live smoke succeeded against a project discovered through `openapi project list`; private project data was not committed. |
 | Task CRUD | `/open/v1/task...` | `openapi task get/create/update/complete/delete/move` | partially live-verified | 2026-05-10 project-scoped `task get` succeeded. Write commands require disposable live tasks before final smoke. |
 | Task query | `/open/v1/task/completed`, `/open/v1/task/filter` | `openapi task completed/filter` | live-verified | 2026-05-10 bounded `completed` and `filter` reads succeeded with count-only evidence recorded. |
-| Focus | `/open/v1/focus...` | `openapi focus get/list/delete` | partially live-verified | 2026-05-10 bounded `focus list` succeeded for type 0 and type 1, returning empty lists. Known-id `get` and `delete` need disposable focus records. |
-| Habit | `/open/v1/habit...` | `openapi habit list/get/create/update/checkin/checkins` | partially live-verified | 2026-05-10 `habit list` succeeded and returned an empty list. Known-id reads and writes need disposable habit data. |
+| Focus | `/open/v1/focus...` | `openapi focus get/list/delete` | partially live-verified | 2026-05-10 bounded `focus list` succeeded for type 0 and type 1 with count-only evidence. Known-id `get` and `delete` need disposable focus records. |
+| Habit | `/open/v1/habit...` | `openapi habit list/get/create/update/checkin/checkins` | partially live-verified | 2026-05-10 `habit list` succeeded with count-only evidence. Known-id reads and writes need disposable habit data. |
 
 ## Current Priority
 

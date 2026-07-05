@@ -5,72 +5,275 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
+    inputs:
+      allow_changelog_fallback:
+        description: "Allow release notes from git log when CHANGELOG.md has no tag section"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  GOVULNCHECK_VERSION: v1.3.0
 
 jobs:
-  release:
-    name: Build release assets
+  validate:
+    name: Validate release
     runs-on: ubuntu-latest
+    env:
+      ALLOW_CHANGELOG_FALLBACK: ${{ github.event.inputs.allow_changelog_fallback || 'false' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
+      - name: Validate tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Release workflow must run from a semver tag like v0.2.1; got ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+          if [[ "${GITHUB_REF_TYPE}" != "tag" ]]; then
+            echo "Release must run from a tag ref, got ${GITHUB_REF_TYPE}:${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+          git rev-parse --verify --quiet "refs/tags/${GITHUB_REF_NAME}" >/dev/null
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          tag_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
+          head_commit="$(git rev-parse HEAD)"
+          if [[ "$head_commit" != "$tag_commit" ]]; then
+            echo "Checked-out HEAD ${head_commit} does not match tag ${GITHUB_REF_NAME} at ${tag_commit}" >&2
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$tag_commit" origin/main; then
+            echo "Release tag ${GITHUB_REF_NAME} must point to a commit reachable from origin/main" >&2
+            exit 1
+          fi
+
+      - name: Validate release metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          package_version="$(sed -n 's/  "version": "\([^"]*\)",/\1/p' npm/package.json | head -n 1)"
+          if [[ "$package_version" != "$version" ]]; then
+            echo "npm/package.json version ${package_version} does not match ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+          if [[ "$ALLOW_CHANGELOG_FALLBACK" != "true" ]] && ! grep -q "^## \\[${GITHUB_REF_NAME}\\]" CHANGELOG.md; then
+            echo "CHANGELOG.md must contain ## [${GITHUB_REF_NAME}] before release" >&2
+            exit 1
+          fi
+
       - name: Setup Go
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-          cache: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Check formatting
+        run: |
+          git ls-files '*.go' | xargs gofmt -w
+          git diff --check
+          git diff --exit-code
+
+      - name: Check private state
+        run: bash scripts/check-private-state.sh
+
+      - name: Test private-state guard
+        run: bash scripts/check-private-state.test.sh
+
+      - name: Validate packaging templates
+        run: bash scripts/validate-packaging.sh --metadata-only --version "${GITHUB_REF_NAME}"
 
       - name: Test
-        run: go test ./...
+        run: go test -count=1 ./...
 
       - name: Vet
         run: go vet ./...
 
       - name: Vulnerability check
-        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+        run: go run "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}" ./...
 
-      - name: Build archives
+  build:
+    name: Build ${{ matrix.goos }}/${{ matrix.goarch }}
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: windows
+            goarch: amd64
+            archive_ext: zip
+            binary: dida.exe
+          - goos: windows
+            goarch: arm64
+            archive_ext: zip
+            binary: dida.exe
+          - goos: linux
+            goarch: amd64
+            archive_ext: tar.gz
+            binary: dida
+          - goos: linux
+            goarch: arm64
+            archive_ext: tar.gz
+            binary: dida
+          - goos: darwin
+            goarch: amd64
+            archive_ext: tar.gz
+            binary: dida
+          - goos: darwin
+            goarch: arm64
+            archive_ext: tar.gz
+            binary: dida
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+
+      - name: Build archive
         shell: bash
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          ARCHIVE_EXT: ${{ matrix.archive_ext }}
+          BINARY: ${{ matrix.binary }}
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME}"
-          mkdir -p dist
+          name="dida_${version}_${GOOS}_${GOARCH}"
+          mkdir -p "dist/${name}"
+          go build -trimpath -ldflags "-s -w -X main.version=${version}" -o "dist/${name}/${BINARY}" ./cmd/dida
+          if [[ "${ARCHIVE_EXT}" == "zip" ]]; then
+            (cd dist && zip -qr "${name}.zip" "${name}")
+          else
+            (cd dist && tar -czf "${name}.tar.gz" "${name}")
+          fi
 
-          build_one() {
-            local os="$1"
-            local arch="$2"
-            local ext=""
-            local bin="dida"
-            if [[ "$os" == "windows" ]]; then
-              ext=".exe"
-              bin="dida.exe"
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: dida-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/dida_${{ github.ref_name }}_${{ matrix.goos }}_${{ matrix.goarch }}.${{ matrix.archive_ext }}
+          if-no-files-found: error
+
+  npm-preflight:
+    name: npm preflight
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Check npm release readiness
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          cd npm
+          npm version "$version" --no-git-tag-version --allow-same-version
+          if npm view @delicious233/dida-cli@"$version" version >/dev/null 2>&1; then
+            echo "@delicious233/dida-cli@$version already exists on npm; publish job will skip upload after package validation"
+          else
+            if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+              echo "NPM_TOKEN is required for npm release" >&2
+              exit 1
             fi
-
-            local work="dist/dida_${version}_${os}_${arch}"
-            mkdir -p "$work"
-            GOOS="$os" GOARCH="$arch" go build -trimpath -ldflags "-s -w -X main.version=${version}" -o "$work/$bin" ./cmd/dida
-
-            if [[ "$os" == "windows" ]]; then
-              (cd dist && zip -qr "dida_${version}_${os}_${arch}.zip" "dida_${version}_${os}_${arch}")
-            else
-              (cd dist && tar -czf "dida_${version}_${os}_${arch}.tar.gz" "dida_${version}_${os}_${arch}")
+            if ! npm whoami >/dev/null 2>&1; then
+              echo "NPM_TOKEN is invalid for npm registry authentication" >&2
+              exit 1
             fi
-            rm -rf "$work"
-          }
+          fi
+          pack_json="$(npm pack --dry-run --json)"
+          echo "$pack_json"
+          # shellcheck disable=SC2016
+          echo "$pack_json" | node -e '
+            const fs = require("fs");
+            const data = JSON.parse(fs.readFileSync(0, "utf8"));
+            const files = new Set(data[0].files.map((file) => file.path));
+            for (const path of ["bin/dida", "scripts/install.js", "package.json"]) {
+              if (!files.has(path)) {
+                console.error(`npm package is missing ${path}`);
+                process.exit(1);
+              }
+            }
+          '
 
-          build_one windows amd64
-          build_one windows arm64
-          build_one linux amd64
-          build_one linux arm64
-          build_one darwin amd64
-          build_one darwin arm64
+  release:
+    name: Create GitHub release
+    needs:
+      - build
+      - npm-preflight
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      ALLOW_CHANGELOG_FALLBACK: ${{ github.event.inputs.allow_changelog_fallback || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-          (cd dist && sha256sum *.zip *.tar.gz > checksums.txt)
+      - name: Download archives
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Verify archives
+        shell: bash
+        run: bash scripts/verify-release-archives.sh "${GITHUB_REF_NAME}" dist
+
+      - name: Smoke test Linux binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          archive="dist/dida_${GITHUB_REF_NAME}_linux_amd64.tar.gz"
+          tar -xzf "$archive" -C "$work"
+          got="$("$work/dida_${GITHUB_REF_NAME}_linux_amd64/dida" version | tr -d '\r\n')"
+          if [[ "$got" != "$GITHUB_REF_NAME" ]]; then
+            echo "binary version mismatch: got ${got}, want ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+
+      - name: Generate checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum ./*.zip ./*.tar.gz | sed 's|  \./|  |' > checksums.txt
 
       - name: Generate release notes
         shell: bash
@@ -80,10 +283,11 @@ jobs:
           repo="${GITHUB_REPOSITORY}"
           base_url="https://github.com/${repo}/releases/download/${version}"
 
-          printf '%s\n\n' '## What'\''s Changed' > release-notes.md
+          printf '%s\n\n' "## What's Changed" > release-notes.md
 
           changelog_section=""
           if [[ -f CHANGELOG.md ]]; then
+            # shellcheck disable=SC2016
             changelog_section=$(awk -v ver="$version" '
               /^## \[/ {
                 if (found) exit
@@ -94,31 +298,36 @@ jobs:
           fi
 
           if [[ -n "$changelog_section" ]]; then
-            echo "$changelog_section" >> release-notes.md
-          else
+            printf '%s\n' "$changelog_section" >> release-notes.md
+          elif [[ "$ALLOW_CHANGELOG_FALLBACK" == "true" ]]; then
             prev_tag=$(git tag --sort=-v:refname | grep -A1 "^${version}$" | tail -1)
             if [[ -n "$prev_tag" && "$prev_tag" != "$version" ]]; then
-              printf '%s\n\n' "Changes since ${prev_tag}:" >> release-notes.md
-              git log --oneline --no-merges "${prev_tag}..${version}" | while read -r line; do
-                echo "- ${line}" >> release-notes.md
-              done
+              {
+                printf '%s\n\n' "Changes since ${prev_tag}:"
+                git log --oneline --no-merges "${prev_tag}..${version}" | sed 's/^/- /'
+              } >> release-notes.md
             else
-              git log --oneline -20 | while read -r line; do
-                echo "- ${line}" >> release-notes.md
-              done
+              git log --oneline -20 | sed 's/^/- /' >> release-notes.md
             fi
+          else
+            echo "CHANGELOG.md must contain a ## [${version}] section before release." >&2
+            echo "Manual dispatch can set allow_changelog_fallback=true for an emergency release." >&2
+            exit 1
           fi
 
-          printf '%s\n' '' '---' '' '## Downloads' '' >> release-notes.md
-          printf '%s\n' '| Platform | File | Install |' >> release-notes.md
-          printf '%s\n' '|---|---|---|' >> release-notes.md
-          printf '%s\n' "| **macOS** (Apple Silicon) | [dida___VER___darwin_arm64.tar.gz](BASE_URL/dida___VER___darwin_arm64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
-          printf '%s\n' "| **macOS** (Intel) | [dida___VER___darwin_amd64.tar.gz](BASE_URL/dida___VER___darwin_amd64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
-          printf '%s\n' "| **Linux** (x86_64) | [dida___VER___linux_amd64.tar.gz](BASE_URL/dida___VER___linux_amd64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
-          printf '%s\n' "| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | \`curl -fsSL ...install.sh \| sh\` |" >> release-notes.md
-          printf '%s\n' "| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | Scoop / PowerShell |" >> release-notes.md
-          printf '%s\n' "| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | Scoop / PowerShell |" >> release-notes.md
-          printf '%s\n' '' '### Quick Install' '' '**npm:**' '```bash' 'npm install -g @delicious233/dida-cli' '```' '' '**macOS / Linux:**' '```bash' 'curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh | sh' '```' '' '**Windows PowerShell:**' '```powershell' 'iwr https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.ps1 -UseB | iex' '```' '' '**Go:**' '```bash' 'go install github.com/REPO_PLACEHOLDER/cmd/dida@latest' '```' '' '**Self-update:**' '```bash' 'dida upgrade' '```' '' '### Verify' '' '```bash' 'dida version' 'dida doctor --json' '```' '' 'SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).' >> release-notes.md
+          {
+            printf '%s\n' '' '---' '' '## Downloads' ''
+            printf '%s\n' '| Platform | File | Install |'
+            printf '%s\n' '|---|---|---|'
+            printf '%s\n' "| **macOS** (Apple Silicon) | [dida___VER___darwin_arm64.tar.gz](BASE_URL/dida___VER___darwin_arm64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
+            printf '%s\n' "| **macOS** (Intel) | [dida___VER___darwin_amd64.tar.gz](BASE_URL/dida___VER___darwin_amd64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
+            printf '%s\n' "| **Linux** (x86_64) | [dida___VER___linux_amd64.tar.gz](BASE_URL/dida___VER___linux_amd64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
+            printf '%s\n' "| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
+            printf '%s\n' "| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | PowerShell / Scoop |"
+            printf '%s\n' "| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | PowerShell / Scoop |"
+            # shellcheck disable=SC2016
+            printf '%s\n' '' '### Quick Install' '' '**npm:**' '```bash' 'npm install -g @delicious233/dida-cli' '```' '' '**macOS / Linux:**' '```bash' 'curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh | sh' '```' '' '**Windows PowerShell:**' '```powershell' 'iwr https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.ps1 -UseB | iex' '```' '' '**Go:**' '```bash' 'go install github.com/REPO_PLACEHOLDER/cmd/dida@latest' '```' '' '**Self-update check:**' '```bash' 'dida upgrade --check' '```' '' '### Verify' '' '```bash' 'dida version' 'dida doctor --json' '```' '' 'SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).'
+          } >> release-notes.md
 
           sed -i "s|__VER__|${version}|g" release-notes.md
           sed -i "s|BASE_URL|${base_url}|g" release-notes.md
@@ -127,15 +336,31 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
-          gh release create "${GITHUB_REF_NAME}" dist/* \
-            --title "DidaCLI ${GITHUB_REF_NAME}" \
-            --notes-file release-notes.md
+          set -euo pipefail
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" dist/*.zip dist/*.tar.gz dist/checksums.txt --clobber
+            gh release edit "${GITHUB_REF_NAME}" \
+              --title "DidaCLI ${GITHUB_REF_NAME}" \
+              --notes-file release-notes.md
+          else
+            gh release create "${GITHUB_REF_NAME}" dist/*.zip dist/*.tar.gz dist/checksums.txt \
+              --verify-tag \
+              --title "DidaCLI ${GITHUB_REF_NAME}" \
+              --notes-file release-notes.md
+          fi
 
-  npm-publish:
-    name: Publish to npm
+  npm-install-smoke:
+    name: npm install smoke (${{ matrix.os }})
     needs: release
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -143,15 +368,97 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "24"
+
+      - name: Pack npm package
+        id: pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          cd npm
+          npm version "$version" --no-git-tag-version --allow-same-version
+          npm pack --pack-destination "$RUNNER_TEMP"
+          tarball="$(find "$RUNNER_TEMP" -maxdepth 1 -name 'delicious233-dida-cli-*.tgz' -print -quit)"
+          if [[ -z "$tarball" ]]; then
+            echo "npm pack did not create a tarball in ${RUNNER_TEMP}" >&2
+            exit 1
+          fi
+          echo "tarball=$tarball" >> "$GITHUB_OUTPUT"
+
+      - name: Install package and smoke binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          work="$RUNNER_TEMP/dida-npm-smoke"
+          rm -rf "$work"
+          mkdir -p "$work"
+          cd "$work"
+          npm init -y >/dev/null
+          npm install "${{ steps.pack.outputs.tarball }}"
+          got="$(npx --no-install dida version | tr -d '\r\n')"
+          if [[ "$got" != "$GITHUB_REF_NAME" ]]; then
+            echo "npm-installed dida version mismatch: got ${got}, want ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+          npx --no-install dida doctor --json >/dev/null
+
+  npm-publish:
+    name: Publish to npm
+    needs: npm-install-smoke
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
 
-      - name: Update package version
+      - name: Prepare npm package
+        id: prepare
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          cd npm && npm version "$VERSION" --no-git-tag-version
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          cd npm
+          npm version "$version" --no-git-tag-version --allow-same-version
+          pack_json="$(npm pack --dry-run --json)"
+          echo "$pack_json"
+          # shellcheck disable=SC2016
+          echo "$pack_json" | node -e '
+            const fs = require("fs");
+            const data = JSON.parse(fs.readFileSync(0, "utf8"));
+            const files = new Set(data[0].files.map((file) => file.path));
+            for (const path of ["bin/dida", "scripts/install.js", "package.json"]) {
+              if (!files.has(path)) {
+                console.error(`npm package is missing ${path}`);
+                process.exit(1);
+              }
+            }
+          '
+          if npm view @delicious233/dida-cli@"$version" version >/dev/null 2>&1; then
+            echo "@delicious233/dida-cli@$version already exists on npm; skipping npm publish"
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          elif [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+            echo "NPM_TOKEN is required for npm publish" >&2
+            exit 1
+          elif ! npm whoami >/dev/null 2>&1; then
+            echo "NPM_TOKEN is invalid for npm registry authentication" >&2
+            exit 1
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Publish
-        run: cd npm && npm publish --access public
+        if: steps.prepare.outputs.already_published != 'true'
+        run: cd npm && npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

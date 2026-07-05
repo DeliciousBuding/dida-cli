@@ -11,9 +11,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestNormalizeVersion(t *testing.T) {
@@ -58,11 +61,20 @@ func TestIsNewer(t *testing.T) {
 }
 
 func TestFindAsset(t *testing.T) {
+	var platformAsset string
+	if runtime.GOOS == "windows" {
+		platformAsset = "dida_v0.3.0_windows_" + runtime.GOARCH + ".zip"
+	} else {
+		platformAsset = "dida_v0.3.0_" + runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
+	}
 	release := &githubRelease{
 		TagName: "v0.3.0",
 		Assets: []githubAsset{
+			{Name: platformAsset + ".sig", BrowserDownloadURL: "https://example.com/signature"},
+			{Name: platformAsset + ".sha256", BrowserDownloadURL: "https://example.com/sha256"},
 			{Name: "dida_v0.3.0_windows_amd64.zip", BrowserDownloadURL: "https://example.com/win"},
 			{Name: "dida_v0.3.0_linux_amd64.tar.gz", BrowserDownloadURL: "https://example.com/linux"},
+			{Name: platformAsset, BrowserDownloadURL: "https://example.com/archive"},
 			{Name: "checksums.txt", BrowserDownloadURL: "https://example.com/checksums"},
 		},
 	}
@@ -70,6 +82,9 @@ func TestFindAsset(t *testing.T) {
 	asset, _ := findAsset(release)
 	if asset == nil {
 		t.Fatalf("findAsset() = nil, want asset for %s/%s", runtime.GOOS, runtime.GOARCH)
+	}
+	if asset.Name != platformAsset {
+		t.Fatalf("findAsset() = %q, want exact archive %q", asset.Name, platformAsset)
 	}
 
 	// verify it returns nil for missing platform
@@ -309,6 +324,197 @@ func TestUpgradeFullFlowIntegration(t *testing.T) {
 	}
 }
 
+func TestUpgradeInstallFlowDownloadsVerifiesExtractsAndInstalls(t *testing.T) {
+	fakeBinary := []byte("#!/bin/sh\necho dida v99.0.0")
+	var archiveData []byte
+	var assetName string
+	if runtime.GOOS == "windows" {
+		assetName = "dida_v99.0.0_windows_" + runtime.GOARCH + ".zip"
+		archiveData = buildTestZip(t, "dida_v99.0.0_windows_"+runtime.GOARCH+"/dida.exe", fakeBinary)
+	} else {
+		assetName = "dida_v99.0.0_" + runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
+		archiveData = buildTestTarGz(t, "dida_v99.0.0_"+runtime.GOOS+"_"+runtime.GOARCH+"/dida", fakeBinary)
+	}
+	archiveHash := sha256.Sum256(archiveData)
+	checksumLine := hex.EncodeToString(archiveHash[:]) + "  " + assetName + "\n"
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/DeliciousBuding/dida-cli/releases/latest":
+			_ = json.NewEncoder(w).Encode(githubRelease{
+				TagName: "v99.0.0",
+				Assets: []githubAsset{
+					{Name: assetName, BrowserDownloadURL: "http://" + r.Host + "/download/" + assetName},
+					{Name: "checksums.txt", BrowserDownloadURL: "http://" + r.Host + "/download/checksums.txt"},
+				},
+			})
+		case "/download/" + assetName:
+			w.Header().Set("Content-Length", fmt.Sprintf("%d", len(archiveData)))
+			w.Write(archiveData)
+		case "/download/checksums.txt":
+			w.Write([]byte(checksumLine))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	origURL := releasesLatestURL
+	releasesLatestURL = server.URL + "/repos/DeliciousBuding/dida-cli/releases/latest"
+	defer func() { releasesLatestURL = origURL }()
+
+	origVersion := versionFromBuild
+	versionFromBuild = "v1.0.0"
+	defer func() { versionFromBuild = origVersion }()
+
+	origReplace := replaceBinaryForUpgrade
+	var installed []byte
+	replaceBinaryForUpgrade = func(newBinary []byte) (replaceResult, error) {
+		installed = append([]byte(nil), newBinary...)
+		return replaceResult{Status: "installed"}, nil
+	}
+	defer func() { replaceBinaryForUpgrade = origReplace }()
+
+	var stdout, stderr bytes.Buffer
+	code := runUpgrade(nil, true, &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("runUpgrade() code = %d stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	if string(installed) != string(fakeBinary) {
+		t.Fatalf("installed binary = %q, want %q", string(installed), string(fakeBinary))
+	}
+	if !strings.Contains(stdout.String(), `"status": "installed"`) {
+		t.Fatalf("stdout missing installed status: %s", stdout.String())
+	}
+}
+
+func TestDownloadBytesProgressRetriesTransientHTTPStatus(t *testing.T) {
+	origDelay := artifactDownloadRetryDelay
+	artifactDownloadRetryDelay = 0
+	defer func() { artifactDownloadRetryDelay = origDelay }()
+
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if requests < 3 {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.Write([]byte("ok"))
+	}))
+	defer server.Close()
+
+	data, err := downloadBytesProgress(nil, server.URL, nil)
+	if err != nil {
+		t.Fatalf("downloadBytesProgress() error = %v", err)
+	}
+	if string(data) != "ok" {
+		t.Fatalf("data = %q, want ok", string(data))
+	}
+	if requests != 3 {
+		t.Fatalf("requests = %d, want 3", requests)
+	}
+}
+
+func TestDownloadBytesProgressRetriesRateLimitStatus(t *testing.T) {
+	origDelay := artifactDownloadRetryDelay
+	artifactDownloadRetryDelay = 0
+	defer func() { artifactDownloadRetryDelay = origDelay }()
+
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if requests == 1 {
+			w.Header().Set("Retry-After", "0")
+			w.WriteHeader(http.StatusTooManyRequests)
+			return
+		}
+		w.Write([]byte("ok"))
+	}))
+	defer server.Close()
+
+	data, err := downloadBytesProgress(nil, server.URL, nil)
+	if err != nil {
+		t.Fatalf("downloadBytesProgress() error = %v", err)
+	}
+	if string(data) != "ok" {
+		t.Fatalf("data = %q, want ok", string(data))
+	}
+	if requests != 2 {
+		t.Fatalf("requests = %d, want 2", requests)
+	}
+}
+
+func TestRunUpgradeReturnsChecksumDownloadErrorWithoutWaitingForSlowArchive(t *testing.T) {
+	origDelay := artifactDownloadRetryDelay
+	artifactDownloadRetryDelay = 0
+	defer func() { artifactDownloadRetryDelay = origDelay }()
+
+	var assetName string
+	if runtime.GOOS == "windows" {
+		assetName = "dida_v99.0.0_windows_" + runtime.GOARCH + ".zip"
+	} else {
+		assetName = "dida_v99.0.0_" + runtime.GOOS + "_" + runtime.GOARCH + ".tar.gz"
+	}
+
+	archiveCanceled := make(chan struct{})
+	archiveStarted := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/repos/DeliciousBuding/dida-cli/releases/latest":
+			_ = json.NewEncoder(w).Encode(githubRelease{
+				TagName: "v99.0.0",
+				Assets: []githubAsset{
+					{Name: assetName, BrowserDownloadURL: "http://" + r.Host + "/download/" + assetName},
+					{Name: "checksums.txt", BrowserDownloadURL: "http://" + r.Host + "/download/checksums.txt"},
+				},
+			})
+		case "/download/" + assetName:
+			w.Header().Set("Content-Length", "100")
+			closeOnce(archiveStarted)
+			select {
+			case <-r.Context().Done():
+				close(archiveCanceled)
+			case <-time.After(5 * time.Second):
+				w.Write([]byte("slow archive"))
+			}
+		case "/download/checksums.txt":
+			<-archiveStarted
+			w.WriteHeader(http.StatusInternalServerError)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer server.Close()
+
+	origURL := releasesLatestURL
+	releasesLatestURL = server.URL + "/repos/DeliciousBuding/dida-cli/releases/latest"
+	defer func() { releasesLatestURL = origURL }()
+
+	origVersion := versionFromBuild
+	versionFromBuild = "v1.0.0"
+	defer func() { versionFromBuild = origVersion }()
+
+	start := time.Now()
+	var stdout, stderr bytes.Buffer
+	code := runUpgrade(nil, true, &stdout, &stderr)
+	elapsed := time.Since(start)
+	if code != 1 {
+		t.Fatalf("runUpgrade() code = %d, want 1 stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	if elapsed > 2*time.Second {
+		t.Fatalf("runUpgrade() took %s, want fast checksum failure", elapsed)
+	}
+	if !strings.Contains(stdout.String(), "download checksums.txt failed") {
+		t.Fatalf("stdout missing checksums download error: %s", stdout.String())
+	}
+	select {
+	case <-archiveCanceled:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("archive request was not canceled")
+	}
+}
+
 func TestUpgradeMissingChecksumsFails(t *testing.T) {
 	var assetName string
 	if runtime.GOOS == "windows" {
@@ -413,6 +619,106 @@ func TestProgressReader(t *testing.T) {
 	}
 	if !strings.Contains(progress.String(), "100%") {
 		t.Fatalf("progress output missing 100%%: %s", progress.String())
+	}
+}
+
+func TestReplaceBinaryWindowsUsesDeferredInstaller(t *testing.T) {
+	dir := t.TempDir()
+	exePath := filepath.Join(dir, "dida.exe")
+	if err := os.WriteFile(exePath, []byte("old"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	origSchedule := scheduleWindowsReplacement
+	var scheduledScript string
+	scheduleWindowsReplacement = func(scriptPath string) error {
+		scheduledScript = scriptPath
+		return nil
+	}
+	defer func() { scheduleWindowsReplacement = origSchedule }()
+
+	result, err := replaceBinaryWindows(exePath, []byte("new"))
+	if err != nil {
+		t.Fatalf("replaceBinaryWindows() error = %v", err)
+	}
+	if result.Status != "scheduled" {
+		t.Fatalf("replace result status = %q, want scheduled", result.Status)
+	}
+
+	current, err := os.ReadFile(exePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(current) != "old" {
+		t.Fatalf("running exe should not be replaced synchronously, got %q", string(current))
+	}
+	newData, err := os.ReadFile(exePath + ".new")
+	if err != nil {
+		t.Fatalf("new binary was not staged: %v", err)
+	}
+	if string(newData) != "new" {
+		t.Fatalf("staged binary = %q, want new", string(newData))
+	}
+	if scheduledScript == "" {
+		t.Fatalf("replacement script was not scheduled")
+	}
+	script, err := os.ReadFile(scheduledScript)
+	if err != nil {
+		t.Fatalf("scheduled script missing: %v", err)
+	}
+	scriptText := string(script)
+	for _, want := range []string{"tasklist", "move /Y", exePath, exePath + ".new"} {
+		if !strings.Contains(scriptText, want) {
+			t.Fatalf("script missing %q:\n%s", want, scriptText)
+		}
+	}
+	_ = os.Remove(scheduledScript)
+}
+
+func TestReplaceBinaryWindowsCleansStagedFilesWhenSchedulingFails(t *testing.T) {
+	dir := t.TempDir()
+	exePath := filepath.Join(dir, "dida.exe")
+	if err := os.WriteFile(exePath, []byte("old"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	origSchedule := scheduleWindowsReplacement
+	var scheduledScript string
+	scheduleWindowsReplacement = func(scriptPath string) error {
+		scheduledScript = scriptPath
+		return fmt.Errorf("scheduler failed")
+	}
+	defer func() { scheduleWindowsReplacement = origSchedule }()
+
+	_, err := replaceBinaryWindows(exePath, []byte("new"))
+	if err == nil {
+		t.Fatalf("replaceBinaryWindows() error = nil, want scheduler failure")
+	}
+	if _, err := os.Stat(exePath + ".new"); !os.IsNotExist(err) {
+		t.Fatalf("staged binary should be removed, stat error = %v", err)
+	}
+	if scheduledScript == "" {
+		t.Fatalf("expected scheduler to receive script path")
+	}
+	if _, err := os.Stat(scheduledScript); !os.IsNotExist(err) {
+		t.Fatalf("script should be removed after scheduling failure, stat error = %v", err)
+	}
+}
+
+func TestBuildWindowsReplacementScriptEscapesPercent(t *testing.T) {
+	script := buildWindowsReplacementScript(`X:\Pkg\Dida%CLI\dida.exe`, `X:\Pkg\Dida%CLI\dida.exe.new`, `X:\Pkg\dida%upgrade.cmd`, 1234)
+	for _, want := range []string{`Dida%%CLI`, `dida%%upgrade.cmd`, `PID=1234`} {
+		if !strings.Contains(script, want) {
+			t.Fatalf("script missing escaped value %q:\n%s", want, script)
+		}
+	}
+}
+
+func closeOnce(ch chan struct{}) {
+	select {
+	case <-ch:
+	default:
+		close(ch)
 	}
 }
 

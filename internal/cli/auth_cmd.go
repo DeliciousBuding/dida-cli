@@ -21,7 +21,13 @@ func runAuth(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 	}
 	switch args[0] {
 	case "status":
-		verify := hasFlag(args[1:], "--verify")
+		verify := false
+		for _, arg := range args[1:] {
+			if arg != "--verify" {
+				return failTyped("auth status", "validation", fmt.Sprintf("unknown flag %q", arg), "run: dida auth status [--verify] --json", jsonOut, stdout, stderr)
+			}
+			verify = true
+		}
 		data := map[string]any{"cookie": auth.CookieStatus(), "oauth": map[string]any{"available": false, "message": "not implemented"}}
 		if verify {
 			verifyResult := verifyCookieAuth()
@@ -63,6 +69,9 @@ func runAuthLogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Write
 	if hasFlag(args, "--browser") {
 		return runAuthLoginBrowser(args, jsonOut, stdout, stderr)
 	}
+	if len(args) > 0 {
+		return failTyped("auth login", "validation", fmt.Sprintf("unknown flag %q", args[0]), "run: dida auth login --help", jsonOut, stdout, stderr)
+	}
 	data := map[string]any{
 		"mode":             "manual_cookie",
 		"login_url":        "https://dida365.com/signin",
@@ -87,16 +96,21 @@ func runAuthLogin(args []string, jsonOut bool, stdout io.Writer, stderr io.Write
 func runAuthLoginBrowser(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	timeout := 180 * time.Second
 	for i := 0; i < len(args); i++ {
-		if args[i] == "--timeout" {
+		switch args[i] {
+		case "--browser":
+			continue
+		case "--timeout":
 			if i+1 >= len(args) {
 				return failTyped("auth login", "validation", "--timeout requires seconds", "example: dida auth login --browser --timeout 300", jsonOut, stdout, stderr)
 			}
-			var seconds int
-			if _, err := fmt.Sscanf(args[i+1], "%d", &seconds); err != nil || seconds <= 0 {
+			seconds, err := parseIntStrict(args[i+1])
+			if err != nil || seconds <= 0 {
 				return failTyped("auth login", "validation", "--timeout must be a positive integer", "example: dida auth login --browser --timeout 300", jsonOut, stdout, stderr)
 			}
 			timeout = time.Duration(seconds) * time.Second
 			i++
+		default:
+			return failTyped("auth login", "validation", fmt.Sprintf("unknown flag %q", args[i]), "run: dida auth login --help", jsonOut, stdout, stderr)
 		}
 	}
 	if !jsonOut {
@@ -137,6 +151,9 @@ func runAuthLogout(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 		fmt.Fprintln(stdout, "Usage: dida auth logout [--json]")
 		return 0
 	}
+	if len(args) > 0 {
+		return failTyped("auth logout", "validation", fmt.Sprintf("unknown flag %q", args[0]), "run: dida auth logout --json", jsonOut, stdout, stderr)
+	}
 	if err := auth.ClearCookieToken(); err != nil {
 		return failTyped("auth logout", "auth", err.Error(), "", jsonOut, stdout, stderr)
 	}
@@ -158,7 +175,7 @@ func runAuthCookie(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	}
 	token, err := parseTokenInput(args[1:])
 	if err != nil {
-		return fail("auth cookie set", err.Error(), jsonOut, stdout, stderr)
+		return failTyped("auth cookie set", "validation", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
 	}
 	item, err := auth.SaveCookieToken(token)
 	if err != nil {
@@ -204,6 +221,8 @@ func parseTokenInput(args []string) (string, error) {
 				return "", fmt.Errorf("token stdin exceeded %d bytes", maxTokenStdinBytes)
 			}
 			return string(data), nil
+		default:
+			return "", fmt.Errorf("unknown flag %q", args[i])
 		}
 	}
 	return "", fmt.Errorf("missing token; use --token-stdin to avoid shell history")
