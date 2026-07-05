@@ -172,6 +172,21 @@ dida sync all --json
 ```
 </details>
 
+### Latest captured tasks
+
+When several related tasks are captured from WeChat or another inbox flow with
+their context and materials, use `task latest` to read the newest captured
+items first:
+
+```bash
+dida task latest --limit 10 --project inbox --compact --json
+```
+
+The command sorts active tasks by creation time, maps `--project inbox` to the
+real inbox project from sync data, and falls back to modified time when creation
+metadata is missing. Omit `--project inbox` to read the newest active tasks
+across all projects.
+
 <details>
 <summary>Web API writes</summary>
 

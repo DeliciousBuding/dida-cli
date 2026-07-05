@@ -160,6 +160,18 @@ dida sync all --json
 ```
 </details>
 
+### 最新捕获任务
+
+从微信或其他入口连续推送多个相关任务，并把上下文和材料一起放进收集箱时，优先用
+`task latest` 读取最近捕获的任务：
+
+```bash
+dida task latest --limit 10 --project inbox --compact --json
+```
+
+这个命令按创建时间倒序返回活动任务，`--project inbox` 会映射到同步数据里的真实收集箱项目。
+如果创建时间缺失，会回退到修改时间。去掉 `--project inbox` 可以读取所有项目里的最新活动任务。
+
 <details>
 <summary>Web API 写入</summary>
 
