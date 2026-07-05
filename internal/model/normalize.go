@@ -30,6 +30,10 @@ type Task struct {
 	DueUnix       int64            `json:"dueUnix,omitempty"`
 	StartDate     string           `json:"startDate,omitempty"`
 	StartUnix     int64            `json:"startUnix,omitempty"`
+	CreatedTime   string           `json:"createdTime,omitempty"`
+	CreatedUnix   int64            `json:"createdUnix,omitempty"`
+	ModifiedTime  string           `json:"modifiedTime,omitempty"`
+	ModifiedUnix  int64            `json:"modifiedUnix,omitempty"`
 	CompletedAt   string           `json:"completedTime,omitempty"`
 	CompletedUnix int64            `json:"completedUnix,omitempty"`
 	Priority      int              `json:"priority"`
@@ -126,32 +130,38 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 		dueTime, dueOK := ParseDidaTime(due)
 		start := str(item["startDate"])
 		startTime, startOK := ParseDidaTime(start)
+		created := str(item["createdTime"])
+		createdTime, createdOK := ParseDidaTime(created)
+		modified := str(item["modifiedTime"])
+		modifiedTime, modifiedOK := ParseDidaTime(modified)
 		completed := str(item["completedTime"])
 		completedTime, completedOK := ParseDidaTime(completed)
 		task := Task{
-			ID:          id,
-			ProjectID:   projectID,
-			ProjectName: projectNames[projectID],
-			ParentID:    str(item["parentId"]),
-			Title:       title,
-			Content:     str(item["content"]),
-			Desc:        str(item["desc"]),
-			AllDay:      boolish(FirstPresent(item, "allDay", "isAllDay")),
-			DueDate:     due,
-			StartDate:   start,
-			CompletedAt: completed,
-			Priority:    intish(item["priority"]),
-			Status:      intish(item["status"]),
-			Deleted:     intish(item["deleted"]),
-			ColumnID:    str(item["columnId"]),
-			Tags:        stringSlice(item["tags"]),
-			Items:       ObjectSlice(item["items"]),
-			Reminders:   anySlice(item["reminders"]),
-			Repeat:      str(item["repeat"]),
-			RepeatFrom:  str(item["repeatFrom"]),
-			RepeatFlag:  str(item["repeatFlag"]),
-			IsFloating:  boolish(FirstPresent(item, "isFloating")),
-			Raw:         item,
+			ID:           id,
+			ProjectID:    projectID,
+			ProjectName:  projectNames[projectID],
+			ParentID:     str(item["parentId"]),
+			Title:        title,
+			Content:      str(item["content"]),
+			Desc:         str(item["desc"]),
+			AllDay:       boolish(FirstPresent(item, "allDay", "isAllDay")),
+			DueDate:      due,
+			StartDate:    start,
+			CreatedTime:  created,
+			ModifiedTime: modified,
+			CompletedAt:  completed,
+			Priority:     intish(item["priority"]),
+			Status:       intish(item["status"]),
+			Deleted:      intish(item["deleted"]),
+			ColumnID:     str(item["columnId"]),
+			Tags:         stringSlice(item["tags"]),
+			Items:        ObjectSlice(item["items"]),
+			Reminders:    anySlice(item["reminders"]),
+			Repeat:       str(item["repeat"]),
+			RepeatFrom:   str(item["repeatFrom"]),
+			RepeatFlag:   str(item["repeatFlag"]),
+			IsFloating:   boolish(FirstPresent(item, "isFloating")),
+			Raw:          item,
 		}
 		if dueOK {
 			task.DueUnix = dueTime.Unix()
@@ -159,6 +169,12 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 		}
 		if startOK {
 			task.StartUnix = startTime.Unix()
+		}
+		if createdOK {
+			task.CreatedUnix = createdTime.Unix()
+		}
+		if modifiedOK {
+			task.ModifiedUnix = modifiedTime.Unix()
 		}
 		if completedOK {
 			task.CompletedUnix = completedTime.Unix()
@@ -182,6 +198,28 @@ func NormalizeTasks(items []map[string]any, projectNames map[string]string, now 
 		return strings.ToLower(a.Title) < strings.ToLower(b.Title)
 	})
 	return out
+}
+
+func LatestTasks(tasks []Task) []Task {
+	out := append([]Task(nil), ActiveTasks(tasks)...)
+	sort.SliceStable(out, func(i, j int) bool {
+		a, b := latestSortUnix(out[i]), latestSortUnix(out[j])
+		if a != b {
+			return a > b
+		}
+		return strings.ToLower(out[i].Title) < strings.ToLower(out[j].Title)
+	})
+	return out
+}
+
+func latestSortUnix(task Task) int64 {
+	if task.CreatedUnix != 0 {
+		return task.CreatedUnix
+	}
+	if task.ModifiedUnix != 0 {
+		return task.ModifiedUnix
+	}
+	return task.DueUnix
 }
 
 func SearchTasks(tasks []Task, query string) []Task {

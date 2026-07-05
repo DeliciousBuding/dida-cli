@@ -106,6 +106,7 @@ dida openapi task filter --args-json "{\"projectIds\":[\"<project-id>\"],\"statu
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi habit list --json
 dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407 --json
+dida task latest --limit 10 --project inbox --compact --json
 dida project tasks <project-id> --limit 50 --compact --json
 dida project columns <project-id> --json
 dida folder list --json
@@ -155,6 +156,7 @@ dry-run layer.
 ```bash
 dida +today --json
 dida task today --compact --json
+dida task latest --limit 10 --project inbox --compact --json
 dida task list --filter today --limit 20 --compact --json
 dida task list --filter all --limit 50 --compact --json
 dida task get <task-id> --json
@@ -164,6 +166,12 @@ dida task due-counts --json
 dida quadrant list --json
 dida quadrant view Q2 --json
 ```
+
+`task latest` is the fastest read after several related tasks are captured from
+WeChat or another inbox flow. It returns active tasks sorted by `createdTime`
+descending, falls back to `modifiedTime` and then `dueDate` when creation
+metadata is absent, and maps `--project inbox` to the real `inboxId` from sync.
+Omit `--project` to read newest active tasks across all projects.
 
 ## Task Writes
 

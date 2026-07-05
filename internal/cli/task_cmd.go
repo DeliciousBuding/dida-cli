@@ -21,6 +21,8 @@ func runTask(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) in
 		return runTaskList(append([]string{"list", "--filter", "today"}, args[1:]...), jsonOut, stdout, stderr)
 	case "list":
 		return runTaskList(args, jsonOut, stdout, stderr)
+	case "latest":
+		return runTaskLatest(args[1:], jsonOut, stdout, stderr)
 	case "search":
 		return runTaskSearch(args[1:], jsonOut, stdout, stderr)
 	case "upcoming":
@@ -67,6 +69,53 @@ func runTaskDueCounts(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 		return writeJSON(stdout, envelope{OK: true, Command: "task due-counts", Meta: meta, Data: data})
 	}
 	fmt.Fprintf(stdout, "Due activity counts: %d task(s)\n", len(counts))
+	return 0
+}
+
+func runTaskLatest(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	limit, compact, projectID, err := parseTaskLatestFlags(args)
+	if err != nil {
+		return failTyped("task latest", "validation", err.Error(), "run: dida task latest --help", jsonOut, stdout, stderr)
+	}
+	view, err := loadSyncView()
+	if err != nil {
+		return failTyped("task latest", "auth", err.Error(), "run: dida auth cookie set --token-stdin --json", jsonOut, stdout, stderr)
+	}
+	projectAlias := ""
+	if strings.EqualFold(projectID, "inbox") {
+		projectAlias = "inbox"
+		projectID = view.InboxID
+	}
+	tasks := model.LatestTasks(view.Tasks)
+	if projectID != "" {
+		filtered := make([]model.Task, 0, len(tasks))
+		for _, task := range tasks {
+			if task.ProjectID == projectID {
+				filtered = append(filtered, task)
+			}
+		}
+		tasks = filtered
+	}
+	total := len(tasks)
+	if limit > 0 && len(tasks) > limit {
+		tasks = tasks[:limit]
+	}
+	data := map[string]any{
+		"compact":  compact,
+		"latestBy": "createdTime",
+		"tasks":    taskOutput(tasks, compact),
+	}
+	meta := map[string]any{"count": len(tasks), "total": total, "source": "sync"}
+	if projectID != "" {
+		meta["projectId"] = projectID
+	}
+	if projectAlias != "" {
+		meta["projectAlias"] = projectAlias
+	}
+	if jsonOut {
+		return writeJSON(stdout, envelope{OK: true, Command: "task latest", Meta: meta, Data: data})
+	}
+	printTasks(stdout, tasks, total)
 	return 0
 }
 
@@ -309,6 +358,41 @@ func runTaskDelete(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	}
 	fmt.Fprintf(stdout, "Task deleted: %s\n", opts.TaskID)
 	return 0
+}
+
+func parseTaskLatestFlags(args []string) (int, bool, string, error) {
+	limit := 10
+	compact := false
+	projectID := ""
+	for i := 0; i < len(args); i++ {
+		switch args[i] {
+		case "--limit":
+			if i+1 >= len(args) {
+				return 0, false, "", fmt.Errorf("--limit requires a value")
+			}
+			parsed, err := parseIntStrict(args[i+1])
+			if err != nil || parsed < 0 {
+				return 0, false, "", fmt.Errorf("--limit must be a non-negative integer")
+			}
+			limit = parsed
+			i++
+		case "--compact", "--brief":
+			compact = true
+		case "--project", "-p":
+			if i+1 >= len(args) {
+				return 0, false, "", fmt.Errorf("%s requires a project id", args[i])
+			}
+			parsedProjectID, err := parseIDValue(args, i+1, "project")
+			if err != nil {
+				return 0, false, "", err
+			}
+			projectID = parsedProjectID
+			i++
+		default:
+			return 0, false, "", fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	return limit, compact, projectID, nil
 }
 
 func parseTaskListFlags(args []string) (string, int, bool, error) {
