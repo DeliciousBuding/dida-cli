@@ -23,13 +23,13 @@
 - [x] Phase 4: Provenance and Contract Hardening (4/4 tasks)
 - [x] Phase 5: Public Repository Governance (3/3 tasks)
 - [x] Phase 6: Supply-Chain Security Automation (2/2 tasks)
-- [ ] Phase 7: Pinned GitHub Actions (0/2 tasks)
+- [x] Phase 7: Pinned GitHub Actions (2/2 tasks)
 
 ## Current Status
 
-**Active Phase**: Phase 7 - Pinned GitHub Actions
-**Active Task**: 7.1 Pin external workflow actions by SHA; 7.2 Add local pinned-actions validator
-**Blockers**: None. Official npm registry reports `@delicious233/dida-cli@0.2.5` as `latest`; npm search/listing caches may still show `0.2.4`.
+**Active Phase**: Complete
+**Active Task**: None
+**Blockers**: None. `v0.2.5` remains `latest` on the official npm registry; CI, CodeQL, Scorecard, and Pages passed on `main` after Actions SHA pinning.
 
 ## Governance Status
 
@@ -50,7 +50,7 @@ adaptive:
     replan: 8
     rescope: 11
   total_tasks: 18
-  completed_tasks: 16
+  completed_tasks: 18
   last_updated: "2026-07-07"
 ```
 
@@ -75,13 +75,13 @@ adaptive:
 | 2026-07-07 | Release publication | M | S/P/R pass | 1 | Released `v0.2.5`, verified npm README/provenance on the official registry, and updated package-manager checksum templates after release assets existed. |
 | 2026-07-07 | 6.1 | S | P/R pass | 0 | Added CodeQL Go analysis with extended security queries; remote CodeQL workflow passed on `main`. |
 | 2026-07-07 | 6.2 | M | P/E/R pass | 1 | Added OpenSSF Scorecard, split publish/SARIF permissions after first remote failure, and made security workflows part of governance validation. |
-| 2026-07-07 | 7.1 | S | P/E pass | 0 | In progress: external workflow actions are pinned to full commit SHAs with version comments. |
-| 2026-07-07 | 7.2 | S | P/R pass | 0 | In progress: pinned-actions validation is wired into CI hygiene, release validation, and release-check. |
+| 2026-07-07 | 7.1 | S | P/E pass | 0 | External workflow actions are pinned to full commit SHAs with version comments; remote CI, CodeQL, Scorecard, and Pages passed on `main`. |
+| 2026-07-07 | 7.2 | S | P/R pass | 0 | Pinned-actions validation is wired into CI hygiene, release validation, and release-check; local validator tests and remote hygiene passed. |
 
 ## Next Steps
 
 1. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
-2. Finish remote verification for pinned GitHub Actions on CI, CodeQL, and Scorecard.
+2. Review the Dependabot action-update PRs that are now expected after SHA pinning.
 3. Decide whether to add signed release artifacts or SLSA provenance for GitHub Release archives.
 
 ## Session Log
@@ -99,3 +99,4 @@ adaptive:
 | 2026-07-07 | Supply-chain security automation | Started Phase 6 to add CodeQL, OpenSSF Scorecard, and governance checks for security workflows. |
 | 2026-07-07 | Phase 6 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main` after splitting Scorecard publish and SARIF upload permissions. |
 | 2026-07-07 | Pinned GitHub Actions | Started Phase 7 to pin external workflow actions by full SHA and enforce the contract in local checks. |
+| 2026-07-07 | Phase 7 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main` after Actions SHA pinning. |
