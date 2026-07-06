@@ -81,6 +81,8 @@ require_text .github/workflows/scorecard.yml 'publish_results: true' "Scorecard 
 require_text .github/workflows/scorecard.yml 'github/codeql-action/upload-sarif@v[0-9]+' "Scorecard SARIF upload"
 require_text .github/workflows/scorecard.yml 'security-events: write' "Scorecard security-events permission"
 require_text .github/workflows/scorecard.yml 'id-token: write' "Scorecard OIDC permission"
+require_text .github/workflows/scorecard.yml 'actions/upload-artifact@v[5-9]' "Scorecard SARIF artifact upload"
+require_text .github/workflows/scorecard.yml 'actions/download-artifact@v[5-9]' "Scorecard SARIF artifact download"
 
 require_text .github/workflows/release.yml 'actions/upload-artifact@v[5-9]' "current upload-artifact major"
 require_text .github/workflows/release.yml 'actions/download-artifact@v[5-9]' "current download-artifact major"
