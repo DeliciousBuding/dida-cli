@@ -22,13 +22,13 @@
 - [x] Phase 3: Open-Source Maintenance Polish (2/2 tasks)
 - [x] Phase 4: Provenance and Contract Hardening (4/4 tasks)
 - [x] Phase 5: Public Repository Governance (3/3 tasks)
-- [ ] Phase 6: Supply-Chain Security Automation (0/2 tasks)
+- [x] Phase 6: Supply-Chain Security Automation (2/2 tasks)
 
 ## Current Status
 
-**Active Phase**: Phase 6 - Supply-Chain Security Automation
-**Active Task**: Add CodeQL, OpenSSF Scorecard, and governance enforcement
-**Blockers**: None. `v0.2.5` release work is complete; this phase adds repository security automation.
+**Active Phase**: Complete
+**Active Task**: None
+**Blockers**: None. `v0.2.5` release work is complete; CI, CodeQL, Scorecard, and Pages passed on `main`.
 
 ## Governance Status
 
@@ -49,7 +49,7 @@ adaptive:
     replan: 7
     rescope: 10
   total_tasks: 16
-  completed_tasks: 14
+  completed_tasks: 16
   last_updated: "2026-07-07"
 ```
 
@@ -72,12 +72,14 @@ adaptive:
 | 2026-07-07 | 5.2 | S | P/E pass | 0 | Strengthened PR checklist, issue secret warnings, and contributing verification steps. |
 | 2026-07-07 | 5.3 | S | P/R pass | 0 | Added CI-tested repository governance validator. |
 | 2026-07-07 | Release publication | M | S/P/R pass | 1 | Released `v0.2.5`, verified npm README/provenance on the official registry, and updated package-manager checksum templates after release assets existed. |
+| 2026-07-07 | 6.1 | S | P/R pass | 0 | Added CodeQL Go analysis with extended security queries; remote CodeQL workflow passed on `main`. |
+| 2026-07-07 | 6.2 | M | P/E/R pass | 1 | Added OpenSSF Scorecard, split publish/SARIF permissions after first remote failure, and made security workflows part of governance validation. |
 
 ## Next Steps
 
-1. Verify CodeQL and Scorecard workflows locally with `actionlint`.
-2. Push Phase 6 and confirm CI plus new security workflows on `main`.
-3. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
+1. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
+2. Decide whether to pin GitHub Actions by SHA. Scorecard now reports that as the largest remaining supply-chain weakness.
+3. Decide whether to add signed release artifacts or SLSA provenance for GitHub Release archives.
 
 ## Session Log
 
@@ -92,3 +94,4 @@ adaptive:
 | 2026-07-07 | v0.2.5 release prep | Moved governance changes from Unreleased to `v0.2.5`, bumped npm package metadata, and adjusted packaging validation so pre-release checks do not require fake future checksums. |
 | 2026-07-07 | v0.2.5 release | Published GitHub Release and npm package, verified official npm registry README/provenance, and updated package-manager templates to the new release checksums. |
 | 2026-07-07 | Supply-chain security automation | Started Phase 6 to add CodeQL, OpenSSF Scorecard, and governance checks for security workflows. |
+| 2026-07-07 | Phase 6 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main` after splitting Scorecard publish and SARIF upload permissions. |
