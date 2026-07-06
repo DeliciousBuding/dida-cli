@@ -20,6 +20,7 @@
 - [x] Phase 1: Stabilize Main CI (2/2 tasks)
 - [x] Phase 2: Release Governance (3/3 tasks)
 - [x] Phase 3: Open-Source Maintenance Polish (2/2 tasks)
+- [x] Phase 4: Provenance and Contract Hardening (3/3 tasks)
 
 ## Current Status
 
@@ -43,10 +44,10 @@ adaptive:
   strategy: "single-branch release-governance hardening"
   thresholds:
     annotate: 2
-    replan: 3
-    rescope: 5
-  total_tasks: 7
-  completed_tasks: 7
+    replan: 4
+    rescope: 6
+  total_tasks: 10
+  completed_tasks: 10
   last_updated: "2026-07-06"
 ```
 
@@ -61,11 +62,14 @@ adaptive:
 | 2026-07-06 | 2.3 | S | U/R pass | 0 | CI and release workflows call scripts. |
 | 2026-07-06 | 3.1 | S | P/R pass | 0 | Added `RELEASE.md` and `make release-check`. |
 | 2026-07-06 | 3.2 | S | R pass | 0 | Added Dependabot for Actions and npm. |
+| 2026-07-06 | 4.1 | S | S/P pass | 0 | Added tested changelog structure validation. |
+| 2026-07-06 | 4.2 | S | S/R pass | 0 | Extracted npm package contents validation from workflow. |
+| 2026-07-06 | 4.3 | S | P/E pass | 0 | Release workflow prefers npm Trusted Publishing/OIDC and retains `NPM_TOKEN` fallback. |
 
 ## Next Steps
 
 1. Monitor the next release tag dry run or real release when cutting `v0.2.4+`.
-2. Keep `CHANGELOG.md`, `RELEASE.md`, and release metadata in sync before tagging.
+2. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing `NPM_TOKEN`.
 
 ## Session Log
 
@@ -74,3 +78,4 @@ adaptive:
 | 2026-07-06 | PR #2 recovery | Reopened and merged PR #2 correctly, then identified red main CI. |
 | 2026-07-06 | Release governance hardening | Fixed CI root causes and added scripted release gates, docs, and automation. |
 | 2026-07-06 | Remote verification | Confirmed PR #2 is `MERGED`; latest CI, Pages rerun, and Dependabot update checks passed on `main`. |
+| 2026-07-06 | Provenance and contract hardening | Added tested changelog/npm package validators and OIDC-first npm publish path with token fallback. |

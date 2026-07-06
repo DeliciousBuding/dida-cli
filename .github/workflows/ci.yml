@@ -55,8 +55,14 @@ jobs:
       - name: Test release metadata validator
         run: bash scripts/validate-release-metadata.test.sh
 
+      - name: Test changelog validator
+        run: bash scripts/validate-changelog.test.sh
+
       - name: Test release notes generator
         run: bash scripts/generate-release-notes.test.sh
+
+      - name: Test npm package validator
+        run: bash scripts/validate-npm-package.test.sh
 
       - name: Lint workflows
         run: go run "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"

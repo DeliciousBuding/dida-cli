@@ -12,6 +12,8 @@
 
 **Overall Health**: 1/5 principles fully healthy - refactoring needed for release governance.
 
+**Phase 4 Update**: changelog and npm package validation are now extracted into focused scripts, reducing release workflow duplication and making package metadata contracts locally testable.
+
 ### S.U.P.E.R Violation Hotspots
 
 1. `.github/workflows/release.yml`: inline validation and notes generation.
@@ -25,12 +27,16 @@
 |:--|:--|:--|:--|:--|
 | Tag push discovers missing changelog or npm mismatch too late | Broken release | Medium | High | Scripted `make release-check` and CI tests |
 | npm publish token invalid | Release stalls after GitHub release | Medium | High | Existing npm preflight remains before release creation |
+| npm long-lived token exposure | Package publishing blast radius | Medium | High | Prefer Trusted Publishing/OIDC, with `NPM_TOKEN` retained only as a fallback |
+| changelog compare links drift | Confusing release notes and broken references | Medium | Medium | Validate `Unreleased` and release compare links in CI |
 | Windows runner parses coverage path differently | CI red on main | High | High | Use `coverage/profile.txt` through Bash |
 | Local shell scripts fail under WSL due CRLF | Maintainer checks unreliable | High | Medium | `.gitattributes` for `*.sh` |
 
 ## Testing Risks
 
 Release logic must be unit-tested as shell scripts, not only executed on tag push. CI must run those script tests on every push and PR.
+
+Phase 4 adds coverage for changelog structure and npm package contents, so release metadata drift is caught before tag pushes.
 
 ## Project Governance Risks
 

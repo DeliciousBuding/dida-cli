@@ -39,6 +39,8 @@ Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`:
 5. smoke-test npm install on Linux and Windows
 6. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
 
-Required secret: `NPM_TOKEN`.
+Preferred npm authentication: configure npm Trusted Publishing for the `@delicious233/dida-cli` package with this GitHub repository and the `release.yml` workflow. This uses GitHub Actions OIDC and does not require a long-lived npm token.
+
+Fallback npm authentication: define `NPM_TOKEN` as a repository secret. The release workflow validates token auth during npm preflight and uses it only when Trusted Publishing is not available.
 
 Emergency manual dispatch may set `allow_changelog_fallback=true`, but normal releases must use an explicit changelog section.

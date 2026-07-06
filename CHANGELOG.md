@@ -15,6 +15,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 ### Changed
 - CI stores coverage profiles under `coverage/profile.txt` and runs coverage commands through Bash on all test runners for cross-platform consistency.
 - Release notes generation is now a tested script instead of inline workflow logic.
+- Changelog and npm package contents are now validated by reusable scripts in CI and release preflight.
+- npm publishing now prefers Trusted Publishing/OIDC when `NPM_TOKEN` is absent, while retaining token auth as a fallback.
 
 ### Fixed
 - `dida task list --filter <invalid>` now returns a validation error before auth or sync loading.
@@ -229,10 +231,11 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[v0.2.1]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.0...v0.2.1
-[v0.2.2]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.1...v0.2.2
-[v0.2.3]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.2...v0.2.3
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...HEAD
 [v0.2.4]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.3...v0.2.4
+[v0.2.3]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.2...v0.2.3
+[v0.2.2]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.1...v0.2.2
+[v0.2.1]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.0...v0.2.1
 [v0.2.0]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.16...v0.2.0
 [v0.1.16]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.15...v0.1.16
 [v0.1.15]: https://github.com/DeliciousBuding/dida-cli/compare/v0.1.14...v0.1.15

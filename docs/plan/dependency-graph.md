@@ -18,9 +18,19 @@ graph TD
     T32["Task 3.2: Dependabot"]
   end
 
+  subgraph Phase4["Phase 4: Provenance and Contract Hardening"]
+    T41["Task 4.1: Changelog structure validator"]
+    T42["Task 4.2: npm package validator"]
+    T43["Task 4.3: OIDC-first npm publish"]
+  end
+
   T21 --> T23
   T22 --> T23
   T21 --> T31
+  T21 --> T41
+  T23 --> T42
+  T42 --> T43
   Phase1 --> Phase2
   Phase2 --> Phase3
+  Phase3 --> Phase4
 ```

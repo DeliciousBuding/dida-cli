@@ -47,6 +47,9 @@ jobs:
             args+=(--allow-changelog-fallback)
           fi
           bash scripts/validate-release-metadata.sh "${args[@]}"
+          if [[ "${ALLOW_CHANGELOG_FALLBACK}" != "true" ]]; then
+            bash scripts/validate-changelog.sh --tag "${GITHUB_REF_NAME}"
+          fi
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -170,34 +173,17 @@ jobs:
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
-          cd npm
-          npm version "$version" --no-git-tag-version --allow-same-version
+          bash scripts/validate-npm-package.sh --version "${GITHUB_REF_NAME}"
           if npm view @delicious233/dida-cli@"$version" version >/dev/null 2>&1; then
             echo "@delicious233/dida-cli@$version already exists on npm; publish job will skip upload after package validation"
           else
             if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
-              echo "NPM_TOKEN is required for npm release" >&2
-              exit 1
-            fi
-            if ! npm whoami >/dev/null 2>&1; then
+              echo "NPM_TOKEN is not set; publish job will rely on npm Trusted Publishing/OIDC"
+            elif ! npm whoami >/dev/null 2>&1; then
               echo "NPM_TOKEN is invalid for npm registry authentication" >&2
               exit 1
             fi
           fi
-          pack_json="$(npm pack --dry-run --json)"
-          echo "$pack_json"
-          # shellcheck disable=SC2016
-          echo "$pack_json" | node -e '
-            const fs = require("fs");
-            const data = JSON.parse(fs.readFileSync(0, "utf8"));
-            const files = new Set(data[0].files.map((file) => file.path));
-            for (const path of ["bin/dida", "scripts/install.js", "package.json"]) {
-              if (!files.has(path)) {
-                console.error(`npm package is missing ${path}`);
-                process.exit(1);
-              }
-            }
-          '
 
   release:
     name: Create GitHub release
@@ -351,37 +337,36 @@ jobs:
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
-          cd npm
-          npm version "$version" --no-git-tag-version --allow-same-version
-          pack_json="$(npm pack --dry-run --json)"
-          echo "$pack_json"
-          # shellcheck disable=SC2016
-          echo "$pack_json" | node -e '
-            const fs = require("fs");
-            const data = JSON.parse(fs.readFileSync(0, "utf8"));
-            const files = new Set(data[0].files.map((file) => file.path));
-            for (const path of ["bin/dida", "scripts/install.js", "package.json"]) {
-              if (!files.has(path)) {
-                console.error(`npm package is missing ${path}`);
-                process.exit(1);
-              }
-            }
-          '
+          bash scripts/validate-npm-package.sh --version "${GITHUB_REF_NAME}"
           if npm view @delicious233/dida-cli@"$version" version >/dev/null 2>&1; then
             echo "@delicious233/dida-cli@$version already exists on npm; skipping npm publish"
             echo "already_published=true" >> "$GITHUB_OUTPUT"
-          elif [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
-            echo "NPM_TOKEN is required for npm publish" >&2
-            exit 1
           elif ! npm whoami >/dev/null 2>&1; then
-            echo "NPM_TOKEN is invalid for npm registry authentication" >&2
-            exit 1
+            if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
+              echo "No NPM_TOKEN detected; attempting npm Trusted Publishing/OIDC in the publish step"
+              echo "already_published=false" >> "$GITHUB_OUTPUT"
+              echo "auth_mode=trusted-publishing" >> "$GITHUB_OUTPUT"
+            else
+              echo "NPM_TOKEN is invalid for npm registry authentication" >&2
+              exit 1
+            fi
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "auth_mode=token" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish
         if: steps.prepare.outputs.already_published != 'true'
-        run: cd npm && npm publish --provenance --access public
+        shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.prepare.outputs.auth_mode }}" == "trusted-publishing" ]]; then
+            unset NODE_AUTH_TOKEN
+            echo "Publishing through npm Trusted Publishing/OIDC"
+          else
+            echo "Publishing through NPM_TOKEN fallback"
+          fi
+          cd npm
+          npm publish --provenance --access public
