@@ -55,3 +55,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: `internal/cli` 覆盖率从 50.8% 提升到 61.3%；覆盖 folder/tag/quadrant/agent context/closed reads 和 OpenAPI project/task/focus/habit reads
 - **详情**: [MASTER.md](webapi-openapi-read-coverage/progress/MASTER.md)
+
+## roadmap-governance-freshness
+
+- **描述**: 增加 roadmap freshness 校验，防止 `ROADMAP.md` 的当前版本和下一里程碑继续滞后
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: `make release-check VERSION=v0.2.5` 现在会运行 `scripts/validate-roadmap.sh` 和对应 mutation tests
+- **详情**: [MASTER.md](roadmap-governance-freshness/progress/MASTER.md)

@@ -22,9 +22,9 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline (as of v0.2.1)
+## Current Baseline (as of v0.2.5)
 
-Latest release: `v0.2.1` (2026-05-12).
+Latest release: `v0.2.5` (2026-07-07).
 
 ### Three Channels — All Functional
 
@@ -40,7 +40,7 @@ Latest release: `v0.2.1` (2026-05-12).
 - `install.sh` / `install.ps1`: smoke-tested on Linux/macOS/Windows
 - npm: `@delicious233/dida-cli` with postinstall binary download
 - `dida upgrade`: self-update with SHA-256 verification (new in v0.2.1)
-- CI: tag-triggered release + npm auto-publish
+- CI: tag-triggered release, provenance, release gates, and npm auto-publish
 
 ### Engineering Quality
 
@@ -52,11 +52,10 @@ Latest release: `v0.2.1` (2026-05-12).
 
 ### What's NOT Done Yet
 
-- CLI package coverage target is met at 61.3%; keep new command work above 60%
-- Shell completion is implemented through `dida completion <bash|zsh|fish|powershell>`
+- goreleaser migration is undecided; the current hand-rolled release workflow is still validated
 - No Homebrew tap or Scoop bucket (templates exist, not published)
+- Remaining OpenAPI and Official MCP live smokes need suitable account state
 - No i18n (all errors English-only)
-- `doctor --check-upgrade` reports available updates without installing
 - Website needs polish and better content
 
 ## Non-Negotiable Rules
@@ -434,7 +433,7 @@ deferred until release cadence and package identifier are final.
 
 ## Workstream G: Self-Update & CLI Ergonomics
 
-### G1. v0.2.1 Scope (current sprint)
+### G1. v0.2.x Completed Scope
 
 | Item | Status | Notes |
 |---|---|---|
@@ -446,19 +445,21 @@ deferred until release cadence and package identifier are final.
 | Schema registry entry | Done | `upgrade` registered |
 | CHANGELOG update | Done | Consolidated unreleased items |
 | README badges | Done | CI + version + npm badges already present |
-| README rewrite | Done | Condensed ~60%, better structure, collapsed verbose sections |
+| README rewrite | Done | Condensed, better structure, collapsed verbose sections |
+| `dida completion` | Done | bash/zsh/fish/powershell, hardcoded templates |
+| `dida doctor` upgrade check | Done | Explicit `--check-upgrade`; JSON status plus one-line text output |
+| Staticcheck gate | Done | `make staticcheck`, CI, release validation, and release-check use Staticcheck v0.7.0 |
+| CLI coverage floor | Done | `internal/cli` coverage is 61.3%; keep new work above 60% |
 
 ### G2. v0.3.0 Scope (next milestone)
 
 | Item | Priority | Notes |
 |---|---|---|
-| `dida completion` | Done | bash/zsh/fish/powershell, hardcoded templates |
-| `dida doctor` upgrade check | Done | Explicit `--check-upgrade`; JSON status plus one-line text output |
 | goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
 | Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
 | Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI |
-| CLI test coverage to 60%+ | Done | Current `internal/cli` coverage: 61.3%; preserve the floor as command families grow |
-| staticcheck in CI | Done | `make staticcheck`, CI, release validation, and release-check use Staticcheck v0.7.0 |
+| Website polish | Medium | Align website copy and command examples with `v0.2.5` |
+| Live smoke backlog | Medium | OpenAPI/Official MCP reads and disposable writes where account state allows |
 
 ### G3. v0.4.0+ (long-term)
 
@@ -539,20 +540,13 @@ If another agent takes over, the best sequence is:
 
 ## Current Best Next Tasks
 
-For v0.2.1 release (immediate):
+For v0.3.0 (next milestone):
 
-1. Add download progress output to `dida upgrade` (byte counter on stderr)
-2. Write upgrade integration test (httptest mock of full fetch→verify→extract flow)
-3. Add CI + version badges to README
-4. Update CHANGELOG [Unreleased] → [v0.2.1]
-5. Tag and release v0.2.1
-
-For v0.3.0 (next sprint):
-
-1. Integrate upgrade check into `dida doctor` - done through explicit `--check-upgrade`
-2. Evaluate goreleaser migration (replace hand-rolled build script)
-3. Publish Homebrew tap and Scoop bucket
-4. Keep CLI test coverage above 60% as new command paths are added
+1. Decide whether to keep the current release workflow or migrate to goreleaser.
+2. Publish Homebrew tap and Scoop bucket from the validated templates.
+3. Live-smoke remaining OpenAPI read families and disposable writes.
+4. Live-smoke known-id Official MCP habit/focus reads when account state allows.
+5. Polish the website so install, auth, and command examples match `v0.2.5`.
 
 ## Done Means Done
 

@@ -12,6 +12,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - `dida doctor --check-upgrade` reports GitHub Release update status in the normal doctor JSON/text diagnostic output.
 - Staticcheck now runs through `make staticcheck`, CI, release validation, and `make release-check`.
 - `make coverage-cli` prints the `internal/cli` coverage profile and function-level coverage summary.
+- Roadmap freshness validation now keeps `ROADMAP.md` aligned with the current release and next milestone.
 
 ### Tests
 - CLI coverage increased from 43.9% to 61.3% with local tests for help output, task/project dry-run previews, sync-backed reads, Web API read wrappers, OpenAPI task dry-run previews, and OpenAPI read commands.
