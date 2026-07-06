@@ -47,3 +47,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: `internal/cli` 覆盖率从 43.9% 提升到 50.8%；覆盖 task/project dry-run、本地 help、sync-backed reads、OpenAPI task dry-run
 - **详情**: [MASTER.md](cli-coverage-improvement/progress/MASTER.md)
+
+## webapi-openapi-read-coverage
+
+- **描述**: 继续补充 Web API 读命令和 OpenAPI 读命令的本地 CLI 测试
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: `internal/cli` 覆盖率从 50.8% 提升到 61.3%；覆盖 folder/tag/quadrant/agent context/closed reads 和 OpenAPI project/task/focus/habit reads
+- **详情**: [MASTER.md](webapi-openapi-read-coverage/progress/MASTER.md)

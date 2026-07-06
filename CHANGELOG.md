@@ -14,7 +14,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - `make coverage-cli` prints the `internal/cli` coverage profile and function-level coverage summary.
 
 ### Tests
-- CLI coverage increased from 43.9% to 50.8% with local tests for help output, task/project dry-run previews, sync-backed reads, Web API read wrappers, and OpenAPI task dry-run previews.
+- CLI coverage increased from 43.9% to 61.3% with local tests for help output, task/project dry-run previews, sync-backed reads, Web API read wrappers, OpenAPI task dry-run previews, and OpenAPI read commands.
 
 ## [v0.2.5] - 2026-07-07
 
