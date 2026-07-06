@@ -55,6 +55,7 @@ Examples:
 - [ ] `go vet ./...` passes
 - [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
+- [ ] `bash scripts/validate-repo-governance.sh` passes if touching `.github/`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `RELEASE.md`, or `npm/README.md`
 - [ ] New/changed commands have schema entries in `internal/cli/schema_cmd.go`
 - [ ] New/changed commands have help text in `internal/cli/help.go`
 - [ ] Docs updated (`docs/commands.md`, `docs/api-coverage.md`, etc.)

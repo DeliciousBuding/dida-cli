@@ -53,4 +53,8 @@ run_case "missing PR private-state gate fails" fail "grep -v 'check-private-stat
 
 run_case "missing npm README token warning fails" fail "grep -v 'Do not paste cookies' npm/README.md > next && mv next npm/README.md"
 
+run_case "missing CodeQL workflow fails" fail "rm .github/workflows/codeql.yml"
+
+run_case "missing Scorecard security-events permission fails" fail "grep -v 'security-events: write' .github/workflows/scorecard.yml > next && mv next .github/workflows/scorecard.yml"
+
 echo "validate-repo-governance tests passed"

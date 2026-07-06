@@ -40,12 +40,14 @@ run_case() {
   rm -f "$out_file" "$err_file"
 }
 
-run_case "current changelog passes" pass ":" --tag v0.2.4
+current_tag="$(sed -n 's/^## \[\(v[0-9][^]]*\)\].*/\1/p' "$repo_root/CHANGELOG.md" | head -n 1)"
+
+run_case "current changelog passes" pass ":" --tag "$current_tag"
 
 run_case "missing unreleased link fails" fail "grep -v '^\\[Unreleased\\]:' CHANGELOG.md > next && mv next CHANGELOG.md"
 
-run_case "missing required tag fails" fail "sed -i '/^## \\[v0.2.4\\]/d' CHANGELOG.md" --tag v0.2.4
+run_case "missing required tag fails" fail "sed -i '/^## \\[${current_tag}\\]/d' CHANGELOG.md" --tag "$current_tag"
 
-run_case "missing compare link fails" fail "grep -v '^\\[v0.2.4\\]:' CHANGELOG.md > next && mv next CHANGELOG.md"
+run_case "missing compare link fails" fail "grep -v '^\\[${current_tag}\\]:' CHANGELOG.md > next && mv next CHANGELOG.md"
 
 echo "validate-changelog tests passed"

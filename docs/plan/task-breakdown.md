@@ -2,8 +2,8 @@
 
 ## Overview
 
-- **Total Phases**: 5
-- **Total Tasks**: 14
+- **Total Phases**: 6
+- **Total Tasks**: 16
 - **Estimated Total Effort**: M
 
 ## S.U.P.E.R Design Constraints
@@ -15,6 +15,7 @@
 - **R**: Release notes generation can run locally or in GitHub Actions.
 - **P**: Changelog structure and npm package contents are explicit release contracts.
 - **P**: Public repository entry points are treated as explicit governance contracts, not informal Markdown.
+- **P**: Security automation is a first-class repository contract, enforced by the same governance validator as public docs and templates.
 
 ## Phase 1: Stabilize Main CI
 
@@ -90,3 +91,20 @@
 |:--|:--|:--|:--|:--|
 | A | 5.1, 5.2 | S | Medium | `README.md`, `.github/`, `CONTRIBUTING.md` |
 | B | 5.3 | S | Medium | `scripts/`, `Makefile`, `.github/workflows/ci.yml` |
+
+## Phase 6: Supply-Chain Security Automation
+
+**Goal**: Add static analysis and repository security posture checks that run without maintainer intervention.
+**S.U.P.E.R Focus**: P, E, R
+
+| # | Task | Priority | Effort | Depends On | Lane | S.U.P.E.R | Test Expectation | Memory Impact | Acceptance Criteria |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| 6.1 | Add CodeQL analysis for Go | P1 | S | 5.3 | A | P, R | actionlint and remote workflow run | Update `AGENTS.md` | CodeQL analyzes Go with extended security queries and uploads code scanning results |
+| 6.2 | Add OpenSSF Scorecard and governance enforcement | P1 | S | 5.3 | B | P, E | governance validator tests and actionlint | Update `AGENTS.md` and `CONTRIBUTING.md` | Scorecard publishes SARIF and governance validation fails if security workflows or permissions are removed |
+
+### Phase 6 Parallel Lanes
+
+| Lane | Tasks | Combined Effort | Merge Risk | Key Files |
+|:--|:--|:--|:--|:--|
+| A | 6.1 | S | Low | `.github/workflows/codeql.yml` |
+| B | 6.2 | S | Medium | `.github/workflows/scorecard.yml`, `scripts/validate-repo-governance.sh`, docs |

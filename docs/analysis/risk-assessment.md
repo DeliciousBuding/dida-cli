@@ -14,6 +14,8 @@
 
 **Phase 4 Update**: changelog and npm package validation are now extracted into focused scripts, reducing release workflow duplication and making package metadata contracts locally testable.
 
+**Phase 6 Update**: CodeQL and OpenSSF Scorecard workflows are now treated as repository governance contracts, so removal of the security workflows or their code-scanning permissions fails CI hygiene.
+
 ### S.U.P.E.R Violation Hotspots
 
 1. `.github/workflows/release.yml`: inline validation and notes generation.
@@ -32,6 +34,8 @@
 | npm registry listing has no README | New users cannot evaluate install and usage from npm | High | Medium | Include `npm/README.md` and validate package contents before publish |
 | public README starts with internal metadata | GitHub visitors see agent-only state before product identity | Medium | Medium | Remove frontmatter and validate README starts with public content |
 | contribution templates miss release or secret checks | PRs can bypass repo-specific safety gates | Medium | High | Validate PR template and issue forms in CI |
+| static code scanning is absent | security regressions rely only on reviewer attention | Medium | Medium | Run CodeQL for Go with extended security queries |
+| repository security posture drifts silently | supply-chain regressions are noticed late | Medium | Medium | Run OpenSSF Scorecard and require workflow permissions in governance validation |
 | Windows runner parses coverage path differently | CI red on main | High | High | Use `coverage/profile.txt` through Bash |
 | Local shell scripts fail under WSL due CRLF | Maintainer checks unreliable | High | Medium | `.gitattributes` for `*.sh` |
 
@@ -41,10 +45,12 @@ Release logic must be unit-tested as shell scripts, not only executed on tag pus
 
 Phase 4 adds coverage for changelog structure and npm package contents, including README presence, so release metadata and registry listing drift are caught before tag pushes. Phase 5 extends the same idea to repository governance files and public entry-point copy.
 
+Phase 6 extends governance coverage to security automation. The local validator now requires CodeQL, Scorecard, SARIF upload, and code-scanning permissions before CI can pass.
+
 ## Project Governance Risks
 
 `CLAUDE.md` referenced an active `docs/progress/MASTER.md` that did not exist after the previous archive. This run recreates a current MASTER index for release-governance work.
 
 ## Compatibility Concerns
 
-Release tags remain strict `vX.Y.Z`; no prerelease semver is introduced. Existing package manager template versions remain pinned to `v0.2.4` until a new release is prepared.
+Release tags remain strict `vX.Y.Z`; no prerelease semver is introduced. Package manager templates now track the latest checksum-verified GitHub Release after release assets exist.

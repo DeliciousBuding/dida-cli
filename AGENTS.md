@@ -34,6 +34,7 @@ DidaCLI is a JSON-first CLI for Dida365 / TickTick, built as a single Go binary 
 - `git diff --staged` self-review before committing: verify no secrets, no debug output, no local paths.
 - Error messages and response bodies must redact tokens and sensitive patterns. The CLI never prints full cookie or token values.
 - `data/private/` is gitignored and reserved for local-only research evidence. Never commit its contents.
+- CodeQL and OpenSSF Scorecard workflows are part of repository governance. If they are changed, run `bash scripts/validate-repo-governance.sh` and `go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12`.
 
 ## Commit Conventions
 
@@ -55,7 +56,7 @@ Examples: `feat: add task activity reads`, `fix: redact cookie in upgrade error 
 ## PR / Review Requirements
 
 - All changes go through PRs to `main`. Direct pushes to `main` are reserved for release tags and trivial doc fixes.
-- PR checklist: (1) `go test ./...` passes, (2) `go vet ./...` clean, (3) `govulncheck` clean, (4) `check-private-state.sh` clean, (5) related docs updated (commands.md, api-coverage.md, SKILL.md as applicable).
+- PR checklist: (1) `go test ./...` passes, (2) `go vet ./...` clean, (3) `govulncheck` clean, (4) `check-private-state.sh` clean, (5) repository governance checks pass when workflows or public entry points change, (6) related docs updated (commands.md, api-coverage.md, SKILL.md as applicable).
 - At least one approving review before merge. Reviewer checks: correctness, channel isolation, safety flags (`--dry-run` / `--yes`), test coverage, and doc consistency.
 - Merged PRs should be squash-merged to keep `main` history linear and semantic-prefixed.
 

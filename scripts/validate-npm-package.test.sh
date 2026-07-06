@@ -47,11 +47,14 @@ run_case() {
   rm -f "$out_file" "$err_file"
 }
 
-run_case "current npm package passes" pass ":" --version v0.2.4
+current_version="$(node -e 'console.log(require("./npm/package.json").version)')"
+current_tag="v${current_version}"
 
-run_case "missing bin wrapper fails" fail "rm npm/bin/dida" --version v0.2.4
+run_case "current npm package passes" pass ":" --version "$current_tag"
 
-run_case "missing README fails" fail "rm npm/README.md" --version v0.2.4
+run_case "missing bin wrapper fails" fail "rm npm/bin/dida" --version "$current_tag"
+
+run_case "missing README fails" fail "rm npm/README.md" --version "$current_tag"
 
 run_case "wrong package name fails" fail '
   node -e "
@@ -61,7 +64,7 @@ run_case "wrong package name fails" fail '
     pkg.name = \"bad-package\";
     fs.writeFileSync(path, JSON.stringify(pkg, null, 2));
   "
-' --version v0.2.4
+' --version "$current_tag"
 
 run_case "invalid version fails" fail ":" --version not-semver
 
