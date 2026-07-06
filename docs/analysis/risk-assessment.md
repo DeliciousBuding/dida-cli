@@ -29,6 +29,7 @@
 | npm publish token invalid | Release stalls after GitHub release | Medium | High | Existing npm preflight remains before release creation |
 | npm long-lived token exposure | Package publishing blast radius | Medium | High | Prefer Trusted Publishing/OIDC, with `NPM_TOKEN` retained only as a fallback |
 | changelog compare links drift | Confusing release notes and broken references | Medium | Medium | Validate `Unreleased` and release compare links in CI |
+| npm registry listing has no README | New users cannot evaluate install and usage from npm | High | Medium | Include `npm/README.md` and validate package contents before publish |
 | Windows runner parses coverage path differently | CI red on main | High | High | Use `coverage/profile.txt` through Bash |
 | Local shell scripts fail under WSL due CRLF | Maintainer checks unreliable | High | Medium | `.gitattributes` for `*.sh` |
 
@@ -36,7 +37,7 @@
 
 Release logic must be unit-tested as shell scripts, not only executed on tag push. CI must run those script tests on every push and PR.
 
-Phase 4 adds coverage for changelog structure and npm package contents, so release metadata drift is caught before tag pushes.
+Phase 4 adds coverage for changelog structure and npm package contents, including README presence, so release metadata and registry listing drift are caught before tag pushes.
 
 ## Project Governance Risks
 

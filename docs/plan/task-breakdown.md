@@ -3,7 +3,7 @@
 ## Overview
 
 - **Total Phases**: 4
-- **Total Tasks**: 10
+- **Total Tasks**: 11
 - **Estimated Total Effort**: M
 
 ## S.U.P.E.R Design Constraints
@@ -63,10 +63,11 @@
 | 4.1 | Add changelog structure validator | P1 | S | 2.1 | A | S, P | Shell tests | Update `RELEASE.md` | `Unreleased`, release section, and compare links are validated locally |
 | 4.2 | Extract npm package validator | P1 | S | 2.3 | A | S, R | Shell tests plus release-check | npm package files/name/version contract is reusable outside workflow |
 | 4.3 | Prefer npm Trusted Publishing/OIDC with token fallback | P1 | S | 4.2 | B | P, E | actionlint and release-check | Update `RELEASE.md` | Workflow can publish with OIDC when configured and still supports `NPM_TOKEN` fallback |
+| 4.4 | Add npm package README contract | P1 | S | 4.2 | A | P, R | npm package validator tests | None | npm package includes README and the validator fails when it is missing |
 
 ### Phase 4 Parallel Lanes
 
 | Lane | Tasks | Combined Effort | Merge Risk | Key Files |
 |:--|:--|:--|:--|:--|
-| A | 4.1, 4.2 | S | Medium | `scripts/`, `Makefile`, `CHANGELOG.md` |
+| A | 4.1, 4.2, 4.4 | S | Medium | `scripts/`, `Makefile`, `CHANGELOG.md`, `npm/README.md` |
 | B | 4.3 | S | Medium | `.github/workflows/release.yml`, `RELEASE.md` |

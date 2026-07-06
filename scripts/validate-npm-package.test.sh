@@ -15,7 +15,14 @@ run_case() {
   work="$(mktemp -d)"
   out_file="$(mktemp)"
   err_file="$(mktemp)"
-  cp -R "$repo_root/npm" "$work/npm"
+  mkdir -p "$work/npm"
+  (
+    cd "$repo_root/npm"
+    tar --exclude='./bin/dida.exe' --exclude='./bin/dida-bin' -cf - .
+  ) | (
+    cd "$work/npm"
+    tar -xf -
+  )
   (
     cd "$work"
     bash -c "$mutate"
@@ -43,6 +50,8 @@ run_case() {
 run_case "current npm package passes" pass ":" --version v0.2.4
 
 run_case "missing bin wrapper fails" fail "rm npm/bin/dida" --version v0.2.4
+
+run_case "missing README fails" fail "rm npm/README.md" --version v0.2.4
 
 run_case "wrong package name fails" fail '
   node -e "

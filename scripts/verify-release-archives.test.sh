@@ -26,20 +26,26 @@ make_tar() {
   local binary="$3"
   local executable="$4"
   local extra="${5:-}"
-  local work
-  work="$(mktemp -d)"
-  mkdir -p "$work/$folder"
-  printf 'binary\n' > "$work/$folder/$binary"
-  if [[ "$executable" == "yes" ]]; then
-    chmod 755 "$work/$folder/$binary"
-  else
-    chmod 644 "$work/$folder/$binary"
-  fi
-  if [[ -n "$extra" ]]; then
-    printf 'extra\n' > "$work/$folder/$extra"
-  fi
-  tar -czf "$archive" -C "$work" "$folder"
-  rm -rf "$work"
+  python3 - "$archive" "$folder" "$binary" "$executable" "$extra" <<'PY'
+import io
+import sys
+import tarfile
+
+archive, folder, binary, executable, extra = sys.argv[1:6]
+
+def add_file(tar, name, body, mode):
+    data = body.encode("utf-8")
+    info = tarfile.TarInfo(name)
+    info.size = len(data)
+    info.mode = mode
+    tar.addfile(info, io.BytesIO(data))
+
+with tarfile.open(archive, "w:gz") as tar:
+    mode = 0o755 if executable == "yes" else 0o644
+    add_file(tar, f"{folder}/{binary}", "binary\n", mode)
+    if extra:
+        add_file(tar, f"{folder}/{extra}", "extra\n", 0o644)
+PY
 }
 
 make_dist() {

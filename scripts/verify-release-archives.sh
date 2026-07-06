@@ -73,9 +73,9 @@ for asset in "${expected[@]}"; do
   fi
 
   if [[ "$asset" == *.zip ]]; then
-    mapfile -t entries < <(list_zip_entries "$archive")
+    mapfile -t entries < <(list_zip_entries "$archive" | tr -d '\r')
   else
-    mapfile -t entries < <(tar -tzf "$archive")
+    mapfile -t entries < <(tar -tzf "$archive" | tr -d '\r')
   fi
 
   files=()
@@ -101,7 +101,14 @@ for asset in "${expected[@]}"; do
   if [[ "$asset" == *windows* ]]; then
     test -f "$work/$folder/$binary"
   else
-    test -x "$work/$folder/$binary"
+    test -f "$work/$folder/$binary"
+    if [[ ! -x "$work/$folder/$binary" ]]; then
+      mode_line="$(tar -tvzf "$archive" "$folder/$binary" | head -n 1)"
+      if [[ "$mode_line" != -rwx* ]]; then
+        echo "archive $asset should preserve executable mode for $folder/$binary" >&2
+        exit 1
+      fi
+    fi
   fi
   rm -rf "$work"
 done

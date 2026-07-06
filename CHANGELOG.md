@@ -17,6 +17,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Release notes generation is now a tested script instead of inline workflow logic.
 - Changelog and npm package contents are now validated by reusable scripts in CI and release preflight.
 - npm publishing now prefers Trusted Publishing/OIDC when `NPM_TOKEN` is absent, while retaining token auth as a fallback.
+- The npm package now includes its own README so the npm registry page shows install and quick-start guidance.
 
 ### Fixed
 - `dida task list --filter <invalid>` now returns a validation error before auth or sync loading.

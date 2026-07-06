@@ -22,6 +22,7 @@ graph TD
     T41["Task 4.1: Changelog structure validator"]
     T42["Task 4.2: npm package validator"]
     T43["Task 4.3: OIDC-first npm publish"]
+    T44["Task 4.4: npm README contract"]
   end
 
   T21 --> T23
@@ -30,6 +31,7 @@ graph TD
   T21 --> T41
   T23 --> T42
   T42 --> T43
+  T42 --> T44
   Phase1 --> Phase2
   Phase2 --> Phase3
   Phase3 --> Phase4

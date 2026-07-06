@@ -75,7 +75,7 @@ fi
       process.exit(1);
     }
     const files = new Set(pkg.files.map((file) => file.path));
-    for (const path of ["bin/dida", "scripts/install.js", "package.json"]) {
+    for (const path of ["README.md", "bin/dida", "scripts/install.js", "package.json"]) {
       if (!files.has(path)) {
         console.error(`npm package is missing ${path}`);
         process.exit(1);
