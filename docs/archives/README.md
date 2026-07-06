@@ -39,3 +39,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: `make staticcheck` 使用 `honnef.co/go/tools/cmd/staticcheck@v0.7.0`；治理脚本保护 CI/release/PR checklist 入口
 - **详情**: [MASTER.md](staticcheck-quality-gate/progress/MASTER.md)
+
+## cli-coverage-improvement
+
+- **描述**: 增加本地 CLI 回归测试和 `make coverage-cli`，提高 `internal/cli` 覆盖率基线
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: `internal/cli` 覆盖率从 43.9% 提升到 50.8%；覆盖 task/project dry-run、本地 help、sync-backed reads、OpenAPI task dry-run
+- **详情**: [MASTER.md](cli-coverage-improvement/progress/MASTER.md)

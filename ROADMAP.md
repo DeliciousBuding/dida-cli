@@ -45,13 +45,14 @@ Latest release: `v0.2.1` (2026-05-12).
 ### Engineering Quality
 
 - Test coverage: webapi 84%, officialmcp 85%, openapi 83%, model 91%, config 83%
+- CLI package coverage: 50.8% after local command coverage tests
 - All HTTP clients have explicit timeouts (30-60s) and response size limits
 - Error messages redact tokens and sensitive patterns
 - Upgrade enforces checksum verification (fails if checksums.txt missing)
 
 ### What's NOT Done Yet
 
-- CLI package coverage: 37.8% (core command paths under-tested)
+- CLI package coverage target remains 60%+; current measured baseline is 50.8%
 - Shell completion is implemented through `dida completion <bash|zsh|fish|powershell>`
 - No Homebrew tap or Scoop bucket (templates exist, not published)
 - No i18n (all errors English-only)
@@ -456,7 +457,7 @@ deferred until release cadence and package identifier are final.
 | goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
 | Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
 | Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI |
-| CLI test coverage to 60%+ | Medium | Focus on task/project/upgrade command paths |
+| CLI test coverage to 60%+ | Medium | Current `internal/cli` coverage: 50.8%; continue task/project/upgrade command paths |
 | staticcheck in CI | Done | `make staticcheck`, CI, release validation, and release-check use Staticcheck v0.7.0 |
 
 ### G3. v0.4.0+ (long-term)

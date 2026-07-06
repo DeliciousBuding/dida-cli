@@ -27,7 +27,7 @@ make staticcheck                          # Staticcheck
 bash scripts/check-private-state.sh       # secret leak check
 ```
 
-Makefile targets: `make test`, `make build`, `make install-local`, `make staticcheck`.
+Makefile targets: `make test`, `make build`, `make install-local`, `make coverage-cli`, `make staticcheck`.
 
 ## Key Files To Read When Starting Work
 

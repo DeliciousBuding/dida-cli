@@ -1,6 +1,7 @@
 STATICCHECK_VERSION ?= v0.7.0
+CLI_COVER_PROFILE ?= coverage-cli
 
-.PHONY: test build install-local actionlint staticcheck release-check
+.PHONY: test build install-local coverage-cli actionlint staticcheck release-check
 
 test:
 	go test ./...
@@ -11,6 +12,10 @@ build:
 install-local: build
 	mkdir -p "$(HOME)/.local/bin"
 	cp bin/dida "$(HOME)/.local/bin/dida"
+
+coverage-cli:
+	go test ./internal/cli -coverprofile=$(CLI_COVER_PROFILE)
+	go tool cover -func=$(CLI_COVER_PROFILE)
 
 actionlint:
 	go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
