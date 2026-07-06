@@ -26,7 +26,7 @@ go vet ./...
 go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
 ```
 
-`make release-check` validates release metadata, changelog structure, npm package contents, repository governance files, packaging templates, shell release helpers, and workflow syntax. It does not publish anything.
+`make release-check` validates release metadata, changelog structure, npm package contents, repository governance files, current package-manager template metadata, shell release helpers, and workflow syntax. It does not publish anything.
 
 ## Automation
 
@@ -44,3 +44,7 @@ Preferred npm authentication: configure npm Trusted Publishing for the `@delicio
 Fallback npm authentication: define `NPM_TOKEN` as a repository secret. The release workflow validates token auth during npm preflight and uses it only when Trusted Publishing is not available.
 
 Emergency manual dispatch may set `allow_changelog_fallback=true`, but normal releases must use an explicit changelog section.
+
+## Package Manager Templates
+
+Homebrew and Scoop templates contain SHA-256 checksums from the latest published GitHub Release. Keep those templates on the latest checksum-verified release until the next release assets exist, then update the version, URLs, and checksums from `checksums.txt` in a follow-up packaging commit or external tap/bucket PR.

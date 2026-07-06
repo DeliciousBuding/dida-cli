@@ -1,6 +1,6 @@
 {
   "name": "@delicious233/dida-cli",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": false,
   "description": "JSON-first CLI for Dida365 / TickTick task automation with stable JSON output.",
   "bin": {

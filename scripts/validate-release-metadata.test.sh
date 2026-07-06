@@ -42,7 +42,10 @@ run_case() {
   rm -f "$out_file" "$err_file"
 }
 
-run_case "valid metadata passes" pass ":" --tag v0.2.4 --skip-git-checks
+current_version="$(node -e 'console.log(require("./npm/package.json").version)')"
+current_tag="v${current_version}"
+
+run_case "valid metadata passes" pass ":" --tag "$current_tag" --skip-git-checks
 
 run_case "non-semver tag fails" fail ":" --tag 0.2.4 --skip-git-checks
 
@@ -54,7 +57,7 @@ run_case "npm package version mismatch fails" fail '
     data.version = \"9.9.9\";
     fs.writeFileSync(path, JSON.stringify(data, null, 2));
   "
-' --tag v0.2.4 --skip-git-checks
+' --tag "$current_tag" --skip-git-checks
 
 run_case "missing changelog section fails by default" fail ":" --tag v9.9.9 --skip-git-checks
 

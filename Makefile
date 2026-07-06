@@ -26,7 +26,7 @@ endif
 	bash scripts/validate-npm-package.test.sh
 	bash scripts/validate-repo-governance.sh
 	bash scripts/validate-repo-governance.test.sh
-	bash scripts/validate-packaging.sh --metadata-only --version "$(VERSION)"
+	bash scripts/validate-packaging.sh --metadata-only
 	bash scripts/validate-packaging.test.sh
 	bash scripts/verify-release-archives.test.sh
 	$(MAKE) actionlint

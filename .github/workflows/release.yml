@@ -74,7 +74,7 @@ jobs:
         run: bash scripts/check-private-state.test.sh
 
       - name: Validate packaging templates
-        run: bash scripts/validate-packaging.sh --metadata-only --version "${GITHUB_REF_NAME}"
+        run: bash scripts/validate-packaging.sh --metadata-only
 
       - name: Test
         run: go test -count=1 ./...

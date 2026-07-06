@@ -7,6 +7,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.5] - 2026-07-07
+
 ### Added
 - `dida task latest` reads the latest synced tasks by creation time, with inbox alias support and compact JSON output.
 - Release governance helpers validate semver tags, npm package version alignment, changelog sections, and generated GitHub Release notes before tag publishing.
@@ -234,7 +236,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...HEAD
+[v0.2.5]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.2...v0.2.3
 [v0.2.2]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.1...v0.2.2

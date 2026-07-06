@@ -25,9 +25,9 @@
 
 ## Current Status
 
-**Active Phase**: Complete
-**Active Task**: None
-**Blockers**: None. GitHub CI, Pages deployment, and Dependabot update checks passed on `main`.
+**Active Phase**: Release publication
+**Active Task**: Prepare and publish `v0.2.5`
+**Blockers**: None. Local release checks and core verification passed; next step is push, tag, and release workflow verification.
 
 ## Governance Status
 
@@ -70,11 +70,13 @@ adaptive:
 | 2026-07-07 | 5.1 | S | P pass | 0 | Removed internal agent metadata from public README. |
 | 2026-07-07 | 5.2 | S | P/E pass | 0 | Strengthened PR checklist, issue secret warnings, and contributing verification steps. |
 | 2026-07-07 | 5.3 | S | P/R pass | 0 | Added CI-tested repository governance validator. |
+| 2026-07-07 | Release publication | M | S/P/R pass | 1 | Prepared `v0.2.5`, verified npm tarball includes `README.md`, and kept package-manager checksum templates tied to the latest checksum-verified release until new assets exist. |
 
 ## Next Steps
 
-1. Monitor the next release tag dry run or real release when cutting `v0.2.4+`.
-2. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing `NPM_TOKEN`.
+1. Push the `v0.2.5` release-prep commit and wait for main CI/Pages.
+2. Create and push the annotated `v0.2.5` tag after main CI is green.
+3. Verify GitHub Release assets, npm provenance, and npm README rendering after the release workflow finishes.
 
 ## Session Log
 
@@ -86,3 +88,4 @@ adaptive:
 | 2026-07-06 | Provenance and contract hardening | Added tested changelog/npm package validators and OIDC-first npm publish path with token fallback. |
 | 2026-07-06 | npm package listing polish | Added `npm/README.md` so the next npm publish fixes the registry README warning. |
 | 2026-07-07 | Public governance gate | Removed README frontmatter and added a tested governance validator for public repo entry points. |
+| 2026-07-07 | v0.2.5 release prep | Moved governance changes from Unreleased to `v0.2.5`, bumped npm package metadata, and adjusted packaging validation so pre-release checks do not require fake future checksums. |
