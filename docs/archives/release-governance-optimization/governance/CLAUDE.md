@@ -37,7 +37,7 @@ Makefile targets: `make test`, `make build`, `make install-local`.
 | `skills/dida-cli/SKILL.md` | Agent skill -- safety rules, channel selection, command patterns |
 | `docs/commands.md` | User-facing command reference |
 | `docs/api-coverage.md` | Web API coverage matrix with verification status |
-| `docs/archives/release-governance-optimization/progress/MASTER.md` | Completed release-governance tracker |
+| `docs/progress/MASTER.md` | Active deep-improvement task tracking |
 | `internal/cli/cli_test.go` | Integration-level command tests |
 | `cmd/dida/main.go` | Entrypoint and version injection |
 
@@ -64,6 +64,4 @@ The three channels must never share credentials, HTTP clients, or token state. W
 
 ## Memory
 
-No active spec-driven tracker is open. The completed release-governance tracker is archived at `docs/archives/release-governance-optimization/progress/MASTER.md`.
-
-When starting a new spec-driven run, create a fresh tracker under `docs/progress/MASTER.md` and archive it when the run completes. Do not edit archived trackers for new work.
+Active task tracking lives in `docs/progress/MASTER.md`. This is the single source of truth for the current "deep improvement" work: phase progress, task breakdown, and completion status. Read it when resuming work after a gap. Update it when completing phases or discovering new issues.
