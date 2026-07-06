@@ -57,4 +57,6 @@ run_case "missing CodeQL workflow fails" fail "rm .github/workflows/codeql.yml"
 
 run_case "missing Scorecard security-events permission fails" fail "grep -v 'security-events: write' .github/workflows/scorecard.yml > next && mv next .github/workflows/scorecard.yml"
 
+run_case "unpinned Scorecard action fails" fail "sed -i '0,/ossf\\/scorecard-action@[a-f0-9]\\{40\\}/s//ossf\\/scorecard-action@v2.4.3/' .github/workflows/scorecard.yml"
+
 echo "validate-repo-governance tests passed"

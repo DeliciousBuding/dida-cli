@@ -31,6 +31,16 @@ graph TD
     T53["Task 5.3: Governance validator"]
   end
 
+  subgraph Phase6["Phase 6: Supply-Chain Security Automation"]
+    T61["Task 6.1: CodeQL analysis"]
+    T62["Task 6.2: OpenSSF Scorecard"]
+  end
+
+  subgraph Phase7["Phase 7: Pinned GitHub Actions"]
+    T71["Task 7.1: Pin workflow actions by SHA"]
+    T72["Task 7.2: Pinned-actions validator"]
+  end
+
   T21 --> T23
   T22 --> T23
   T21 --> T31
@@ -42,8 +52,14 @@ graph TD
   T31 --> T52
   T51 --> T53
   T52 --> T53
+  T53 --> T61
+  T53 --> T62
+  T62 --> T71
+  T71 --> T72
   Phase1 --> Phase2
   Phase2 --> Phase3
   Phase3 --> Phase4
   Phase4 --> Phase5
+  Phase5 --> Phase6
+  Phase6 --> Phase7
 ```

@@ -26,7 +26,7 @@ go vet ./...
 go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
 ```
 
-`make release-check` validates release metadata, changelog structure, npm package contents, repository governance files, current package-manager template metadata, shell release helpers, and workflow syntax. It does not publish anything.
+`make release-check` validates release metadata, changelog structure, npm package contents, pinned GitHub Actions, repository governance files, current package-manager template metadata, shell release helpers, and workflow syntax. It does not publish anything.
 
 ## Automation
 
@@ -44,6 +44,16 @@ Preferred npm authentication: configure npm Trusted Publishing for the `@delicio
 Fallback npm authentication: define `NPM_TOKEN` as a repository secret. The release workflow validates token auth during npm preflight and uses it only when Trusted Publishing is not available.
 
 Emergency manual dispatch may set `allow_changelog_fallback=true`, but normal releases must use an explicit changelog section.
+
+## Workflow Dependency Pinning
+
+External GitHub Actions in `.github/workflows/` are pinned to full commit SHAs. Keep the trailing version comment, such as `# v6`, so reviewers can see the intended upstream version when updating the SHA.
+
+Run the pinned-actions validator after workflow changes:
+
+```bash
+bash scripts/validate-actions-pinned.sh
+```
 
 ## Package Manager Templates
 

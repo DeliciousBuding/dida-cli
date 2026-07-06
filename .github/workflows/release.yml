@@ -33,7 +33,7 @@ jobs:
       ALLOW_CHANGELOG_FALLBACK: ${{ github.event.inputs.allow_changelog_fallback || 'false' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
@@ -52,12 +52,12 @@ jobs:
           fi
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: go.mod
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
 
@@ -72,6 +72,9 @@ jobs:
 
       - name: Test private-state guard
         run: bash scripts/check-private-state.test.sh
+
+      - name: Validate pinned actions
+        run: bash scripts/validate-actions-pinned.sh
 
       - name: Validate packaging templates
         run: bash scripts/validate-packaging.sh --metadata-only
@@ -119,10 +122,10 @@ jobs:
             binary: dida
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: go.mod
 
@@ -146,7 +149,7 @@ jobs:
           fi
 
       - name: Upload archive
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: dida-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/dida_${{ github.ref_name }}_${{ matrix.goos }}_${{ matrix.goarch }}.${{ matrix.archive_ext }}
@@ -158,10 +161,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
@@ -197,12 +200,12 @@ jobs:
       ALLOW_CHANGELOG_FALLBACK: ${{ github.event.inputs.allow_changelog_fallback || 'false' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
 
       - name: Download archives
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           path: dist
           merge-multiple: true
@@ -272,10 +275,10 @@ jobs:
           - windows-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
 
@@ -321,10 +324,10 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"

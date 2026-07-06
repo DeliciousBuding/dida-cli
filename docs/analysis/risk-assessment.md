@@ -16,6 +16,8 @@
 
 **Phase 6 Update**: CodeQL and OpenSSF Scorecard workflows are now treated as repository governance contracts, so removal of the security workflows or their code-scanning permissions fails CI hygiene.
 
+**Phase 7 Update**: external workflow actions are pinned to full commit SHAs, with version comments retained so reviews and Dependabot PRs still show the intended major version.
+
 ### S.U.P.E.R Violation Hotspots
 
 1. `.github/workflows/release.yml`: inline validation and notes generation.
@@ -36,6 +38,8 @@
 | contribution templates miss release or secret checks | PRs can bypass repo-specific safety gates | Medium | High | Validate PR template and issue forms in CI |
 | static code scanning is absent | security regressions rely only on reviewer attention | Medium | Medium | Run CodeQL for Go with extended security queries |
 | repository security posture drifts silently | supply-chain regressions are noticed late | Medium | Medium | Run OpenSSF Scorecard and require workflow permissions in governance validation |
+| workflow actions move under a mutable tag | compromised or changed action code runs in CI | Medium | High | Pin external Actions to full commit SHAs and validate the format in CI |
+| SHA-pinned actions become stale | security fixes in Actions are missed | Medium | Medium | Keep version comments, Dependabot coverage, and manual review of action update PRs |
 | Windows runner parses coverage path differently | CI red on main | High | High | Use `coverage/profile.txt` through Bash |
 | Local shell scripts fail under WSL due CRLF | Maintainer checks unreliable | High | Medium | `.gitattributes` for `*.sh` |
 

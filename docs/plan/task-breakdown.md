@@ -2,8 +2,8 @@
 
 ## Overview
 
-- **Total Phases**: 6
-- **Total Tasks**: 16
+- **Total Phases**: 7
+- **Total Tasks**: 18
 - **Estimated Total Effort**: M
 
 ## S.U.P.E.R Design Constraints
@@ -16,6 +16,7 @@
 - **P**: Changelog structure and npm package contents are explicit release contracts.
 - **P**: Public repository entry points are treated as explicit governance contracts, not informal Markdown.
 - **P**: Security automation is a first-class repository contract, enforced by the same governance validator as public docs and templates.
+- **P**: External GitHub Actions are pinned to full commit SHAs while keeping version comments for review and update context.
 
 ## Phase 1: Stabilize Main CI
 
@@ -108,3 +109,19 @@
 |:--|:--|:--|:--|:--|
 | A | 6.1 | S | Low | `.github/workflows/codeql.yml` |
 | B | 6.2 | S | Medium | `.github/workflows/scorecard.yml`, `scripts/validate-repo-governance.sh`, docs |
+
+## Phase 7: Pinned GitHub Actions
+
+**Goal**: Reduce workflow supply-chain drift by pinning external GitHub Actions to full commit SHAs and validating that contract locally and in CI.
+**S.U.P.E.R Focus**: P, E, R
+
+| # | Task | Priority | Effort | Depends On | Lane | S.U.P.E.R | Test Expectation | Memory Impact | Acceptance Criteria |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| 7.1 | Pin external workflow actions by SHA | P1 | S | 6.2 | A | P, E | actionlint and remote workflow run | Update `AGENTS.md` and `RELEASE.md` | Every external `uses:` reference in `.github/workflows/` uses a 40-character commit SHA with a version comment |
+| 7.2 | Add local pinned-actions validator | P1 | S | 7.1 | A | P, R | Shell tests plus `make release-check` | Update `CONTRIBUTING.md` | CI and release validation fail when a workflow action is tag-pinned or lacks version context |
+
+### Phase 7 Parallel Lanes
+
+| Lane | Tasks | Combined Effort | Merge Risk | Key Files |
+|:--|:--|:--|:--|:--|
+| A | 7.1, 7.2 | S | Medium | `.github/workflows/`, `scripts/`, `Makefile`, docs |

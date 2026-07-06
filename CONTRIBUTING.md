@@ -23,6 +23,7 @@ go build -o bin/dida ./cmd/dida
    go vet ./...
    go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
    bash scripts/check-private-state.sh
+   bash scripts/validate-actions-pinned.sh
    ```
 4. Commit with a [conventional commit](#commit-messages) message
 5. Open a pull request
@@ -55,6 +56,7 @@ Examples:
 - [ ] `go vet ./...` passes
 - [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
+- [ ] `bash scripts/validate-actions-pinned.sh` passes if touching `.github/workflows/`
 - [ ] `bash scripts/validate-repo-governance.sh` passes if touching `.github/`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `RELEASE.md`, or `npm/README.md`
 - [ ] New/changed commands have schema entries in `internal/cli/schema_cmd.go`
 - [ ] New/changed commands have help text in `internal/cli/help.go`
