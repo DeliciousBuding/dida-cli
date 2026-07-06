@@ -24,13 +24,13 @@
 - [x] Phase 5: Public Repository Governance (3/3 tasks)
 - [x] Phase 6: Supply-Chain Security Automation (2/2 tasks)
 - [x] Phase 7: Pinned GitHub Actions (2/2 tasks)
-- [ ] Phase 8: Release Archive Provenance (0/2 tasks)
+- [x] Phase 8: Release Archive Provenance (2/2 tasks)
 
 ## Current Status
 
-**Active Phase**: Phase 8 - Release Archive Provenance
-**Active Task**: 8.1 Generate archive attestations; 8.2 Enforce and document provenance
-**Blockers**: None. Dependabot Actions updates were merged and latest `main` passed CI, CodeQL, Scorecard, and Pages before Phase 8 edits started.
+**Active Phase**: Complete
+**Active Task**: None
+**Blockers**: None. Latest `main` passed CI, CodeQL, Scorecard, and Pages after release archive provenance was added. A real `vX.Y.Z` tag release is still required to produce the first archive attestations.
 
 ## Governance Status
 
@@ -51,7 +51,7 @@ adaptive:
     replan: 8
     rescope: 12
   total_tasks: 20
-  completed_tasks: 18
+  completed_tasks: 20
   last_updated: "2026-07-07"
 ```
 
@@ -79,13 +79,13 @@ adaptive:
 | 2026-07-07 | 7.1 | S | P/E pass | 0 | External workflow actions are pinned to full commit SHAs with version comments; remote CI, CodeQL, Scorecard, and Pages passed on `main`. |
 | 2026-07-07 | 7.2 | S | P/R pass | 0 | Pinned-actions validation is wired into CI hygiene, release validation, and release-check; local validator tests and remote hygiene passed. |
 | 2026-07-07 | Dependabot action updates | S | R pass | 0 | Merged `actions/stale` 10.3.0 and `actions/checkout` 7.0.0; latest `main` passed CI, CodeQL, Scorecard, and Pages. |
-| 2026-07-07 | 8.1 | S | P/E pass | 0 | In progress: release workflow generates GitHub artifact attestations from `dist/checksums.txt`. |
-| 2026-07-07 | 8.2 | S | P/R pass | 0 | In progress: governance validation and maintainer docs require archive provenance. |
+| 2026-07-07 | 8.1 | S | P/E pass | 0 | Release workflow generates GitHub artifact attestations from `dist/checksums.txt`; actionlint and remote CI passed. |
+| 2026-07-07 | 8.2 | S | P/R pass | 0 | Governance validation and maintainer docs require archive provenance; `make release-check VERSION=v0.2.5` and remote hygiene passed. |
 
 ## Next Steps
 
-1. Finish local and remote verification for release archive attestations.
-2. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
+1. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
+2. On the next real `vX.Y.Z` release, verify one archive with `gh attestation verify <archive> --repo DeliciousBuding/dida-cli`.
 
 ## Session Log
 
@@ -105,3 +105,4 @@ adaptive:
 | 2026-07-07 | Phase 7 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main` after Actions SHA pinning. |
 | 2026-07-07 | Dependabot action updates | Merged expected SHA-pinned Dependabot updates for `actions/stale` and `actions/checkout`; latest `main` passed CI, CodeQL, Scorecard, and Pages. |
 | 2026-07-07 | Release archive provenance | Started Phase 8 to add GitHub artifact attestations for release archives and enforce them in governance checks. |
+| 2026-07-07 | Phase 8 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main`; first actual archive attestation will be produced by the next tag release. |
