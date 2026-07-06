@@ -2,8 +2,8 @@
 
 ## Overview
 
-- **Total Phases**: 4
-- **Total Tasks**: 11
+- **Total Phases**: 5
+- **Total Tasks**: 14
 - **Estimated Total Effort**: M
 
 ## S.U.P.E.R Design Constraints
@@ -14,6 +14,7 @@
 - **E**: Shell scripts use LF; CI test coverage paths avoid `.out` suffix ambiguity.
 - **R**: Release notes generation can run locally or in GitHub Actions.
 - **P**: Changelog structure and npm package contents are explicit release contracts.
+- **P**: Public repository entry points are treated as explicit governance contracts, not informal Markdown.
 
 ## Phase 1: Stabilize Main CI
 
@@ -71,3 +72,21 @@
 |:--|:--|:--|:--|:--|
 | A | 4.1, 4.2, 4.4 | S | Medium | `scripts/`, `Makefile`, `CHANGELOG.md`, `npm/README.md` |
 | B | 4.3 | S | Medium | `.github/workflows/release.yml`, `RELEASE.md` |
+
+## Phase 5: Public Repository Governance
+
+**Goal**: Make the public contributor and user entry points cleaner and enforce their required structure in CI.
+**S.U.P.E.R Focus**: P, E, R
+
+| # | Task | Priority | Effort | Depends On | Lane | S.U.P.E.R | Test Expectation | Memory Impact | Acceptance Criteria |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| 5.1 | Remove internal metadata from public README | P1 | S | 4.4 | A | P | Governance validator | None | README starts with the visible project identity, not agent frontmatter |
+| 5.2 | Strengthen PR and issue contributor templates | P1 | S | 3.1 | A | P, E | Governance validator tests | Update `AGENTS.md` and `RELEASE.md` | PR checklist covers tests, vet, vulnerability scan, private-state guard, docs, changelog, and package gates |
+| 5.3 | Add repository governance validator | P1 | S | 5.1, 5.2 | B | P, R | Shell tests and CI hygiene | Update `Makefile` | CI fails when README, npm README, PR template, issue forms, security policy, or contribution guide lose required content |
+
+### Phase 5 Parallel Lanes
+
+| Lane | Tasks | Combined Effort | Merge Risk | Key Files |
+|:--|:--|:--|:--|:--|
+| A | 5.1, 5.2 | S | Medium | `README.md`, `.github/`, `CONTRIBUTING.md` |
+| B | 5.3 | S | Medium | `scripts/`, `Makefile`, `.github/workflows/ci.yml` |

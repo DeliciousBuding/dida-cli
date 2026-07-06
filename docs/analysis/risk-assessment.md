@@ -30,6 +30,8 @@
 | npm long-lived token exposure | Package publishing blast radius | Medium | High | Prefer Trusted Publishing/OIDC, with `NPM_TOKEN` retained only as a fallback |
 | changelog compare links drift | Confusing release notes and broken references | Medium | Medium | Validate `Unreleased` and release compare links in CI |
 | npm registry listing has no README | New users cannot evaluate install and usage from npm | High | Medium | Include `npm/README.md` and validate package contents before publish |
+| public README starts with internal metadata | GitHub visitors see agent-only state before product identity | Medium | Medium | Remove frontmatter and validate README starts with public content |
+| contribution templates miss release or secret checks | PRs can bypass repo-specific safety gates | Medium | High | Validate PR template and issue forms in CI |
 | Windows runner parses coverage path differently | CI red on main | High | High | Use `coverage/profile.txt` through Bash |
 | Local shell scripts fail under WSL due CRLF | Maintainer checks unreliable | High | Medium | `.gitattributes` for `*.sh` |
 
@@ -37,7 +39,7 @@
 
 Release logic must be unit-tested as shell scripts, not only executed on tag push. CI must run those script tests on every push and PR.
 
-Phase 4 adds coverage for changelog structure and npm package contents, including README presence, so release metadata and registry listing drift are caught before tag pushes.
+Phase 4 adds coverage for changelog structure and npm package contents, including README presence, so release metadata and registry listing drift are caught before tag pushes. Phase 5 extends the same idea to repository governance files and public entry-point copy.
 
 ## Project Governance Risks
 

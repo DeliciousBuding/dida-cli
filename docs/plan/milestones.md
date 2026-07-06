@@ -6,3 +6,4 @@
 | 2 | Scripted release gates | After Phase 2 | Metadata and notes scripts tested; release workflow uses scripts | Complete |
 | 3 | Maintainer-ready release workflow | After Phase 3 | `RELEASE.md`, Makefile, Dependabot, changelog, and governance docs updated | Complete |
 | 4 | Provenance-ready release workflow | After Phase 4 | Changelog structure and npm package contracts are tested; npm package includes README; release workflow supports Trusted Publishing/OIDC with `NPM_TOKEN` fallback | Complete |
+| 5 | Public governance gate | After Phase 5 | Public README has no internal metadata; PR and issue templates cover verification and secret-handling; governance validator runs in CI and release-check | Complete |

@@ -1,15 +1,3 @@
----
-purpose: 面向滴答清单 Dida365 和 TickTick 的 Agent 友好型 Go CLI，提供任务、项目、标签、番茄统计等读写命令与稳定 JSON 输出。
-status: active
-next_steps:
-  - 持续维护 Web API、官方 MCP、OpenAPI 三条认证通道的命令覆盖面和文档
-capabilities:
-  - dida365-cli
-  - ticktick-cli
-  - task-management-cli
-  - agent-friendly-json-cli
-  - mcp-openapi-integration
----
 <p align="center">
   <img src="assets/logo-icon.svg" alt="DidaCLI" width="100">
 </p>

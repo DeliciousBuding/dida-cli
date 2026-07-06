@@ -18,9 +18,11 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Changelog and npm package contents are now validated by reusable scripts in CI and release preflight.
 - npm publishing now prefers Trusted Publishing/OIDC when `NPM_TOKEN` is absent, while retaining token auth as a fallback.
 - The npm package now includes its own README so the npm registry page shows install and quick-start guidance.
+- Repository governance files now have a CI-tested validator for README, npm README, PR template, issue forms, security policy, and contribution guide coverage.
 
 ### Fixed
 - `dida task list --filter <invalid>` now returns a validation error before auth or sync loading.
+- The public README no longer starts with internal agent metadata.
 
 ## [v0.2.4] - 2026-06-24
 

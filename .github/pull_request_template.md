@@ -14,6 +14,9 @@
 
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
+- [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
+- [ ] `bash scripts/check-private-state.sh` passes
 - [ ] Schema updated (if adding/changing commands)
 - [ ] Docs updated (if adding/changing commands)
 - [ ] CHANGELOG.md updated (if user-facing change)
+- [ ] Release/package gates updated (if touching `.github/workflows/`, `scripts/`, `npm/`, or `packaging/`)

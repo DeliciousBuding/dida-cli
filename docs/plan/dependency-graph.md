@@ -25,6 +25,12 @@ graph TD
     T44["Task 4.4: npm README contract"]
   end
 
+  subgraph Phase5["Phase 5: Public Repository Governance"]
+    T51["Task 5.1: Public README cleanup"]
+    T52["Task 5.2: Contributor templates"]
+    T53["Task 5.3: Governance validator"]
+  end
+
   T21 --> T23
   T22 --> T23
   T21 --> T31
@@ -32,7 +38,12 @@ graph TD
   T23 --> T42
   T42 --> T43
   T42 --> T44
+  T44 --> T51
+  T31 --> T52
+  T51 --> T53
+  T52 --> T53
   Phase1 --> Phase2
   Phase2 --> Phase3
   Phase3 --> Phase4
+  Phase4 --> Phase5
 ```

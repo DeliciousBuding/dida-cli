@@ -26,7 +26,7 @@ go vet ./...
 go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
 ```
 
-`make release-check` validates release metadata, packaging templates, shell release helpers, and workflow syntax. It does not publish anything.
+`make release-check` validates release metadata, changelog structure, npm package contents, repository governance files, packaging templates, shell release helpers, and workflow syntax. It does not publish anything.
 
 ## Automation
 

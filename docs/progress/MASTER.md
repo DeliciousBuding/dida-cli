@@ -21,6 +21,7 @@
 - [x] Phase 2: Release Governance (3/3 tasks)
 - [x] Phase 3: Open-Source Maintenance Polish (2/2 tasks)
 - [x] Phase 4: Provenance and Contract Hardening (4/4 tasks)
+- [x] Phase 5: Public Repository Governance (3/3 tasks)
 
 ## Current Status
 
@@ -44,11 +45,11 @@ adaptive:
   strategy: "single-branch release-governance hardening"
   thresholds:
     annotate: 3
-    replan: 5
-    rescope: 7
-  total_tasks: 11
-  completed_tasks: 11
-  last_updated: "2026-07-06"
+    replan: 6
+    rescope: 9
+  total_tasks: 14
+  completed_tasks: 14
+  last_updated: "2026-07-07"
 ```
 
 ## Task Telemetry Log
@@ -66,6 +67,9 @@ adaptive:
 | 2026-07-06 | 4.2 | S | S/R pass | 0 | Extracted npm package contents validation from workflow. |
 | 2026-07-06 | 4.3 | S | P/E pass | 0 | Release workflow prefers npm Trusted Publishing/OIDC and retains `NPM_TOKEN` fallback. |
 | 2026-07-06 | 4.4 | S | P/R pass | 0 | Added npm package README and made README presence part of package validation. |
+| 2026-07-07 | 5.1 | S | P pass | 0 | Removed internal agent metadata from public README. |
+| 2026-07-07 | 5.2 | S | P/E pass | 0 | Strengthened PR checklist, issue secret warnings, and contributing verification steps. |
+| 2026-07-07 | 5.3 | S | P/R pass | 0 | Added CI-tested repository governance validator. |
 
 ## Next Steps
 
@@ -81,3 +85,4 @@ adaptive:
 | 2026-07-06 | Remote verification | Confirmed PR #2 is `MERGED`; latest CI, Pages rerun, and Dependabot update checks passed on `main`. |
 | 2026-07-06 | Provenance and contract hardening | Added tested changelog/npm package validators and OIDC-first npm publish path with token fallback. |
 | 2026-07-06 | npm package listing polish | Added `npm/README.md` so the next npm publish fixes the registry README warning. |
+| 2026-07-07 | Public governance gate | Removed README frontmatter and added a tested governance validator for public repo entry points. |

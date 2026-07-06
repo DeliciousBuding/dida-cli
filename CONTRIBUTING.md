@@ -1,6 +1,6 @@
 # Contributing to DidaCLI
 
-Thanks for your interest in contributing. This document explains how to set up your development environment, what conventions to follow, and how to submit changes.
+This document explains how to set up a development environment, follow the project conventions, and submit changes.
 
 ## Getting Started
 
@@ -21,7 +21,8 @@ go build -o bin/dida ./cmd/dida
    ```bash
    go test ./...
    go vet ./...
-   go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+   go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
+   bash scripts/check-private-state.sh
    ```
 4. Commit with a [conventional commit](#commit-messages) message
 5. Open a pull request
@@ -52,6 +53,8 @@ Examples:
 
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
+- [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
+- [ ] `bash scripts/check-private-state.sh` passes
 - [ ] New/changed commands have schema entries in `internal/cli/schema_cmd.go`
 - [ ] New/changed commands have help text in `internal/cli/help.go`
 - [ ] Docs updated (`docs/commands.md`, `docs/api-coverage.md`, etc.)

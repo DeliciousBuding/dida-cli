@@ -64,6 +64,9 @@ jobs:
       - name: Test npm package validator
         run: bash scripts/validate-npm-package.test.sh
 
+      - name: Test repository governance validator
+        run: bash scripts/validate-repo-governance.test.sh
+
       - name: Lint workflows
         run: go run "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
 
