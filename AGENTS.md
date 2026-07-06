@@ -68,6 +68,7 @@ Examples: `feat: add task activity reads`, `fix: redact cookie in upgrade error 
 - Before tagging: update `CHANGELOG.md` with a `## [vX.Y.Z]` section, bump version in `npm/package.json`, and confirm CI is green on `main`.
 - Release notes are auto-generated from `CHANGELOG.md`. Use `workflow_dispatch` with `allow_changelog_fallback=true` only for emergency releases.
 - After release: the `dida upgrade` command uses the GitHub Releases API for self-update with SHA-256 verification. Update Homebrew and Scoop templates only after the release assets and `checksums.txt` exist.
+- Verify npm publishes against `https://registry.npmjs.org`; local mirrors such as npmmirror can lag behind `latest`.
 
 ## Core Rules
 

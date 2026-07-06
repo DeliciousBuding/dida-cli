@@ -48,3 +48,12 @@ Emergency manual dispatch may set `allow_changelog_fallback=true`, but normal re
 ## Package Manager Templates
 
 Homebrew and Scoop templates contain SHA-256 checksums from the latest published GitHub Release. Keep those templates on the latest checksum-verified release until the next release assets exist, then update the version, URLs, and checksums from `checksums.txt` in a follow-up packaging commit or external tap/bucket PR.
+
+## Post-Release Verification
+
+Verify npm against the official registry. Local mirrors can lag after publish.
+
+```bash
+npm view @delicious233/dida-cli@X.Y.Z version readme --registry=https://registry.npmjs.org
+npm install @delicious233/dida-cli@X.Y.Z --registry=https://registry.npmjs.org
+```

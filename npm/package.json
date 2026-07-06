@@ -16,7 +16,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/DeliciousBuding/dida-cli.git",
+    "url": "git+https://github.com/DeliciousBuding/dida-cli.git",
     "directory": "npm"
   },
   "homepage": "https://deliciousbuding.github.io/dida-cli/",
