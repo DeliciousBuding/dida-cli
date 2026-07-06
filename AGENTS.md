@@ -62,6 +62,7 @@ Examples: `feat: add task activity reads`, `fix: redact cookie in upgrade error 
 ## Release Process
 
 - Tag `main` with a semver tag: `git tag -a vX.Y.Z -m "vX.Y.Z"` and push. The tag must point to a commit reachable from `main`.
+- Run `make release-check VERSION=vX.Y.Z` before pushing a release tag. This validates tag metadata, npm version alignment, changelog coverage, packaging metadata, helper scripts, and workflow syntax without publishing.
 - Tag push triggers `.github/workflows/release.yml`: validate → test + vet + vulncheck + private-state check → multi-platform build (6 targets) → npm preflight → GitHub Release with checksums → npm install smoke → npm publish.
 - Before tagging: update `CHANGELOG.md` with a `## [vX.Y.Z]` section, bump version in `npm/package.json`, and confirm CI is green on `main`.
 - Release notes are auto-generated from `CHANGELOG.md`. Use `workflow_dispatch` with `allow_changelog_fallback=true` only for emergency releases.

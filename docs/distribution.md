@@ -38,9 +38,12 @@ Release workflow:
 Create a release:
 
 ```bash
-git tag vX.Y.Z
+make release-check VERSION=vX.Y.Z
+git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
+
+See [`../RELEASE.md`](../RELEASE.md) for the full maintainer checklist.
 
 ## Install Scripts
 
@@ -90,6 +93,8 @@ The `npm/` directory contains the published npm wrapper package:
 - release workflow npm preflight checks the npm token, duplicate package
   version, package contents, and provenance-ready publish path before creating
   the GitHub Release
+- release metadata and release notes are validated by reusable scripts under
+  `scripts/` and by CI before tag publishing
 
 Before each publish:
 

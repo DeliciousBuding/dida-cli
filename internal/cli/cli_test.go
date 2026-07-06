@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -19,6 +20,16 @@ import (
 	"github.com/DeliciousBuding/dida-cli/internal/openapi"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
 )
+
+func freeTCPPort(t *testing.T) int {
+	t.Helper()
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen for free TCP port: %v", err)
+	}
+	defer listener.Close()
+	return listener.Addr().(*net.TCPAddr).Port
+}
 
 func TestDoctorJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
@@ -199,6 +210,7 @@ func TestOpenAPILoginBrowserOpenFailureReturnsAuthorizationURL(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "client-id")
 	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "client-secret")
+	port := freeTCPPort(t)
 	original := openBrowser
 	openBrowser = func(target string) error {
 		return fmt.Errorf("simulated browser launch failure for %s", target)
@@ -206,7 +218,7 @@ func TestOpenAPILoginBrowserOpenFailureReturnsAuthorizationURL(t *testing.T) {
 	defer func() { openBrowser = original }()
 
 	var stdout, stderr bytes.Buffer
-	code := Run([]string{"openapi", "login", "--json", "--timeout", "1", "--port", "17999"}, "test-version", &stdout, &stderr)
+	code := Run([]string{"openapi", "login", "--json", "--timeout", "1", "--port", fmt.Sprint(port)}, "test-version", &stdout, &stderr)
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
 	}
@@ -237,14 +249,15 @@ func TestOpenAPILoginNoOpenPrintsManualURLGuidance(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "client-id")
 	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "client-secret")
+	port := freeTCPPort(t)
 	var stdout, stderr bytes.Buffer
-	code := Run([]string{"openapi", "login", "--no-open", "--timeout", "1", "--port", "17998"}, "test-version", &stdout, &stderr)
+	code := Run([]string{"openapi", "login", "--no-open", "--timeout", "1", "--port", fmt.Sprint(port)}, "test-version", &stdout, &stderr)
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
 	}
 	text := stdout.String()
 	for _, want := range []string{
-		"Listening for OAuth callback on 127.0.0.1:17998",
+		fmt.Sprintf("Listening for OAuth callback on 127.0.0.1:%d", port),
 		"Open this URL in a browser and finish authorization:",
 		"https://dida365.com/oauth/authorize?",
 		"After authorization, keep this terminal open until the callback is received.",

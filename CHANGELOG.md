@@ -7,6 +7,18 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `dida task latest` reads the latest synced tasks by creation time, with inbox alias support and compact JSON output.
+- Release governance helpers validate semver tags, npm package version alignment, changelog sections, and generated GitHub Release notes before tag publishing.
+- Dependabot monitors GitHub Actions and the npm wrapper package for dependency updates.
+
+### Changed
+- CI stores coverage profiles under `coverage/profile.txt` and runs coverage commands through Bash on all test runners for cross-platform consistency.
+- Release notes generation is now a tested script instead of inline workflow logic.
+
+### Fixed
+- `dida task list --filter <invalid>` now returns a validation error before auth or sync loading.
+
 ## [v0.2.4] - 2026-06-24
 
 ### Added

@@ -37,45 +37,16 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate tag
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [[ ! "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Release workflow must run from a semver tag like v0.2.1; got ${GITHUB_REF_NAME}" >&2
-            exit 1
-          fi
-          if [[ "${GITHUB_REF_TYPE}" != "tag" ]]; then
-            echo "Release must run from a tag ref, got ${GITHUB_REF_TYPE}:${GITHUB_REF_NAME}" >&2
-            exit 1
-          fi
-          git rev-parse --verify --quiet "refs/tags/${GITHUB_REF_NAME}" >/dev/null
-          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
-          tag_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}")"
-          head_commit="$(git rev-parse HEAD)"
-          if [[ "$head_commit" != "$tag_commit" ]]; then
-            echo "Checked-out HEAD ${head_commit} does not match tag ${GITHUB_REF_NAME} at ${tag_commit}" >&2
-            exit 1
-          fi
-          if ! git merge-base --is-ancestor "$tag_commit" origin/main; then
-            echo "Release tag ${GITHUB_REF_NAME} must point to a commit reachable from origin/main" >&2
-            exit 1
-          fi
-
       - name: Validate release metadata
         shell: bash
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
-          package_version="$(sed -n 's/  "version": "\([^"]*\)",/\1/p' npm/package.json | head -n 1)"
-          if [[ "$package_version" != "$version" ]]; then
-            echo "npm/package.json version ${package_version} does not match ${GITHUB_REF_NAME}" >&2
-            exit 1
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          args=(--tag "${GITHUB_REF_NAME}")
+          if [[ "${ALLOW_CHANGELOG_FALLBACK}" == "true" ]]; then
+            args+=(--allow-changelog-fallback)
           fi
-          if [[ "$ALLOW_CHANGELOG_FALLBACK" != "true" ]] && ! grep -q "^## \\[${GITHUB_REF_NAME}\\]" CHANGELOG.md; then
-            echo "CHANGELOG.md must contain ## [${GITHUB_REF_NAME}] before release" >&2
-            exit 1
-          fi
+          bash scripts/validate-release-metadata.sh "${args[@]}"
 
       - name: Setup Go
         uses: actions/setup-go@v6
@@ -279,59 +250,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          version="${GITHUB_REF_NAME}"
-          repo="${GITHUB_REPOSITORY}"
-          base_url="https://github.com/${repo}/releases/download/${version}"
-
-          printf '%s\n\n' "## What's Changed" > release-notes.md
-
-          changelog_section=""
-          if [[ -f CHANGELOG.md ]]; then
-            # shellcheck disable=SC2016
-            changelog_section=$(awk -v ver="$version" '
-              /^## \[/ {
-                if (found) exit
-                if (index($0, "[" ver "]")) { found=1; next }
-              }
-              found { print }
-            ' CHANGELOG.md)
+          args=(--tag "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" --output release-notes.md)
+          if [[ "${ALLOW_CHANGELOG_FALLBACK}" == "true" ]]; then
+            args+=(--allow-changelog-fallback)
           fi
-
-          if [[ -n "$changelog_section" ]]; then
-            printf '%s\n' "$changelog_section" >> release-notes.md
-          elif [[ "$ALLOW_CHANGELOG_FALLBACK" == "true" ]]; then
-            prev_tag=$(git tag --sort=-v:refname | grep -A1 "^${version}$" | tail -1)
-            if [[ -n "$prev_tag" && "$prev_tag" != "$version" ]]; then
-              {
-                printf '%s\n\n' "Changes since ${prev_tag}:"
-                git log --oneline --no-merges "${prev_tag}..${version}" | sed 's/^/- /'
-              } >> release-notes.md
-            else
-              git log --oneline -20 | sed 's/^/- /' >> release-notes.md
-            fi
-          else
-            echo "CHANGELOG.md must contain a ## [${version}] section before release." >&2
-            echo "Manual dispatch can set allow_changelog_fallback=true for an emergency release." >&2
-            exit 1
-          fi
-
-          {
-            printf '%s\n' '' '---' '' '## Downloads' ''
-            printf '%s\n' '| Platform | File | Install |'
-            printf '%s\n' '|---|---|---|'
-            printf '%s\n' "| **macOS** (Apple Silicon) | [dida___VER___darwin_arm64.tar.gz](BASE_URL/dida___VER___darwin_arm64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
-            printf '%s\n' "| **macOS** (Intel) | [dida___VER___darwin_amd64.tar.gz](BASE_URL/dida___VER___darwin_amd64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
-            printf '%s\n' "| **Linux** (x86_64) | [dida___VER___linux_amd64.tar.gz](BASE_URL/dida___VER___linux_amd64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
-            printf '%s\n' "| **Linux** (ARM64) | [dida___VER___linux_arm64.tar.gz](BASE_URL/dida___VER___linux_arm64.tar.gz) | \`curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh \| sh\` |"
-            printf '%s\n' "| **Windows** (x86_64) | [dida___VER___windows_amd64.zip](BASE_URL/dida___VER___windows_amd64.zip) | PowerShell / Scoop |"
-            printf '%s\n' "| **Windows** (ARM64) | [dida___VER___windows_arm64.zip](BASE_URL/dida___VER___windows_arm64.zip) | PowerShell / Scoop |"
-            # shellcheck disable=SC2016
-            printf '%s\n' '' '### Quick Install' '' '**npm:**' '```bash' 'npm install -g @delicious233/dida-cli' '```' '' '**macOS / Linux:**' '```bash' 'curl -fsSL https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.sh | sh' '```' '' '**Windows PowerShell:**' '```powershell' 'iwr https://raw.githubusercontent.com/REPO_PLACEHOLDER/main/install.ps1 -UseB | iex' '```' '' '**Go:**' '```bash' 'go install github.com/REPO_PLACEHOLDER/cmd/dida@latest' '```' '' '**Self-update check:**' '```bash' 'dida upgrade --check' '```' '' '### Verify' '' '```bash' 'dida version' 'dida doctor --json' '```' '' 'SHA-256 checksums are in [`checksums.txt`](BASE_URL/checksums.txt).'
-          } >> release-notes.md
-
-          sed -i "s|__VER__|${version}|g" release-notes.md
-          sed -i "s|BASE_URL|${base_url}|g" release-notes.md
-          sed -i "s|REPO_PLACEHOLDER|${repo}|g" release-notes.md
+          bash scripts/generate-release-notes.sh "${args[@]}"
 
       - name: Create GitHub release
         env:

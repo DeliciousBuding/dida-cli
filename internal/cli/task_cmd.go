@@ -406,6 +406,9 @@ func parseTaskListFlags(args []string) (string, int, bool, error) {
 				return "", 0, false, fmt.Errorf("--filter requires a value")
 			}
 			filter = args[i+1]
+			if filter != "today" && filter != "all" {
+				return "", 0, false, fmt.Errorf("unknown filter; supported filters: today, all")
+			}
 			i++
 		case "--limit":
 			if i+1 >= len(args) {

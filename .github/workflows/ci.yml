@@ -52,6 +52,12 @@ jobs:
       - name: Test release archive verifier
         run: bash scripts/verify-release-archives.test.sh
 
+      - name: Test release metadata validator
+        run: bash scripts/validate-release-metadata.test.sh
+
+      - name: Test release notes generator
+        run: bash scripts/generate-release-notes.test.sh
+
       - name: Lint workflows
         run: go run "github.com/rhysd/actionlint/cmd/actionlint@${ACTIONLINT_VERSION}"
 
@@ -72,10 +78,14 @@ jobs:
           go-version-file: go.mod
 
       - name: Test
-        run: go test -race -count=1 -coverprofile=coverage.out ./...
+        run: |
+          mkdir -p coverage
+          go test -race -count=1 -coverprofile=coverage/profile.txt ./...
+        shell: bash
 
       - name: Coverage summary
-        run: go tool cover -func=coverage.out
+        run: go tool cover -func=coverage/profile.txt
+        shell: bash
 
   vet:
     name: Go vet
