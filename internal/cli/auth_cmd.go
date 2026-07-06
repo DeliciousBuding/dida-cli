@@ -196,36 +196,36 @@ func runAuthCookie(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 }
 
 func parseTokenInput(args []string) (string, error) {
-	for i := 0; i < len(args); i++ {
-		switch args[i] {
-		case "--token":
-			if os.Getenv("DIDA_ALLOW_TOKEN_ARG") != "1" {
-				return "", fmt.Errorf("--token is disabled by default because it can leak cookies into shell history; use --token-stdin or set DIDA_ALLOW_TOKEN_ARG=1 for a one-off local test")
-			}
-			if i+1 >= len(args) {
-				return "", fmt.Errorf("--token requires a value")
-			}
-			if strings.TrimSpace(args[i+1]) == "" {
-				return "", fmt.Errorf("--token requires a value")
-			}
-			return args[i+1], nil
-		case "--token-stdin":
-			if fileInfo, _ := os.Stdin.Stat(); fileInfo != nil && (fileInfo.Mode()&os.ModeCharDevice) != 0 {
-				fmt.Fprintln(os.Stderr, "Paste cookie value, then press Ctrl+D (Unix) or Ctrl+Z+Enter (Windows):")
-			}
-			data, err := io.ReadAll(io.LimitReader(os.Stdin, maxTokenStdinBytes+1))
-			if err != nil {
-				return "", fmt.Errorf("read token from stdin: %w", err)
-			}
-			if int64(len(data)) > maxTokenStdinBytes {
-				return "", fmt.Errorf("token stdin exceeded %d bytes", maxTokenStdinBytes)
-			}
-			return string(data), nil
-		default:
-			return "", fmt.Errorf("unknown flag %q", args[i])
-		}
+	if len(args) == 0 {
+		return "", fmt.Errorf("missing token; use --token-stdin to avoid shell history")
 	}
-	return "", fmt.Errorf("missing token; use --token-stdin to avoid shell history")
+	switch args[0] {
+	case "--token":
+		if os.Getenv("DIDA_ALLOW_TOKEN_ARG") != "1" {
+			return "", fmt.Errorf("--token is disabled by default because it can leak cookies into shell history; use --token-stdin or set DIDA_ALLOW_TOKEN_ARG=1 for a one-off local test")
+		}
+		if len(args) != 2 || strings.TrimSpace(args[1]) == "" {
+			return "", fmt.Errorf("--token requires a value")
+		}
+		return args[1], nil
+	case "--token-stdin":
+		if len(args) != 1 {
+			return "", fmt.Errorf("--token-stdin does not accept extra arguments")
+		}
+		if fileInfo, _ := os.Stdin.Stat(); fileInfo != nil && (fileInfo.Mode()&os.ModeCharDevice) != 0 {
+			fmt.Fprintln(os.Stderr, "Paste cookie value, then press Ctrl+D (Unix) or Ctrl+Z+Enter (Windows):")
+		}
+		data, err := io.ReadAll(io.LimitReader(os.Stdin, maxTokenStdinBytes+1))
+		if err != nil {
+			return "", fmt.Errorf("read token from stdin: %w", err)
+		}
+		if int64(len(data)) > maxTokenStdinBytes {
+			return "", fmt.Errorf("token stdin exceeded %d bytes", maxTokenStdinBytes)
+		}
+		return string(data), nil
+	default:
+		return "", fmt.Errorf("unknown flag %q", args[0])
+	}
 }
 
 func verifyCookieAuth() map[string]any {

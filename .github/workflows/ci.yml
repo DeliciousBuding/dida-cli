@@ -12,6 +12,7 @@ permissions:
 env:
   GOVULNCHECK_VERSION: v1.3.0
   ACTIONLINT_VERSION: v1.7.12
+  STATICCHECK_VERSION: v0.7.0
 
 jobs:
   hygiene:
@@ -113,6 +114,21 @@ jobs:
 
       - name: Vet
         run: go vet ./...
+
+  staticcheck:
+    name: Staticcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Go
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version-file: go.mod
+
+      - name: Staticcheck
+        run: go run "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}" ./...
 
   vuln:
     name: Vulnerability check

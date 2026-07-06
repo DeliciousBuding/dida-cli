@@ -52,10 +52,6 @@ type upgradeInfo struct {
 	ReleaseURL     string `json:"release_url"`
 }
 
-func fetchLatestRelease(httpClient *http.Client) (*githubRelease, error) {
-	return fetchLatestReleaseForVersion(httpClient, currentVersionForUpgrade())
-}
-
 func fetchLatestReleaseForVersion(httpClient *http.Client, version string) (*githubRelease, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: metadataDownloadTimeout}
@@ -94,10 +90,6 @@ func latestUpgradeMetadata(current string, httpClient *http.Client) (*githubRele
 		ReleaseURL:     fmt.Sprintf("https://github.com/%s/releases/tag/%s", defaultRepo, release.TagName),
 	}
 	return release, info, nil
-}
-
-func currentVersionForUpgrade() string {
-	return strings.TrimSpace(versionFromBuild)
 }
 
 func normalizeVersion(v string) string {
@@ -173,10 +165,6 @@ func findChecksumsAsset(release *githubRelease) *githubAsset {
 		}
 	}
 	return nil
-}
-
-func downloadBytes(httpClient *http.Client, url string) ([]byte, error) {
-	return downloadBytesProgress(httpClient, url, nil)
 }
 
 func downloadBytesProgress(httpClient *http.Client, url string, progress io.Writer) ([]byte, error) {

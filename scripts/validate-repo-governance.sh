@@ -20,6 +20,7 @@ require_text() {
 }
 
 require_file README.md
+require_file Makefile
 require_file CONTRIBUTING.md
 require_file CODE_OF_CONDUCT.md
 require_file SECURITY.md
@@ -54,6 +55,7 @@ done
 
 require_text .github/pull_request_template.md 'go test \./\.\.\.' "go test checklist item"
 require_text .github/pull_request_template.md 'go vet \./\.\.\.' "go vet checklist item"
+require_text .github/pull_request_template.md 'make staticcheck' "staticcheck checklist item"
 require_text .github/pull_request_template.md 'govulncheck' "govulncheck checklist item"
 require_text .github/pull_request_template.md 'check-private-state\.sh' "private-state checklist item"
 require_text .github/pull_request_template.md 'CHANGELOG\.md' "changelog checklist item"
@@ -97,5 +99,11 @@ require_text .github/workflows/release.yml 'attestations: write' "release attest
 require_text .github/workflows/release.yml 'id-token: write' "release OIDC permission"
 require_text .github/workflows/release.yml 'actions/attest@[a-f0-9]{40}[[:space:]]*# v[0-9]+' "pinned release attestation action"
 require_text .github/workflows/release.yml 'subject-checksums: dist/checksums\.txt' "release archive checksum attestation input"
+require_text Makefile '^staticcheck:' "Makefile staticcheck target"
+require_text Makefile 'honnef\.co/go/tools/cmd/staticcheck@\$\(STATICCHECK_VERSION\)' "pinned Staticcheck make target"
+require_text .github/workflows/ci.yml 'STATICCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "CI Staticcheck version"
+require_text .github/workflows/ci.yml 'honnef\.co/go/tools/cmd/staticcheck@\$\{STATICCHECK_VERSION\}' "CI Staticcheck command"
+require_text .github/workflows/release.yml 'STATICCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "release Staticcheck version"
+require_text .github/workflows/release.yml 'honnef\.co/go/tools/cmd/staticcheck@\$\{STATICCHECK_VERSION\}' "release Staticcheck command"
 
 echo "repository governance files valid"

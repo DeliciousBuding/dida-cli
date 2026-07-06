@@ -457,7 +457,7 @@ deferred until release cadence and package identifier are final.
 | Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
 | Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI |
 | CLI test coverage to 60%+ | Medium | Focus on task/project/upgrade command paths |
-| staticcheck in CI | Low | Catches more issues than go vet alone |
+| staticcheck in CI | Done | `make staticcheck`, CI, release validation, and release-check use Staticcheck v0.7.0 |
 
 ### G3. v0.4.0+ (long-term)
 

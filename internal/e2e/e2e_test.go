@@ -56,13 +56,6 @@ func assertOK(t *testing.T, payload map[string]any) {
 	}
 }
 
-func assertFail(t *testing.T, payload map[string]any) {
-	t.Helper()
-	if ok, _ := payload["ok"].(bool); ok {
-		t.Fatalf("ok = %v, want false. payload: %#v", payload["ok"], payload)
-	}
-}
-
 // === Mock Dida365 Web API ===
 
 type webAPIMock struct {

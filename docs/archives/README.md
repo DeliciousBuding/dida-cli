@@ -31,3 +31,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 默认保持本地检查；显式检查时输出 `upgrade_check`，升级查询失败只作为诊断项
 - **详情**: [MASTER.md](doctor-upgrade-check/progress/MASTER.md)
+
+## staticcheck-quality-gate
+
+- **描述**: 将 Staticcheck 接入本地、CI、release validate、release-check 和仓库治理校验
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: `make staticcheck` 使用 `honnef.co/go/tools/cmd/staticcheck@v0.7.0`；治理脚本保护 CI/release/PR checklist 入口
+- **详情**: [MASTER.md](staticcheck-quality-gate/progress/MASTER.md)

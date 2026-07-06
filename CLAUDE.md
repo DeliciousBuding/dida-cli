@@ -23,10 +23,11 @@ go build -o bin/dida ./cmd/dida          # build
 ./bin/dida doctor --json                  # smoke
 go test ./...                             # all tests
 go vet ./...                              # vet
+make staticcheck                          # Staticcheck
 bash scripts/check-private-state.sh       # secret leak check
 ```
 
-Makefile targets: `make test`, `make build`, `make install-local`.
+Makefile targets: `make test`, `make build`, `make install-local`, `make staticcheck`.
 
 ## Key Files To Read When Starting Work
 

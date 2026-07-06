@@ -14,6 +14,7 @@
 
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
+- [ ] `make staticcheck` passes
 - [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
 - [ ] Schema updated (if adding/changing commands)

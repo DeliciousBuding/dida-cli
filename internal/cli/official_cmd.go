@@ -1086,11 +1086,6 @@ func parseHabitCreateWriteArgs(args []string) (map[string]any, bool, error) {
 	return payload, dryRun, nil
 }
 
-func parseHabitCheckinArgs(args []string) (map[string]any, error) {
-	payload, _, err := parseHabitCheckinWriteArgs(args)
-	return payload, err
-}
-
 func parseHabitCheckinWriteArgs(args []string) (map[string]any, bool, error) {
 	payload := map[string]any{}
 	dryRun := false

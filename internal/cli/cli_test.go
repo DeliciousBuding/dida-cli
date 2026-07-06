@@ -482,6 +482,16 @@ func TestAuthCookieTokenArgAllowedWithOptIn(t *testing.T) {
 	}
 }
 
+func TestParseTokenInputRejectsExtraStdinArgs(t *testing.T) {
+	_, err := parseTokenInput([]string{"--token-stdin", "--token", "secret"})
+	if err == nil {
+		t.Fatalf("parseTokenInput() error = nil, want extra argument error")
+	}
+	if !strings.Contains(err.Error(), "extra arguments") {
+		t.Fatalf("error = %v, want extra arguments", err)
+	}
+}
+
 func TestParseTokenInputRejectsLargeStdin(t *testing.T) {
 	oldStdin := os.Stdin
 	readFile, writeFile, err := os.Pipe()

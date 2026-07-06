@@ -1,4 +1,6 @@
-.PHONY: test build install-local actionlint release-check
+STATICCHECK_VERSION ?= v0.7.0
+
+.PHONY: test build install-local actionlint staticcheck release-check
 
 test:
 	go test ./...
@@ -12,6 +14,9 @@ install-local: build
 
 actionlint:
 	go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+
+staticcheck:
+	go run honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION) ./...
 
 release-check:
 ifndef VERSION
@@ -31,4 +36,5 @@ endif
 	bash scripts/validate-packaging.sh --metadata-only
 	bash scripts/validate-packaging.test.sh
 	bash scripts/verify-release-archives.test.sh
+	$(MAKE) staticcheck
 	$(MAKE) actionlint

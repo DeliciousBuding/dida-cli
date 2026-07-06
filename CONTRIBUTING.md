@@ -21,6 +21,7 @@ go build -o bin/dida ./cmd/dida
    ```bash
    go test ./...
    go vet ./...
+   make staticcheck
    go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
    bash scripts/check-private-state.sh
    bash scripts/validate-actions-pinned.sh
@@ -54,6 +55,7 @@ Examples:
 
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
+- [ ] `make staticcheck` passes
 - [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
 - [ ] `bash scripts/validate-actions-pinned.sh` passes if touching `.github/workflows/`

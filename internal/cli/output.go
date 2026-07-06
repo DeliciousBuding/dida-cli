@@ -26,10 +26,6 @@ func fail(command string, message string, jsonOut bool, stdout io.Writer, stderr
 	return failTyped(command, "", message, "", jsonOut, stdout, stderr)
 }
 
-func missingAuth(command string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	return failTyped(command, "auth", "missing cookie auth", "run: dida auth cookie set --token-stdin --json (manual) or dida auth login --browser --json (auto, requires Python)", jsonOut, stdout, stderr)
-}
-
 func failTyped(command string, errType string, message string, hint string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	return failTypedDetails(command, errType, message, hint, nil, jsonOut, stdout, stderr)
 }

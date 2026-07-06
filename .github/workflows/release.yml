@@ -24,6 +24,7 @@ concurrency:
 
 env:
   GOVULNCHECK_VERSION: v1.3.0
+  STATICCHECK_VERSION: v0.7.0
 
 jobs:
   validate:
@@ -84,6 +85,9 @@ jobs:
 
       - name: Vet
         run: go vet ./...
+
+      - name: Staticcheck
+        run: go run "honnef.co/go/tools/cmd/staticcheck@${STATICCHECK_VERSION}" ./...
 
       - name: Vulnerability check
         run: go run "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}" ./...
