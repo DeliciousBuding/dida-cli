@@ -7,7 +7,7 @@ cloning the repository. GitHub Releases are the canonical binary source.
 
 | Channel | Status | Notes |
 | --- | --- | --- |
-| GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS. |
+| GitHub Releases | Primary | Tag pushes build checksum-verified binary archives for Windows, Linux, and macOS, then generates GitHub artifact attestations for the archives. |
 | `install.sh` | Primary | Unix-like one-line installer. Supports `DIDA_VERSION`, `DIDA_INSTALL_DIR`, and `DIDA_REPO`; latest resolution uses release checksum assets instead of the GitHub API. |
 | `install.ps1` | Primary | Windows PowerShell installer. Supports the same environment variables; latest resolution uses release checksum assets instead of the GitHub API. |
 | npm installer package | Published | `@delicious233/dida-cli` downloads the matching GitHub Release binary during postinstall and verifies release checksums. |
@@ -33,7 +33,13 @@ Release workflow:
 - Archives:
   - Windows: `.zip`
   - Linux/macOS: `.tar.gz`
-- Verification: `checksums.txt` with SHA-256 hashes.
+- Verification: `checksums.txt` with SHA-256 hashes and GitHub artifact attestations.
+
+Verify a downloaded archive after release:
+
+```bash
+gh attestation verify dida_vX.Y.Z_linux_amd64.tar.gz --repo DeliciousBuding/dida-cli
+```
 
 Create a release:
 

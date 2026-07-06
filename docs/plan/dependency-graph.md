@@ -41,6 +41,11 @@ graph TD
     T72["Task 7.2: Pinned-actions validator"]
   end
 
+  subgraph Phase8["Phase 8: Release Archive Provenance"]
+    T81["Task 8.1: Generate archive attestations"]
+    T82["Task 8.2: Enforce and document provenance"]
+  end
+
   T21 --> T23
   T22 --> T23
   T21 --> T31
@@ -56,10 +61,13 @@ graph TD
   T53 --> T62
   T62 --> T71
   T71 --> T72
+  T72 --> T81
+  T81 --> T82
   Phase1 --> Phase2
   Phase2 --> Phase3
   Phase3 --> Phase4
   Phase4 --> Phase5
   Phase5 --> Phase6
   Phase6 --> Phase7
+  Phase7 --> Phase8
 ```

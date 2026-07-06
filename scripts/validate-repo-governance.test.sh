@@ -59,4 +59,6 @@ run_case "missing Scorecard security-events permission fails" fail "grep -v 'sec
 
 run_case "unpinned Scorecard action fails" fail "sed -i '0,/ossf\\/scorecard-action@[a-f0-9]\\{40\\}/s//ossf\\/scorecard-action@v2.4.3/' .github/workflows/scorecard.yml"
 
+run_case "missing release attestation action fails" fail "grep -v 'actions/attest' .github/workflows/release.yml > next && mv next .github/workflows/release.yml"
+
 echo "validate-repo-governance tests passed"

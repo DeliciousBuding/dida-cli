@@ -35,9 +35,10 @@ Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`:
 1. validate tag, changelog, npm version, formatting, tests, vet, vulnerability scan, and packaging metadata
 2. build Windows, Linux, and macOS archives for amd64 and arm64
 3. verify archive shape and binary version
-4. create or update the GitHub Release with `checksums.txt`
-5. smoke-test npm install on Linux and Windows
-6. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
+4. generate SHA-256 checksums and GitHub artifact attestations for the release archives
+5. create or update the GitHub Release with `checksums.txt`
+6. smoke-test npm install on Linux and Windows
+7. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
 
 Preferred npm authentication: configure npm Trusted Publishing for the `@delicious233/dida-cli` package with this GitHub repository and the `release.yml` workflow. This uses GitHub Actions OIDC and does not require a long-lived npm token.
 
@@ -55,6 +56,16 @@ Run the pinned-actions validator after workflow changes:
 bash scripts/validate-actions-pinned.sh
 ```
 
+## Release Archive Provenance
+
+The release workflow generates GitHub artifact attestations from `dist/checksums.txt`. The attestation step uses GitHub OIDC and does not require a signing key or repository secret.
+
+After a release, verify an archive with GitHub CLI:
+
+```bash
+gh attestation verify dida_vX.Y.Z_linux_amd64.tar.gz --repo DeliciousBuding/dida-cli
+```
+
 ## Package Manager Templates
 
 Homebrew and Scoop templates contain SHA-256 checksums from the latest published GitHub Release. Keep those templates on the latest checksum-verified release until the next release assets exist, then update the version, URLs, and checksums from `checksums.txt` in a follow-up packaging commit or external tap/bucket PR.
@@ -66,4 +77,5 @@ Verify npm against the official registry. Local mirrors can lag after publish.
 ```bash
 npm view @delicious233/dida-cli@X.Y.Z version readme --registry=https://registry.npmjs.org
 npm install @delicious233/dida-cli@X.Y.Z --registry=https://registry.npmjs.org
+gh attestation verify dida_vX.Y.Z_linux_amd64.tar.gz --repo DeliciousBuding/dida-cli
 ```

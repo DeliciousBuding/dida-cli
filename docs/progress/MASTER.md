@@ -24,12 +24,13 @@
 - [x] Phase 5: Public Repository Governance (3/3 tasks)
 - [x] Phase 6: Supply-Chain Security Automation (2/2 tasks)
 - [x] Phase 7: Pinned GitHub Actions (2/2 tasks)
+- [ ] Phase 8: Release Archive Provenance (0/2 tasks)
 
 ## Current Status
 
-**Active Phase**: Complete
-**Active Task**: None
-**Blockers**: None. `v0.2.5` remains `latest` on the official npm registry; CI, CodeQL, Scorecard, and Pages passed on `main` after Actions SHA pinning.
+**Active Phase**: Phase 8 - Release Archive Provenance
+**Active Task**: 8.1 Generate archive attestations; 8.2 Enforce and document provenance
+**Blockers**: None. Dependabot Actions updates were merged and latest `main` passed CI, CodeQL, Scorecard, and Pages before Phase 8 edits started.
 
 ## Governance Status
 
@@ -48,8 +49,8 @@ adaptive:
   thresholds:
     annotate: 4
     replan: 8
-    rescope: 11
-  total_tasks: 18
+    rescope: 12
+  total_tasks: 20
   completed_tasks: 18
   last_updated: "2026-07-07"
 ```
@@ -77,12 +78,14 @@ adaptive:
 | 2026-07-07 | 6.2 | M | P/E/R pass | 1 | Added OpenSSF Scorecard, split publish/SARIF permissions after first remote failure, and made security workflows part of governance validation. |
 | 2026-07-07 | 7.1 | S | P/E pass | 0 | External workflow actions are pinned to full commit SHAs with version comments; remote CI, CodeQL, Scorecard, and Pages passed on `main`. |
 | 2026-07-07 | 7.2 | S | P/R pass | 0 | Pinned-actions validation is wired into CI hygiene, release validation, and release-check; local validator tests and remote hygiene passed. |
+| 2026-07-07 | Dependabot action updates | S | R pass | 0 | Merged `actions/stale` 10.3.0 and `actions/checkout` 7.0.0; latest `main` passed CI, CodeQL, Scorecard, and Pages. |
+| 2026-07-07 | 8.1 | S | P/E pass | 0 | In progress: release workflow generates GitHub artifact attestations from `dist/checksums.txt`. |
+| 2026-07-07 | 8.2 | S | P/R pass | 0 | In progress: governance validation and maintainer docs require archive provenance. |
 
 ## Next Steps
 
-1. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
-2. Review the Dependabot action-update PRs that are now expected after SHA pinning.
-3. Decide whether to add signed release artifacts or SLSA provenance for GitHub Release archives.
+1. Finish local and remote verification for release archive attestations.
+2. Configure npm Trusted Publishing for `@delicious233/dida-cli` before removing the `NPM_TOKEN` fallback.
 
 ## Session Log
 
@@ -100,3 +103,5 @@ adaptive:
 | 2026-07-07 | Phase 6 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main` after splitting Scorecard publish and SARIF upload permissions. |
 | 2026-07-07 | Pinned GitHub Actions | Started Phase 7 to pin external workflow actions by full SHA and enforce the contract in local checks. |
 | 2026-07-07 | Phase 7 remote verification | CI, CodeQL, Scorecard, and Pages passed on `main` after Actions SHA pinning. |
+| 2026-07-07 | Dependabot action updates | Merged expected SHA-pinned Dependabot updates for `actions/stale` and `actions/checkout`; latest `main` passed CI, CodeQL, Scorecard, and Pages. |
+| 2026-07-07 | Release archive provenance | Started Phase 8 to add GitHub artifact attestations for release archives and enforce them in governance checks. |

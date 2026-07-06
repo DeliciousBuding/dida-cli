@@ -85,5 +85,9 @@ require_text .github/workflows/scorecard.yml 'actions/upload-artifact@[a-f0-9]{4
 require_text .github/workflows/scorecard.yml 'actions/download-artifact@[a-f0-9]{40}[[:space:]]*# v[5-9]' "pinned Scorecard SARIF artifact download"
 require_text .github/workflows/release.yml 'actions/upload-artifact@[a-f0-9]{40}[[:space:]]*# v[5-9]' "pinned upload-artifact action"
 require_text .github/workflows/release.yml 'actions/download-artifact@[a-f0-9]{40}[[:space:]]*# v[5-9]' "pinned download-artifact action"
+require_text .github/workflows/release.yml 'attestations: write' "release attestation permission"
+require_text .github/workflows/release.yml 'id-token: write' "release OIDC permission"
+require_text .github/workflows/release.yml 'actions/attest@[a-f0-9]{40}[[:space:]]*# v[0-9]+' "pinned release attestation action"
+require_text .github/workflows/release.yml 'subject-checksums: dist/checksums\.txt' "release archive checksum attestation input"
 
 echo "repository governance files valid"

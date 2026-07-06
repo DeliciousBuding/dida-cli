@@ -196,6 +196,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     env:
       ALLOW_CHANGELOG_FALLBACK: ${{ github.event.inputs.allow_changelog_fallback || 'false' }}
     steps:
@@ -234,6 +236,11 @@ jobs:
           set -euo pipefail
           cd dist
           sha256sum ./*.zip ./*.tar.gz | sed 's|  \./|  |' > checksums.txt
+
+      - name: Attest release archives
+        uses: actions/attest@f6bf1532d7d6793fce74eac584813a8eee607999 # v4
+        with:
+          subject-checksums: dist/checksums.txt
 
       - name: Generate release notes
         shell: bash

@@ -18,6 +18,8 @@
 
 **Phase 7 Update**: external workflow actions are pinned to full commit SHAs, with version comments retained so reviews and Dependabot PRs still show the intended major version.
 
+**Phase 8 Update**: release archives now get GitHub artifact attestations from `dist/checksums.txt`; governance checks require the release OIDC and attestation permissions.
+
 ### S.U.P.E.R Violation Hotspots
 
 1. `.github/workflows/release.yml`: inline validation and notes generation.
@@ -40,6 +42,8 @@
 | repository security posture drifts silently | supply-chain regressions are noticed late | Medium | Medium | Run OpenSSF Scorecard and require workflow permissions in governance validation |
 | workflow actions move under a mutable tag | compromised or changed action code runs in CI | Medium | High | Pin external Actions to full commit SHAs and validate the format in CI |
 | SHA-pinned actions become stale | security fixes in Actions are missed | Medium | Medium | Keep version comments, Dependabot coverage, and manual review of action update PRs |
+| release archive provenance is missing | users can verify checksums but not build origin | Medium | Medium | Generate GitHub artifact attestations for release archives from `checksums.txt` |
+| attestation permissions are removed during workflow edits | release provenance silently stops | Medium | Medium | Require `id-token: write`, `attestations: write`, and pinned `actions/attest` in governance validation |
 | Windows runner parses coverage path differently | CI red on main | High | High | Use `coverage/profile.txt` through Bash |
 | Local shell scripts fail under WSL due CRLF | Maintainer checks unreliable | High | Medium | `.gitattributes` for `*.sh` |
 
@@ -50,6 +54,8 @@ Release logic must be unit-tested as shell scripts, not only executed on tag pus
 Phase 4 adds coverage for changelog structure and npm package contents, including README presence, so release metadata and registry listing drift are caught before tag pushes. Phase 5 extends the same idea to repository governance files and public entry-point copy.
 
 Phase 6 extends governance coverage to security automation. The local validator now requires CodeQL, Scorecard, SARIF upload, and code-scanning permissions before CI can pass.
+
+Phase 8 extends governance coverage to release archive provenance. The validator now requires the release attestation action, its OIDC permission, and the checksum-based subject input.
 
 ## Project Governance Risks
 

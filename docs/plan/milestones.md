@@ -9,3 +9,4 @@
 | 5 | Public governance gate | After Phase 5 | Public README has no internal metadata; PR and issue templates cover verification and secret-handling; governance validator runs in CI and release-check | Complete |
 | 6 | Security automation baseline | After Phase 6 | CodeQL and OpenSSF Scorecard run on `main`, publish security results, and are protected by governance validation | Complete |
 | 7 | Pinned workflow dependencies | After Phase 7 | External workflow actions are pinned to full SHAs; CI and release-check validate that pinned-actions contract | Complete |
+| 8 | Release archive provenance | After Phase 8 | GitHub Release archives get artifact attestations; governance validation requires the release attestation action and permissions | Active |

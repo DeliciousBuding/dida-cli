@@ -8,7 +8,7 @@ DidaCLI is a JSON-first CLI for Dida365 / TickTick, built as a single Go binary 
 
 - `main` is the release branch. All commits on `main` must pass CI (`go test ./...`, `go vet ./...`, `govulncheck ./...`, `check-private-state.sh`).
 - Feature work branches off `main` with descriptive names (e.g. `feature/task-attachment-download`, `fix/upgrade-windows-lock`). Merge back via PR when done.
-- Tags are semver `vX.Y.Z` and trigger the release workflow (build, sign, publish to GitHub Releases + npm).
+- Tags are semver `vX.Y.Z` and trigger the release workflow (build, attest, publish to GitHub Releases + npm).
 - Never force-push to `main`. Never rebase shared branches.
 
 ## Code Conventions
@@ -64,11 +64,12 @@ Examples: `feat: add task activity reads`, `fix: redact cookie in upgrade error 
 
 - Tag `main` with a semver tag: `git tag -a vX.Y.Z -m "vX.Y.Z"` and push. The tag must point to a commit reachable from `main`.
 - Run `make release-check VERSION=vX.Y.Z` before pushing a release tag. This validates tag metadata, npm version alignment, changelog structure, npm package contents, pinned GitHub Actions, repository governance files, current package-manager template metadata, helper scripts, and workflow syntax without publishing.
-- Tag push triggers `.github/workflows/release.yml`: validate → test + vet + vulncheck + private-state check → multi-platform build (6 targets) → npm preflight → GitHub Release with checksums → npm install smoke → npm publish.
+- Tag push triggers `.github/workflows/release.yml`: validate -> test + vet + vulncheck + private-state check -> multi-platform build (6 targets) -> npm preflight -> GitHub Release with checksums and artifact attestations -> npm install smoke -> npm publish.
 - Prefer npm Trusted Publishing/OIDC for npm releases. Keep `NPM_TOKEN` only as a fallback until the npm package trusted publisher is configured and proven by a real release.
 - Before tagging: update `CHANGELOG.md` with a `## [vX.Y.Z]` section, bump version in `npm/package.json`, and confirm CI is green on `main`.
 - Release notes are auto-generated from `CHANGELOG.md`. Use `workflow_dispatch` with `allow_changelog_fallback=true` only for emergency releases.
 - After release: the `dida upgrade` command uses the GitHub Releases API for self-update with SHA-256 verification. Update Homebrew and Scoop templates only after the release assets and `checksums.txt` exist.
+- Release archive provenance is generated through GitHub artifact attestations from `dist/checksums.txt`. Keep `attestations: write`, `id-token: write`, and the pinned `actions/attest` step in the release job.
 - Verify npm publishes against `https://registry.npmjs.org`; local mirrors such as npmmirror can lag behind `latest`.
 
 ## Core Rules

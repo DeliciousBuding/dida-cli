@@ -2,8 +2,8 @@
 
 ## Overview
 
-- **Total Phases**: 7
-- **Total Tasks**: 18
+- **Total Phases**: 8
+- **Total Tasks**: 20
 - **Estimated Total Effort**: M
 
 ## S.U.P.E.R Design Constraints
@@ -17,6 +17,7 @@
 - **P**: Public repository entry points are treated as explicit governance contracts, not informal Markdown.
 - **P**: Security automation is a first-class repository contract, enforced by the same governance validator as public docs and templates.
 - **P**: External GitHub Actions are pinned to full commit SHAs while keeping version comments for review and update context.
+- **P**: Release archives get GitHub artifact attestations derived from the same checksum file that consumers use.
 
 ## Phase 1: Stabilize Main CI
 
@@ -125,3 +126,19 @@
 | Lane | Tasks | Combined Effort | Merge Risk | Key Files |
 |:--|:--|:--|:--|:--|
 | A | 7.1, 7.2 | S | Medium | `.github/workflows/`, `scripts/`, `Makefile`, docs |
+
+## Phase 8: Release Archive Provenance
+
+**Goal**: Attach GitHub artifact attestations to release archives without adding long-lived signing keys.
+**S.U.P.E.R Focus**: P, E, R
+
+| # | Task | Priority | Effort | Depends On | Lane | S.U.P.E.R | Test Expectation | Memory Impact | Acceptance Criteria |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| 8.1 | Generate archive attestations in the release workflow | P1 | S | 7.2 | A | P, E | actionlint and release workflow syntax checks | Update `AGENTS.md` and `RELEASE.md` | Release job has OIDC and attestation permissions and runs pinned `actions/attest` against `dist/checksums.txt` |
+| 8.2 | Enforce and document archive provenance | P1 | S | 8.1 | A | P, R | Governance validator tests plus `make release-check` | Update distribution docs | Local governance checks fail if the attestation step or permissions are removed; maintainers have a `gh attestation verify` command |
+
+### Phase 8 Parallel Lanes
+
+| Lane | Tasks | Combined Effort | Merge Risk | Key Files |
+|:--|:--|:--|:--|:--|
+| A | 8.1, 8.2 | S | Medium | `.github/workflows/release.yml`, `scripts/`, `RELEASE.md`, docs |
