@@ -75,7 +75,7 @@ DIDA_VERSION=vX.Y.Z curl -fsSL https://raw.githubusercontent.com/DeliciousBuding
 
 ```bash
 dida version && dida doctor --json
-dida upgrade --check
+dida doctor --check-upgrade --json
 ```
 
 </details>
@@ -91,6 +91,9 @@ dida auth login --browser --json
 
 # 2. 验证
 dida doctor --verify --json
+
+# 可选：检查更新
+dida doctor --check-upgrade --json
 
 # 3. 查看今日
 dida +today --json
@@ -224,6 +227,7 @@ dida completion bash
 dida channel list --json
 dida agent context --outline --json
 dida raw get /user/preferences/settings --json
+dida doctor --check-upgrade --json
 dida upgrade --check --json
 ```
 </details>

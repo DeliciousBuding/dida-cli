@@ -53,6 +53,10 @@ type upgradeInfo struct {
 }
 
 func fetchLatestRelease(httpClient *http.Client) (*githubRelease, error) {
+	return fetchLatestReleaseForVersion(httpClient, currentVersionForUpgrade())
+}
+
+func fetchLatestReleaseForVersion(httpClient *http.Client, version string) (*githubRelease, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{Timeout: metadataDownloadTimeout}
 	}
@@ -61,7 +65,7 @@ func fetchLatestRelease(httpClient *http.Client) (*githubRelease, error) {
 		return nil, fmt.Errorf("build request: %w", err)
 	}
 	req.Header.Set("Accept", "application/vnd.github+json")
-	req.Header.Set("User-Agent", "DidaCLI/"+currentVersionForUpgrade())
+	req.Header.Set("User-Agent", "DidaCLI/"+strings.TrimSpace(version))
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -76,6 +80,20 @@ func fetchLatestRelease(httpClient *http.Client) (*githubRelease, error) {
 		return nil, fmt.Errorf("decode release: %w", err)
 	}
 	return &release, nil
+}
+
+func latestUpgradeMetadata(current string, httpClient *http.Client) (*githubRelease, upgradeInfo, error) {
+	release, err := fetchLatestReleaseForVersion(httpClient, current)
+	if err != nil {
+		return nil, upgradeInfo{}, err
+	}
+	info := upgradeInfo{
+		CurrentVersion: current,
+		LatestVersion:  release.TagName,
+		NeedsUpdate:    isNewer(release.TagName, current),
+		ReleaseURL:     fmt.Sprintf("https://github.com/%s/releases/tag/%s", defaultRepo, release.TagName),
+	}
+	return release, info, nil
 }
 
 func currentVersionForUpgrade() string {

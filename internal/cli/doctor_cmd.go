@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"path/filepath"
 	"runtime"
 
@@ -12,10 +13,11 @@ import (
 
 func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help") {
-		fmt.Fprintln(stdout, "Usage: dida doctor [--verify] [--json]")
+		fmt.Fprintln(stdout, "Usage: dida doctor [--verify] [--check-upgrade] [--json]")
 		return 0
 	}
 	verify := hasFlag(args, "--verify")
+	checkUpgrade := hasFlag(args, "--check-upgrade")
 
 	cfgDir := config.DefaultDir()
 	cookiePath := filepath.Join(cfgDir, "cookie.json")
@@ -33,6 +35,10 @@ func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, st
 		"auth_sources":  map[string]bool{"cookie": cookieExists, "oauth": oauthExists, "openapi_oauth": openapiOAuthExists},
 		"cookie_status": auth.CookieStatus(),
 		"network_check": "not_run",
+		"upgrade_check": "not_run",
+	}
+	if checkUpgrade {
+		data["upgrade_check"] = doctorUpgradeCheck(version)
 	}
 	if verify {
 		verifyResult := verifyCookieAuth()
@@ -75,6 +81,11 @@ func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, st
 	} else {
 		fmt.Fprintln(stdout, "Network check: not run")
 	}
+	if checkUpgrade {
+		printDoctorUpgradeCheck(stdout, data["upgrade_check"])
+	} else {
+		fmt.Fprintln(stdout, "Upgrade check: not run")
+	}
 	return 0
 }
 
@@ -83,4 +94,45 @@ func doctorNetworkStatus(verifyResult map[string]any) string {
 		return "ok"
 	}
 	return "failed"
+}
+
+func doctorUpgradeCheck(version string) map[string]any {
+	client := &http.Client{Timeout: metadataDownloadTimeout}
+	_, info, err := latestUpgradeMetadata(version, client)
+	if err != nil {
+		return map[string]any{
+			"status": "failed",
+			"error":  fmt.Sprintf("check for updates failed: %v", err),
+			"hint":   "check your internet connection or run: dida upgrade --check --json",
+		}
+	}
+	status := "current"
+	if info.NeedsUpdate {
+		status = "available"
+	}
+	return map[string]any{
+		"status":          status,
+		"current_version": info.CurrentVersion,
+		"latest_version":  info.LatestVersion,
+		"needs_update":    info.NeedsUpdate,
+		"release_url":     info.ReleaseURL,
+	}
+}
+
+func printDoctorUpgradeCheck(stdout io.Writer, value any) {
+	check, ok := value.(map[string]any)
+	if !ok {
+		fmt.Fprintf(stdout, "Upgrade check: %v\n", value)
+		return
+	}
+	switch check["status"] {
+	case "available":
+		fmt.Fprintf(stdout, "Upgrade check: update available %v (current: %v)\n", check["latest_version"], check["current_version"])
+	case "current":
+		fmt.Fprintf(stdout, "Upgrade check: current (%v)\n", check["current_version"])
+	case "failed":
+		fmt.Fprintf(stdout, "Upgrade check: failed (%v)\n", check["error"])
+	default:
+		fmt.Fprintf(stdout, "Upgrade check: %v\n", check["status"])
+	}
 }

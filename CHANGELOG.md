@@ -9,6 +9,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 - `dida completion <bash|zsh|fish|powershell>` generates local shell completion scripts without requiring auth.
+- `dida doctor --check-upgrade` reports GitHub Release update status in the normal doctor JSON/text diagnostic output.
 
 ## [v0.2.5] - 2026-07-07
 

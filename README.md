@@ -75,7 +75,7 @@ After install:
 
 ```bash
 dida version && dida doctor --json
-dida upgrade --check
+dida doctor --check-upgrade --json
 ```
 
 </details>
@@ -91,6 +91,9 @@ dida auth login --browser --json
 
 # 2. Verify
 dida doctor --verify --json
+
+# Optional update check
+dida doctor --check-upgrade --json
 
 # 3. See today
 dida +today --json
@@ -227,6 +230,7 @@ dida completion bash
 dida channel list --json
 dida agent context --outline --json
 dida raw get /user/preferences/settings --json
+dida doctor --check-upgrade --json
 dida upgrade --check --json
 ```
 </details>

@@ -23,3 +23,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 4 种 shell completion 脚本、本地测试、用户文档和路线图更新
 - **详情**: [MASTER.md](shell-completion-productization/progress/MASTER.md)
+
+## doctor-upgrade-check
+
+- **描述**: 增加 `dida doctor --check-upgrade`，在 doctor 诊断中显式报告 GitHub Release 更新状态
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 默认保持本地检查；显式检查时输出 `upgrade_check`，升级查询失败只作为诊断项
+- **详情**: [MASTER.md](doctor-upgrade-check/progress/MASTER.md)

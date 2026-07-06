@@ -20,18 +20,12 @@ func runUpgrade(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 	metadataClient := &http.Client{Timeout: metadataDownloadTimeout}
 	artifactClient := &http.Client{Timeout: artifactDownloadTimeout}
 
-	release, err := fetchLatestRelease(metadataClient)
+	release, info, err := latestUpgradeMetadata(versionFromBuild, metadataClient)
 	if err != nil {
 		return failTyped("upgrade", "network", fmt.Sprintf("check for updates failed: %v", err), "check your internet connection and try again", jsonOut, stdout, stderr)
 	}
 
 	current := versionFromBuild
-	info := upgradeInfo{
-		CurrentVersion: current,
-		LatestVersion:  release.TagName,
-		NeedsUpdate:    isNewer(release.TagName, current),
-		ReleaseURL:     fmt.Sprintf("https://github.com/%s/releases/tag/%s", defaultRepo, release.TagName),
-	}
 
 	if !info.NeedsUpdate {
 		if jsonOut {

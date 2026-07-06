@@ -47,6 +47,10 @@ func TestDoctorJSON(t *testing.T) {
 	if payload["command"] != "doctor" {
 		t.Fatalf("command = %v, want doctor", payload["command"])
 	}
+	data := payload["data"].(map[string]any)
+	if data["upgrade_check"] != "not_run" {
+		t.Fatalf("upgrade_check = %v, want not_run", data["upgrade_check"])
+	}
 }
 
 func TestDoctorVerifyMissingAuthIncludesDiagnosticData(t *testing.T) {
@@ -76,6 +80,74 @@ func TestDoctorVerifyMissingAuthIncludesDiagnosticData(t *testing.T) {
 	}
 	if networkCheck["channel"] != "webapi" {
 		t.Fatalf("network_check.channel = %v, want webapi", networkCheck["channel"])
+	}
+}
+
+func TestDoctorCheckUpgradeJSON(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/repos/DeliciousBuding/dida-cli/releases/latest" {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+		_ = json.NewEncoder(w).Encode(githubRelease{
+			TagName: "v99.0.0",
+			Assets:  []githubAsset{},
+		})
+	}))
+	defer server.Close()
+
+	orig := releasesLatestURL
+	releasesLatestURL = server.URL + "/repos/DeliciousBuding/dida-cli/releases/latest"
+	defer func() { releasesLatestURL = orig }()
+
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"doctor", "--check-upgrade", "--json"}, "v1.0.0", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	upgradeCheck := data["upgrade_check"].(map[string]any)
+	if upgradeCheck["status"] != "available" {
+		t.Fatalf("upgrade_check.status = %v, want available", upgradeCheck["status"])
+	}
+	if upgradeCheck["needs_update"] != true {
+		t.Fatalf("upgrade_check.needs_update = %v, want true", upgradeCheck["needs_update"])
+	}
+	if upgradeCheck["latest_version"] != "v99.0.0" {
+		t.Fatalf("upgrade_check.latest_version = %v, want v99.0.0", upgradeCheck["latest_version"])
+	}
+}
+
+func TestDoctorCheckUpgradeFailureIsAdvisory(t *testing.T) {
+	orig := releasesLatestURL
+	releasesLatestURL = "http://127.0.0.1:1/not-a-real-server"
+	defer func() { releasesLatestURL = orig }()
+
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"doctor", "--check-upgrade", "--json"}, "v1.0.0", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, want advisory success, stdout=%s stderr=%s", code, stdout.String(), stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	upgradeCheck := data["upgrade_check"].(map[string]any)
+	if upgradeCheck["status"] != "failed" {
+		t.Fatalf("upgrade_check.status = %v, want failed", upgradeCheck["status"])
+	}
+	if payload["ok"] != true {
+		t.Fatalf("ok = %v, want true", payload["ok"])
 	}
 }
 

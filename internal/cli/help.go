@@ -16,7 +16,7 @@ Usage:
   dida <command> [options]
 
 Commands:
-  doctor       Check local config, auth status, and optional endpoint health
+  doctor       Check local config, auth status, endpoint health, and updates
   official     Inspect the official dida365 MCP channel
   openapi      Use the official OAuth-based OpenAPI channel
   agent        Agent-oriented context pack

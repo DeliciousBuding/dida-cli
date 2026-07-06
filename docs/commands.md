@@ -8,6 +8,7 @@ Use `--compact` or `--brief` on task-heavy reads when an agent only needs IDs, t
 
 ```bash
 dida doctor --verify --json
+dida doctor --check-upgrade --json
 dida auth login --browser --json
 dida auth cookie set --token-stdin
 dida auth status --verify --json
@@ -20,6 +21,11 @@ Prefer `dida auth login --browser --json` for normal setup. `dida auth login
 cookie import through `dida auth cookie set --token-stdin`. Cookie import
 through `--token` is disabled by default; use `--token-stdin` so the cookie does
 not enter shell history.
+
+`dida doctor` is local-only by default. Add `--verify` to check Web API cookie
+auth. Add `--check-upgrade` to query GitHub Releases and include
+`upgrade_check` in JSON output. Upgrade check failures are advisory and do not
+make `doctor` fail.
 
 ## Schema
 
@@ -447,6 +453,9 @@ errors, path mistakes, and server failures without enabling raw writes.
 dida upgrade --json              # Check for updates and self-upgrade
 dida upgrade --check --json      # Only check, do not install
 ```
+
+For a combined diagnostic, use `dida doctor --check-upgrade --json`. It reports
+the same latest-release metadata without installing anything.
 
 The updater queries GitHub Releases for the latest version, downloads the
 platform-matched binary archive, verifies the SHA-256 checksum against
