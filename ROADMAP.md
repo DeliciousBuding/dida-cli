@@ -52,7 +52,7 @@ Latest release: `v0.2.1` (2026-05-12).
 ### What's NOT Done Yet
 
 - CLI package coverage: 37.8% (core command paths under-tested)
-- No shell completion (`dida completion`)
+- Shell completion is implemented through `dida completion <bash|zsh|fish|powershell>`
 - No Homebrew tap or Scoop bucket (templates exist, not published)
 - No i18n (all errors English-only)
 - `doctor` doesn't check for available updates
@@ -451,7 +451,7 @@ deferred until release cadence and package identifier are final.
 
 | Item | Priority | Notes |
 |---|---|---|
-| `dida completion` | High | bash/zsh/fish/powershell, hardcoded templates |
+| `dida completion` | Done | bash/zsh/fish/powershell, hardcoded templates |
 | `dida doctor` upgrade check | High | One-line "update available" in doctor output |
 | goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
 | Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
@@ -548,11 +548,10 @@ For v0.2.1 release (immediate):
 
 For v0.3.0 (next sprint):
 
-1. Implement `dida completion` (bash/zsh/fish/powershell)
-2. Integrate upgrade check into `dida doctor`
-3. Evaluate goreleaser migration (replace hand-rolled build script)
-4. Publish Homebrew tap and Scoop bucket
-5. Raise CLI test coverage to 60%+
+1. Integrate upgrade check into `dida doctor`
+2. Evaluate goreleaser migration (replace hand-rolled build script)
+3. Publish Homebrew tap and Scoop bucket
+4. Raise CLI test coverage to 60%+
 
 ## Done Means Done
 

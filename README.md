@@ -101,7 +101,7 @@ dida task create --project <id> --title "Ship v1" --dry-run --json
 
 ## Feature Coverage
 
-DidaCLI exposes 139 local command contracts through `dida schema list --compact --json`. The main feature groups are:
+DidaCLI exposes 140 local command contracts through `dida schema list --compact --json`. The main feature groups are:
 
 | Area | What it covers | Entry points |
 |---|---|---|
@@ -120,7 +120,7 @@ DidaCLI exposes 139 local command contracts through `dida schema list --compact 
 | Official MCP | Token management, tool discovery, schema display, raw tool call, project reads, task search/filter/batch writes, habit reads/writes, focus reads/delete | `official` |
 | Official OpenAPI | OAuth client config, browser/manual OAuth, project/task/focus/habit wrappers, completed and filtered task reads | `openapi` |
 | Raw read probes | Read-only GET escape hatch for verified Web API exploration with structured error details | `raw get` |
-| Distribution and upgrade | Single binary builds, npm/install scripts, packaging templates, release archives, checksum-verified self-upgrade | `upgrade` |
+| Distribution and upgrade | Single binary builds, shell completion scripts, npm/install scripts, packaging templates, release archives, checksum-verified self-upgrade | `completion`, `upgrade` |
 
 ## Command Examples
 
@@ -223,6 +223,7 @@ dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407
 ```bash
 dida schema list --compact --json
 dida schema show task.create --json
+dida completion bash
 dida channel list --json
 dida agent context --outline --json
 dida raw get /user/preferences/settings --json

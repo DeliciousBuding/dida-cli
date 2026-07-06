@@ -38,6 +38,27 @@ destructive confirmation requirements, and compact-output support. Use
 Channel output is also local and explains when to use Web API, Official MCP, or
 Official OpenAPI without mixing auth models.
 
+## Shell Completion
+
+```bash
+dida completion bash
+dida completion zsh
+dida completion fish
+dida completion powershell
+```
+
+Completion output is local shell script text. It does not require auth and does
+not support `--json`.
+
+Install examples:
+
+```bash
+dida completion bash > /etc/bash_completion.d/dida
+dida completion zsh > "${fpath[1]}/_dida"
+dida completion fish > ~/.config/fish/completions/dida.fish
+dida completion powershell > dida-completion.ps1
+```
+
 ## Agent Context
 
 ```bash

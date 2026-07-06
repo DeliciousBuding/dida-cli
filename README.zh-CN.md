@@ -101,7 +101,7 @@ dida task create --project <id> --title "发布 v1" --dry-run --json
 
 ## 功能覆盖
 
-DidaCLI 通过 `dida schema list --compact --json` 暴露 139 条本地命令契约。主要功能面如下：
+DidaCLI 通过 `dida schema list --compact --json` 暴露 140 条本地命令契约。主要功能面如下：
 
 | 范围 | 覆盖内容 | 入口 |
 |---|---|---|
@@ -120,7 +120,7 @@ DidaCLI 通过 `dida schema list --compact --json` 暴露 139 条本地命令契
 | 官方 MCP | Token 管理、工具发现、schema 展示、原始工具调用、项目读取、任务搜索/筛选/批量写入、习惯读写、专注记录读取/删除 | `official` |
 | 官方 OpenAPI | OAuth 客户端配置、浏览器或手动 OAuth、项目/任务/专注/习惯封装、已完成和筛选任务读取 | `openapi` |
 | 原始只读探测 | 只允许 GET 的 Web API 探测入口，并返回结构化错误细节 | `raw get` |
-| 分发与升级 | 单二进制构建、npm/安装脚本、包管理模板、发布归档、校验和验证自升级 | `upgrade` |
+| 分发与升级 | 单二进制构建、shell completion 脚本、npm/安装脚本、包管理模板、发布归档、校验和验证自升级 | `completion`, `upgrade` |
 
 ## 命令示例
 
@@ -220,6 +220,7 @@ dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407
 ```bash
 dida schema list --compact --json
 dida schema show task.create --json
+dida completion bash
 dida channel list --json
 dida agent context --outline --json
 dida raw get /user/preferences/settings --json

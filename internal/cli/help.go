@@ -38,6 +38,7 @@ Commands:
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
   schema       List machine-readable command contracts
+  completion   Generate shell completion scripts
   channel      Explain API channel selection and auth boundaries
   project      Project discovery and CRUD
   folder       Project folder CRUD
@@ -54,6 +55,24 @@ Commands:
 Global options:
   -j, --json   Emit machine-readable JSON
   -h, --help   Show help
+`))
+}
+
+func printCompletionHelp(w io.Writer) {
+	fmt.Fprintln(w, strings.TrimSpace(`
+Usage:
+  dida completion bash
+  dida completion zsh
+  dida completion fish
+  dida completion powershell
+
+Generate shell completion scripts for the dida command.
+
+Examples:
+  dida completion bash > /etc/bash_completion.d/dida
+  dida completion zsh > "${fpath[1]}/_dida"
+  dida completion fish > ~/.config/fish/completions/dida.fish
+  dida completion powershell > dida-completion.ps1
 `))
 }
 

@@ -15,3 +15,11 @@
 - **模式**: GITHUB_STANDARD
 - **成果**: PR #2 恢复并合并、`v0.2.5` 发布、npm README 修复、CI/release gates、CodeQL、Scorecard、SHA-pinned Actions、release archive attestation wiring
 - **详情**: [MASTER.md](release-governance-optimization/progress/MASTER.md)
+
+## shell-completion-productization
+
+- **描述**: 增加 `dida completion <bash|zsh|fish|powershell>`，并同步 schema、README、命令参考、roadmap、changelog
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 4 种 shell completion 脚本、本地测试、用户文档和路线图更新
+- **详情**: [MASTER.md](shell-completion-productization/progress/MASTER.md)

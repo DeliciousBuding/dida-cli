@@ -7,6 +7,9 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- `dida completion <bash|zsh|fish|powershell>` generates local shell completion scripts without requiring auth.
+
 ## [v0.2.5] - 2026-07-07
 
 ### Added

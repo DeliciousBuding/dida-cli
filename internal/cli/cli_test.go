@@ -103,6 +103,79 @@ func TestChannelListJSONDoesNotRequireAuth(t *testing.T) {
 	}
 }
 
+func TestCompletionScripts(t *testing.T) {
+	cases := []struct {
+		name string
+		args []string
+		want []string
+	}{
+		{
+			name: "bash",
+			args: []string{"completion", "bash"},
+			want: []string{"_dida_completion", "complete -F _dida_completion dida", "task", "completion"},
+		},
+		{
+			name: "zsh",
+			args: []string{"completion", "zsh"},
+			want: []string{"#compdef dida", "_arguments", "task", "completion"},
+		},
+		{
+			name: "fish",
+			args: []string{"completion", "fish"},
+			want: []string{"complete -c dida", "__fish_use_subcommand", "task", "completion"},
+		},
+		{
+			name: "powershell",
+			args: []string{"completion", "powershell"},
+			want: []string{"Register-ArgumentCompleter", "CompletionResult", "task", "completion"},
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+			var stdout, stderr bytes.Buffer
+			code := Run(tc.args, "test-version", &stdout, &stderr)
+			if code != 0 {
+				t.Fatalf("Run() code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+			}
+			if stderr.Len() != 0 {
+				t.Fatalf("stderr = %q, want empty", stderr.String())
+			}
+			text := stdout.String()
+			for _, want := range tc.want {
+				if !strings.Contains(text, want) {
+					t.Fatalf("completion script missing %q: %s", want, text)
+				}
+			}
+		})
+	}
+}
+
+func TestCompletionRejectsJSONOutput(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"completion", "bash", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "completion" {
+		t.Fatalf("command = %v, want completion", payload["command"])
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "validation" {
+		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+	if !strings.Contains(fmt.Sprint(errPayload["message"]), "does not support --json") {
+		t.Fatalf("message missing json guidance: %v", errPayload["message"])
+	}
+}
+
 func TestJSONFlagWithoutCommandReturnsError(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"--json"}, "test-version", &stdout, &stderr)
