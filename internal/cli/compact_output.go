@@ -3,18 +3,20 @@ package cli
 import "github.com/DeliciousBuding/dida-cli/internal/model"
 
 type compactTask struct {
-	ID          string   `json:"id"`
-	ProjectID   string   `json:"projectId"`
-	ProjectName string   `json:"projectName,omitempty"`
-	ParentID    string   `json:"parentId,omitempty"`
-	Title       string   `json:"title"`
-	DueDate     string   `json:"dueDate,omitempty"`
-	StartDate   string   `json:"startDate,omitempty"`
-	Priority    int      `json:"priority"`
-	Status      int      `json:"status"`
-	ColumnID    string   `json:"columnId,omitempty"`
-	Tags        []string `json:"tags,omitempty"`
-	Overdue     bool     `json:"overdue,omitempty"`
+	ID           string   `json:"id"`
+	ProjectID    string   `json:"projectId"`
+	ProjectName  string   `json:"projectName,omitempty"`
+	ParentID     string   `json:"parentId,omitempty"`
+	Title        string   `json:"title"`
+	DueDate      string   `json:"dueDate,omitempty"`
+	StartDate    string   `json:"startDate,omitempty"`
+	CreatedTime  string   `json:"createdTime,omitempty"`
+	ModifiedTime string   `json:"modifiedTime,omitempty"`
+	Priority     int      `json:"priority"`
+	Status       int      `json:"status"`
+	ColumnID     string   `json:"columnId,omitempty"`
+	Tags         []string `json:"tags,omitempty"`
+	Overdue      bool     `json:"overdue,omitempty"`
 }
 
 func taskOutput(tasks []model.Task, compact bool) any {
@@ -30,17 +32,19 @@ func taskOutput(tasks []model.Task, compact bool) any {
 
 func compactTaskFromTask(task model.Task) compactTask {
 	return compactTask{
-		ID:          task.ID,
-		ProjectID:   task.ProjectID,
-		ProjectName: task.ProjectName,
-		ParentID:    task.ParentID,
-		Title:       task.Title,
-		DueDate:     task.DueDate,
-		StartDate:   task.StartDate,
-		Priority:    task.Priority,
-		Status:      task.Status,
-		ColumnID:    task.ColumnID,
-		Tags:        task.Tags,
-		Overdue:     task.Overdue,
+		ID:           task.ID,
+		ProjectID:    task.ProjectID,
+		ProjectName:  task.ProjectName,
+		ParentID:     task.ParentID,
+		Title:        task.Title,
+		DueDate:      task.DueDate,
+		StartDate:    task.StartDate,
+		CreatedTime:  task.CreatedTime,
+		ModifiedTime: task.ModifiedTime,
+		Priority:     task.Priority,
+		Status:       task.Status,
+		ColumnID:     task.ColumnID,
+		Tags:         task.Tags,
+		Overdue:      task.Overdue,
 	}
 }

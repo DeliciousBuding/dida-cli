@@ -137,7 +137,7 @@ func makeSyncPayload() string {
 				"deleted": 0,
 				"createdTime": "2026-06-25T10:00:00+08:00",
 				"modifiedTime": "2026-06-25T10:00:00+08:00",
-				"dueDate": "2026-06-28T18:00:00+08:00",
+				"dueDate": "2099-06-28T18:00:00+08:00",
 				"tags": ["work", "deep"],
 				"timeZone": "Asia/Shanghai",
 				"items": [{"title": "Read spec", "status": 0}, {"title": "Write feedback", "status": 0}],
@@ -511,7 +511,7 @@ func makeMCPProjectsJSON() string {
 
 func TestE2E_OfficialProjectList(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
-	t.Setenv("DIDA365_TOKEN", "dp_test_mcp_token_12345678901234")
+	t.Setenv("DIDA365_TOKEN", "test_mcp_token_12345678901234")
 
 	mock := &mcpMock{projectsJSON: makeMCPProjectsJSON()}
 	srv := httptest.NewServer(mock)

@@ -64,6 +64,38 @@ func TestSearchAndUpcomingTasks(t *testing.T) {
 	}
 }
 
+func TestLatestTasksSortsActiveTasksByCreatedTime(t *testing.T) {
+	now := time.Date(2026, 5, 9, 12, 0, 0, 0, time.FixedZone("CST", 8*3600))
+	view := BuildSyncView(
+		"inbox",
+		[]map[string]any{{"id": "p1", "name": "Inbox"}},
+		[]map[string]any{
+			{"id": "old", "projectId": "p1", "title": "Old task", "createdTime": "2026-05-09T08:00:00+08:00", "modifiedTime": "2026-05-09T08:10:00+08:00", "status": 0},
+			{"id": "done", "projectId": "p1", "title": "Done task", "createdTime": "2026-05-09T11:00:00+08:00", "status": 2},
+			{"id": "fallback", "projectId": "p1", "title": "Modified fallback", "modifiedTime": "2026-05-09T10:00:00+08:00", "status": 0},
+			{"id": "new", "projectId": "p1", "title": "New task", "createdTime": "2026-05-09T12:00:00+08:00", "modifiedTime": "2026-05-09T12:05:00+08:00", "status": 0},
+		},
+		nil,
+		nil,
+		nil,
+		now,
+	)
+	if view.Tasks[0].CreatedTime == "" || view.Tasks[0].CreatedUnix == 0 {
+		t.Fatalf("normalized task missing created metadata: %#v", view.Tasks[0])
+	}
+	latest := LatestTasks(view.Tasks)
+	if len(latest) != 3 {
+		t.Fatalf("LatestTasks len = %d, want 3 active tasks", len(latest))
+	}
+	got := []string{latest[0].ID, latest[1].ID, latest[2].ID}
+	want := []string{"new", "fallback", "old"}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("latest order = %#v, want %#v", got, want)
+		}
+	}
+}
+
 func TestFindTask(t *testing.T) {
 	tasks := []Task{
 		{ID: "t1", Title: "First"},

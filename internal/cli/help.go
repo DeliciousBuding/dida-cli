@@ -348,6 +348,7 @@ func printTaskHelp(w io.Writer) {
 Usage:
   dida task today [--json] [--limit N] [--compact]
   dida task list [--json] [--filter today|all] [--limit N] [--compact]
+  dida task latest [--limit N] [--project <project-id>|inbox] [--compact] [--json]
   dida task search --query <text> [--limit N] [--compact] [--json]
   dida task upcoming [--days N] [--limit N] [--compact] [--json]
   dida task due-counts [--json]
@@ -362,6 +363,10 @@ Usage:
 
 Use --compact (or --brief) for agent reads that should omit large text, checklist,
 reminder, and raw fields.
+
+Use task latest after several related tasks are pushed from WeChat or another
+capture flow. It sorts active tasks by createdTime descending, falls back to
+modifiedTime when needed, and maps --project inbox to the real sync inboxId.
 
 Task fields:
   --content <text>        Task content

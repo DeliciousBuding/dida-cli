@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
@@ -13,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/model"
 	"github.com/DeliciousBuding/dida-cli/internal/openapi"
 	"github.com/DeliciousBuding/dida-cli/internal/webapi"
@@ -368,6 +370,67 @@ func TestTaskListRejectsNegativeLimit(t *testing.T) {
 	errPayload := payload["error"].(map[string]any)
 	if errPayload["type"] != "validation" {
 		t.Fatalf("error.type = %v, want validation", errPayload["type"])
+	}
+}
+
+func TestTaskLatestMapsInboxAndSortsByCreatedTime(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	if _, err := auth.SaveCookieToken("test_cookie_value_12345"); err != nil {
+		t.Fatalf("SaveCookieToken() error = %v", err)
+	}
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/batch/check/0" {
+			t.Fatalf("unexpected request: %s %s", r.Method, r.URL.String())
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{
+			"inboxId": "inbox-real",
+			"syncTaskBean": {
+				"add": [
+					{"id":"old","projectId":"inbox-real","title":"Older WeChat task","createdTime":"2026-05-09T08:00:00+08:00","modifiedTime":"2026-05-09T08:05:00+08:00","status":0},
+					{"id":"new","projectId":"inbox-real","title":"Newest WeChat task","createdTime":"2026-05-09T12:00:00+08:00","modifiedTime":"2026-05-09T12:05:00+08:00","status":0},
+					{"id":"other","projectId":"p2","title":"Other project task","createdTime":"2026-05-09T13:00:00+08:00","status":0}
+				]
+			},
+			"projects": [
+				{"id":"inbox-real","name":"Inbox"},
+				{"id":"p2","name":"Other"}
+			]
+		}`)
+	}))
+	defer server.Close()
+	t.Setenv("DIDA_WEBAPI_BASE_URL", server.URL)
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"task", "latest", "--project", "inbox", "--limit", "2", "--compact", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["command"] != "task latest" {
+		t.Fatalf("command = %v, want task latest", payload["command"])
+	}
+	meta := payload["meta"].(map[string]any)
+	if meta["projectId"] != "inbox-real" || meta["projectAlias"] != "inbox" {
+		t.Fatalf("meta project mapping = %#v", meta)
+	}
+	data := payload["data"].(map[string]any)
+	tasks := data["tasks"].([]any)
+	if len(tasks) != 2 {
+		t.Fatalf("tasks len = %d, want 2", len(tasks))
+	}
+	first := tasks[0].(map[string]any)
+	second := tasks[1].(map[string]any)
+	if first["id"] != "new" || second["id"] != "old" {
+		t.Fatalf("task order = %#v %#v, want new then old", first, second)
+	}
+	createdTime, createdOK := first["createdTime"].(string)
+	modifiedTime, modifiedOK := first["modifiedTime"].(string)
+	if !createdOK || createdTime == "" || !modifiedOK || modifiedTime == "" {
+		t.Fatalf("compact task missing created/modified time: %#v", first)
 	}
 }
 

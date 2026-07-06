@@ -1,7 +1,7 @@
 # DidaCLI — 架构概览
 
 **生成日期**: 2026-06-25
-**仓库**: D:\Code\Projects\tools\DidaCLI
+**仓库**: <repo-root>
 **Go 版本**: 1.26.4
 **外部依赖**: 零（仅标准库）
 
