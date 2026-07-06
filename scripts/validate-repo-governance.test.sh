@@ -16,7 +16,7 @@ run_case() {
   err_file="$(mktemp)"
   (
     cd "$repo_root"
-    tar -cf - README.md CONTRIBUTING.md SECURITY.md RELEASE.md npm/README.md .github
+    tar -cf - README.md CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md npm/README.md .github
   ) | (
     cd "$work"
     tar -xf -
@@ -52,6 +52,10 @@ run_case "README frontmatter fails" fail "{ printf '%s\n' '---' 'internal: true'
 run_case "missing PR private-state gate fails" fail "grep -v 'check-private-state' .github/pull_request_template.md > next && mv next .github/pull_request_template.md"
 
 run_case "missing npm README token warning fails" fail "grep -v 'Do not paste cookies' npm/README.md > next && mv next npm/README.md"
+
+run_case "missing code of conduct fails" fail "rm CODE_OF_CONDUCT.md"
+
+run_case "missing security contact link fails" fail "grep -v 'security/advisories/new' .github/ISSUE_TEMPLATE/config.yml > next && mv next .github/ISSUE_TEMPLATE/config.yml"
 
 run_case "missing CodeQL workflow fails" fail "rm .github/workflows/codeql.yml"
 

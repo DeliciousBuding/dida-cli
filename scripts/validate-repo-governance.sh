@@ -21,6 +21,7 @@ require_text() {
 
 require_file README.md
 require_file CONTRIBUTING.md
+require_file CODE_OF_CONDUCT.md
 require_file SECURITY.md
 require_file RELEASE.md
 require_file npm/README.md
@@ -41,6 +42,8 @@ require_text README.md 'npm (i|install) -g @delicious233/dida-cli' "npm install 
 require_text README.md 'dida doctor --verify --json' "doctor verification command"
 require_text README.md 'dida schema list --compact --json' "schema discovery command"
 require_text README.md '--dry-run' "dry-run guidance"
+require_text README.md 'SECURITY\.md' "security policy link"
+require_text README.md 'CODE_OF_CONDUCT\.md' "code of conduct link"
 require_text npm/README.md 'npm install -g @delicious233/dida-cli' "npm README install command"
 require_text npm/README.md 'dida auth cookie set --token-stdin' "npm README auth setup command"
 require_text npm/README.md 'Do not paste cookies or tokens into shell history' "npm README token warning"
@@ -66,9 +69,14 @@ for id in problem solution channel alternatives; do
 done
 
 require_text .github/ISSUE_TEMPLATE/config.yml 'blank_issues_enabled: true' "blank issue setting"
+require_text .github/ISSUE_TEMPLATE/config.yml 'security/advisories/new' "private security advisory contact link"
 require_text .github/ISSUE_TEMPLATE/config.yml 'docs/commands.md' "command reference contact link"
 require_text SECURITY.md 'private security advisory' "private advisory reporting path"
 require_text CONTRIBUTING.md 'scripts/check-private-state\.sh|check-private-state\.sh' "private-state contribution guidance"
+require_text CONTRIBUTING.md 'CODE_OF_CONDUCT\.md' "code of conduct contribution guidance"
+require_text CONTRIBUTING.md 'SECURITY\.md' "security reporting contribution guidance"
+require_text CODE_OF_CONDUCT.md 'Do not post cookies, tokens' "secret-sharing conduct rule"
+require_text CODE_OF_CONDUCT.md 'SECURITY\.md' "security policy reference"
 
 require_text .github/workflows/codeql.yml 'github/codeql-action/init@[a-f0-9]{40}[[:space:]]*# v[0-9]+' "pinned CodeQL init action"
 require_text .github/workflows/codeql.yml 'github/codeql-action/analyze@[a-f0-9]{40}[[:space:]]*# v[0-9]+' "pinned CodeQL analyze action"

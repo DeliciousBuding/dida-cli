@@ -273,6 +273,12 @@ go test ./... && go build -o bin/dida ./cmd/dida
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+## Security and Conduct
+
+Report vulnerabilities through the private advisory process in [SECURITY.md](SECURITY.md). Do not post live cookies, tokens, private task exports, or full API response dumps in public issues.
+
+Project discussion follows [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
 ## License
 
 [MIT](LICENSE)

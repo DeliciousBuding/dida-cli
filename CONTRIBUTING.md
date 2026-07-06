@@ -109,4 +109,10 @@ Live API tests require a valid Dida365 session. Cookie-based tests should use di
 
 ## Questions?
 
-Open a [discussion](https://github.com/DeliciousBuding/dida-cli/discussions) or check the [documentation](docs/README.md).
+Open an [issue](https://github.com/DeliciousBuding/dida-cli/issues) or check the [documentation](docs/README.md).
+
+## Conduct and Security Reports
+
+Keep discussion focused on the change being proposed. The project conduct rules are in [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+Use [SECURITY.md](SECURITY.md) for vulnerability reports. Do not put live cookies, bearer tokens, OAuth secrets, private task exports, or full API response dumps in public issues or pull requests.
