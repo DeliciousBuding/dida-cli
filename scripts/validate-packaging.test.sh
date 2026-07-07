@@ -43,12 +43,12 @@ run_case() {
 checksums_file="$(mktemp)"
 trap 'rm -f "$checksums_file"' EXIT
 cat >"$checksums_file" <<'EOF'
-3431b41cafafe1b059a3629181c540d904ef5b547971017bad9a0872c3ae138c  dida_v0.2.5_windows_amd64.zip
-9e9c987cb6d18934f2bad264bed536c34f30ba1b1ccd38007bcf0103238908df  dida_v0.2.5_windows_arm64.zip
-4879b1249bc1121c2b6f0c4999f7a9d708018951fb6ff361e75e762eb5fc1799  dida_v0.2.5_linux_amd64.tar.gz
-dbaa02791f2e3d63ecd02ea9cec8681c190589c7fbedf846e05e7e1f4acfc916  dida_v0.2.5_linux_arm64.tar.gz
-a8f373853dc503488249cd03716ab81e4da87702e3f9fe894a4d2c38ea7d9345  dida_v0.2.5_darwin_amd64.tar.gz
-92a23ef9f75ccd21a1770e70ab4f2f33f1e6b3aba81595b3230812f26dec122c  dida_v0.2.5_darwin_arm64.tar.gz
+ce2a4927d51dca44ebf0f4416d8c938b299f45365fbf5707d1da48b0064342d7  dida_v0.2.6_windows_amd64.zip
+f38ca3871d71b8f319da6fb2457eda805858d9fa6452319600028228e1ec921d  dida_v0.2.6_windows_arm64.zip
+e60f730dd01343eaa35f79a701a77b944d9d6440236bf8bc7dcfdaae78398dc9  dida_v0.2.6_darwin_amd64.tar.gz
+4af818f143b891ed3d55b297de9f52641f22d953e17aa5f7b2cd2804c6a567fc  dida_v0.2.6_darwin_arm64.tar.gz
+06b7237d69e7701f997501278645f2199080ba572145a9d831971d367c19a11e  dida_v0.2.6_linux_amd64.tar.gz
+aa56c2f60b9b019d89fe684fe5ad3c1bab7eb3df0d4624cefb0462419bed4cdf  dida_v0.2.6_linux_arm64.tar.gz
 EOF
 
 current_version="$(node -e 'console.log(require("./packaging/scoop/dida.json").version)')"
@@ -69,7 +69,7 @@ run_case "metadata-only catches version mismatch" fail '
 run_case "checksum file clean templates pass" pass ":" --version "$current_tag" --checksums-file "$checksums_file"
 
 run_case "checksum file catches hash mismatch" fail "
-  sed -i '0,/92a2/s/92a2/0000/' packaging/homebrew/dida.rb
+  sed -i '0,/4af8/s/4af8/0000/' packaging/homebrew/dida.rb
 " --version "$current_tag" --checksums-file "$checksums_file"
 
 echo "validate-packaging tests passed"

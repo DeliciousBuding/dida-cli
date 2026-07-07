@@ -3,7 +3,7 @@
 This directory contains maintainer-facing packaging templates for distribution
 channels that usually live in separate repositories or registries.
 
-Current source release: `v0.2.5`
+Current source release: `v0.2.6`
 
 ## Channels
 
@@ -20,7 +20,7 @@ Current source release: `v0.2.5`
 2. Run:
 
    ```bash
-   bash scripts/update-packaging-templates.sh --version v0.2.5
+   bash scripts/update-packaging-templates.sh --version v0.2.6
    ```
 
    Use `--checksums-file <path>` when preparing from a downloaded or staged
@@ -28,7 +28,7 @@ Current source release: `v0.2.5`
 3. Run:
 
    ```bash
-   bash scripts/validate-packaging.sh --version v0.2.5 --checksums-file <path>
+   bash scripts/validate-packaging.sh --version v0.2.6 --checksums-file <path>
    ```
 
    If you rely on the published GitHub Release checksum asset, omit
@@ -37,32 +37,3 @@ Current source release: `v0.2.5`
    external tap, bucket, or manifest repository.
 5. Do not add credentials, local paths, private test accounts, or release
    automation secrets here.
-
-## Export External Repositories
-
-Homebrew taps and Scoop buckets are published from separate repositories. After
-updating and validating the templates, export the repo-ready layouts:
-
-```bash
-bash scripts/export-package-manager-repos.sh
-```
-
-The default output is ignored by git:
-
-```text
-dist/package-manager-repos/homebrew-tap/
-dist/package-manager-repos/scoop-bucket/
-```
-
-Use explicit repository names when the external repos are ready:
-
-```bash
-bash scripts/export-package-manager-repos.sh \
-  --homebrew-repo DeliciousBuding/homebrew-dida \
-  --scoop-repo DeliciousBuding/scoop-bucket \
-  --scoop-bucket dida
-```
-
-The export step does not create GitHub repositories, push commits, or publish a
-package-manager channel. It only prepares the directories that should become the
-roots of those external repositories after native install smoke tests pass.

@@ -59,7 +59,7 @@ cat >"$fake_bin/dida" <<'EOF'
 #!/usr/bin/env bash
 case "$1" in
   version)
-    printf '0.2.5\n'
+    printf '0.2.6\n'
     ;;
   doctor)
     printf '{"ok": true}\n'

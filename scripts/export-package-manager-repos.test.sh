@@ -63,13 +63,13 @@ assert_same_file "$repo_root/packaging/scoop/dida.json" "$scoop_dir/bucket/dida.
 assert_same_file "$repo_root/LICENSE" "$homebrew_dir/LICENSE"
 assert_same_file "$repo_root/LICENSE" "$scoop_dir/LICENSE"
 
-grep -q 'Generated from `DeliciousBuding/dida-cli` release `v0.2.5`' "$homebrew_dir/README.md"
+grep -q 'Generated from `DeliciousBuding/dida-cli` release `v0.2.6`' "$homebrew_dir/README.md"
 grep -q 'brew tap DeliciousBuding/dida' "$homebrew_dir/README.md"
 grep -q 'brew install dida' "$homebrew_dir/README.md"
 grep -q 'Create the GitHub repository `DeliciousBuding/homebrew-dida`' "$homebrew_dir/README.md"
 grep -q 'source template is' "$homebrew_dir/README.md"
 
-grep -q 'Generated from `DeliciousBuding/dida-cli` release `v0.2.5`' "$scoop_dir/README.md"
+grep -q 'Generated from `DeliciousBuding/dida-cli` release `v0.2.6`' "$scoop_dir/README.md"
 grep -q 'scoop bucket add dida https://github.com/DeliciousBuding/scoop-bucket' "$scoop_dir/README.md"
 grep -q 'scoop install dida' "$scoop_dir/README.md"
 grep -q 'Create the GitHub repository `DeliciousBuding/scoop-bucket`' "$scoop_dir/README.md"
