@@ -34,6 +34,9 @@ Release workflow:
   - Windows: `.zip`
   - Linux/macOS: `.tar.gz`
 - Verification: `checksums.txt` with SHA-256 hashes and GitHub artifact attestations.
+- Package-manager handoff: after the GitHub Release exists, the workflow
+  uploads `dida-package-manager-repos-vX.Y.Z` with repo-ready Homebrew tap and
+  Scoop bucket directories.
 
 Verify a downloaded archive after release:
 
@@ -171,6 +174,11 @@ The recommended external repositories are:
 Exporting does not create those repositories, push commits, or publish the
 package-manager channels. Treat it as a local staging step before native
 Homebrew and Scoop install smoke tests.
+
+After a tag release, the same export is available as the
+`dida-package-manager-repos-vX.Y.Z` workflow artifact. Use that artifact when
+publishing the external tap or bucket, so the submitted files are generated from
+the release checksum asset rather than from a hand-edited local copy.
 
 Homebrew, Scoop, and winget files are maintainer templates for external
 package-manager submissions.

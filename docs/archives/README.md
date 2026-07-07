@@ -95,3 +95,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 新增 `scripts/export-package-manager-repos.sh` 和测试；`make release-check VERSION=v0.2.5` 现在覆盖外部仓库布局导出
 - **详情**: [MASTER.md](package-manager-repo-export/progress/MASTER.md)
+
+## package-manager-release-artifact
+
+- **描述**: 在 release workflow 创建 GitHub Release 后，自动生成并上传 Homebrew tap / Scoop bucket 仓库导出 artifact
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `package-manager-export` release job；仓库治理校验保护 artifact 名称、路径、保留期和导出命令
+- **详情**: [MASTER.md](package-manager-release-artifact/progress/MASTER.md)

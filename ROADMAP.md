@@ -36,7 +36,7 @@ Latest release: `v0.2.5` (2026-07-07).
 
 ### Distribution
 
-- GitHub Releases: 6-platform binary archives + checksums.txt
+- GitHub Releases: 6-platform binary archives + checksums.txt + package-manager repo export artifact
 - `install.sh` / `install.ps1`: smoke-tested on Linux/macOS/Windows
 - npm: `@delicious233/dida-cli` with postinstall binary download
 - `dida upgrade`: self-update with SHA-256 verification (new in v0.2.1)
@@ -423,10 +423,11 @@ WSL Linux against `v0.1.16`; published through `v0.2.1`.
 
 Status: templates exist under `packaging/` and can be regenerated from release
 `checksums.txt` with `scripts/update-packaging-templates.sh`. Repo-ready
-Homebrew tap and Scoop bucket layouts can be exported with
-`scripts/export-package-manager-repos.sh`; not published to external
-repositories yet. Homebrew tap and Scoop bucket publication remains planned for
-v0.3.0.
+Homebrew tap and Scoop bucket layouts can be exported locally with
+`scripts/export-package-manager-repos.sh`, and the release workflow uploads the
+same layouts as `dida-package-manager-repos-vX.Y.Z` after each GitHub Release.
+They are not published to external repositories yet. Homebrew tap and Scoop
+bucket publication remains planned for v0.3.0.
 
 ### F5. winget
 
@@ -462,6 +463,7 @@ deferred until release cadence and package identifier are final.
 | goreleaser migration | Deferred | Keep the current release workflow through `v0.3.x`; decision record is `docs/research/release-strategy-goreleaser.md` |
 | Package-manager template generator | Done | `scripts/update-packaging-templates.sh` regenerates Homebrew, Scoop, packaging README, and winget notes from `checksums.txt`; release-check tests it |
 | Package-manager repo export | Done | `scripts/export-package-manager-repos.sh` prepares repo roots for `DeliciousBuding/homebrew-dida` and `DeliciousBuding/scoop-bucket`; release-check tests it |
+| Release package-manager artifact | Done | `.github/workflows/release.yml` uploads `dida-package-manager-repos-vX.Y.Z` after release checksums exist |
 | Homebrew tap | Medium | Create and publish external repo `homebrew-dida` after native Homebrew smoke |
 | Scoop bucket | Medium | Create and publish external repo `scoop-bucket` after native Scoop smoke |
 | Website polish | Done | Pages homepage now matches `v0.2.5` install, auth, schema, task latest, completion, and security paths; release-check validates it |

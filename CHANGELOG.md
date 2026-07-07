@@ -22,6 +22,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - The GitHub Pages homepage now starts from the `v0.2.5` install/auth/verify/read workflow and avoids stale `+today` examples.
 - Package-manager template maintenance now has a tested generator in `make release-check`; external Homebrew tap and Scoop bucket publishing remain separate maintainer steps.
 - Package-manager publishing prep now separates source templates, local export directories, and external repository creation.
+- The release workflow now uploads a package-manager repo export artifact after GitHub Release checksums exist.
 - GoReleaser migration is deferred through `v0.3.x`; the current release workflow remains the release path until parity is proven.
 
 ### Tests

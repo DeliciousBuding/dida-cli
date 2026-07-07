@@ -326,6 +326,35 @@ jobs:
           fi
           npx --no-install dida doctor --json >/dev/null
 
+  package-manager-export:
+    name: Export package-manager repos
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: "24"
+
+      - name: Generate package-manager repos
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/update-packaging-templates.sh --version "${GITHUB_REF_NAME}"
+          bash scripts/validate-packaging.sh --version "${GITHUB_REF_NAME}"
+          bash scripts/export-package-manager-repos.sh
+
+      - name: Upload package-manager repo export
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: dida-package-manager-repos-${{ github.ref_name }}
+          path: dist/package-manager-repos
+          if-no-files-found: error
+          retention-days: 30
+
   npm-publish:
     name: Publish to npm
     needs: npm-install-smoke

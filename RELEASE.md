@@ -38,7 +38,8 @@ Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`:
 4. generate SHA-256 checksums and GitHub artifact attestations for the release archives
 5. create or update the GitHub Release with `checksums.txt`
 6. smoke-test npm install on Linux and Windows
-7. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
+7. export Homebrew tap and Scoop bucket repository layouts as a workflow artifact
+8. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
 
 Preferred npm authentication: configure npm Trusted Publishing for the `@delicious233/dida-cli` package with this GitHub repository and the `release.yml` workflow. This uses GitHub Actions OIDC and does not require a long-lived npm token.
 
@@ -84,6 +85,11 @@ bash scripts/validate-packaging.sh --version vX.Y.Z
 ```
 
 Use `--checksums-file <path>` for both commands when preparing from a downloaded or staged checksum file. Publish to an external Homebrew tap or Scoop bucket only after native package-manager smoke tests.
+
+The release workflow also exports repo-ready layouts after the GitHub Release
+exists. Download the `dida-package-manager-repos-vX.Y.Z` workflow artifact, then
+use its `homebrew-tap/` and `scoop-bucket/` directories as the roots for the
+external repositories after native smoke tests pass.
 
 ## Post-Release Verification
 

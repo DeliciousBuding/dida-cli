@@ -67,6 +67,10 @@ run_case "unpinned Scorecard action fails" fail "sed -i '0,/ossf\\/scorecard-act
 
 run_case "missing release attestation action fails" fail "grep -v 'actions/attest' .github/workflows/release.yml > next && mv next .github/workflows/release.yml"
 
+run_case "missing package-manager export job fails" fail "grep -v 'package-manager-export' .github/workflows/release.yml > next && mv next .github/workflows/release.yml"
+
+run_case "missing package-manager artifact upload fails" fail "grep -v 'dida-package-manager-repos' .github/workflows/release.yml > next && mv next .github/workflows/release.yml"
+
 run_case "missing CI staticcheck command fails" fail "grep -v 'staticcheck' .github/workflows/ci.yml > next && mv next .github/workflows/ci.yml"
 
 run_case "missing Makefile staticcheck target fails" fail "grep -v 'staticcheck' Makefile > next && mv next Makefile"
