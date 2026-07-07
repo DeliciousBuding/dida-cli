@@ -117,9 +117,9 @@ Implemented:
 - npm package `@delicious233/dida-cli@0.2.6` is published, and npm registry
   metadata includes the package README.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
-  pinned to `v0.2.5` release assets and checksums.
+  pinned to `v0.2.6` release assets and checksums.
 - Homebrew and Scoop template URL/hash static validation passed against the
-  `v0.2.5` release `checksums.txt` for all six release assets.
+  `v0.2.6` release `checksums.txt` for all six release assets.
 - Homebrew formula install path logic was checked against the release archive
   layout: assets unpack under a top-level `dida_v..._<os>_<arch>/` directory,
   so the formula locates the nested `dida` binary before `bin.install`.
