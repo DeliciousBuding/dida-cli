@@ -29,6 +29,8 @@ require_file docs/distribution.md
 require_file npm/README.md
 require_file scripts/package-manager-smoke-preflight.sh
 require_file scripts/package-manager-smoke-preflight.test.sh
+require_file scripts/winget-submission-preflight.sh
+require_file scripts/winget-submission-preflight.test.sh
 require_file .github/pull_request_template.md
 require_file .github/ISSUE_TEMPLATE/bug_report.yml
 require_file .github/ISSUE_TEMPLATE/feature_request.yml
@@ -111,6 +113,10 @@ require_text .github/workflows/release.yml 'retention-days: 30' "package-manager
 require_text Makefile 'package-manager-smoke-preflight\.test\.sh' "package-manager smoke preflight tests"
 require_text RELEASE.md 'package-manager-smoke-preflight\.sh' "package-manager smoke preflight release docs"
 require_text docs/distribution.md 'package-manager-smoke-preflight\.sh' "package-manager smoke preflight distribution docs"
+require_text Makefile 'winget-submission-preflight\.test\.sh' "winget submission preflight tests"
+require_text RELEASE.md 'winget-submission-preflight\.sh' "winget submission preflight release docs"
+require_text docs/distribution.md 'winget-submission-preflight\.sh' "winget submission preflight distribution docs"
+require_text packaging/winget/README.md 'winget validate --manifest' "winget validation command"
 require_text Makefile '^staticcheck:' "Makefile staticcheck target"
 require_text Makefile 'honnef\.co/go/tools/cmd/staticcheck@\$\(STATICCHECK_VERSION\)' "pinned Staticcheck make target"
 require_text .github/workflows/ci.yml 'STATICCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "CI Staticcheck version"

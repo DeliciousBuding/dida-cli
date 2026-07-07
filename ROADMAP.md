@@ -438,6 +438,9 @@ planned for v0.3.0 after native smoke passes.
 
 Status: submission notes added under `packaging/winget/`; manifest generation is
 deferred until release cadence and package identifier are final.
+`scripts/winget-submission-preflight.sh` checks the current release URL,
+package id, and local validation boundary before a maintainer uses
+`wingetcreate`.
 
 ## Workstream G: Self-Update & CLI Ergonomics
 
@@ -469,6 +472,7 @@ deferred until release cadence and package identifier are final.
 | Release package-manager artifact | Done | `.github/workflows/release.yml` uploads `dida-package-manager-repos-vX.Y.Z` after release checksums exist |
 | Homebrew tap | Medium | Run package-manager smoke preflight on a Homebrew host, then create and publish external repo `homebrew-dida` |
 | Scoop bucket | Medium | Run package-manager smoke preflight on a Scoop host, then create and publish external repo `scoop-bucket` |
+| winget submission preflight | Done | `scripts/winget-submission-preflight.sh` checks release URL, package id, and local validation boundary before manifest generation |
 | Website polish | Done | Pages homepage now matches `v0.2.5` install, auth, schema, task latest, completion, and security paths; release-check validates it |
 | Live smoke backlog | Medium | OpenAPI/Official MCP reads and disposable writes where account state allows |
 

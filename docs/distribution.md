@@ -198,3 +198,23 @@ the release checksum asset rather than from a hand-edited local copy.
 
 Homebrew, Scoop, and winget files are maintainer templates for external
 package-manager submissions.
+
+## winget Submission
+
+winget is still a deferred channel. The repository keeps submission notes under
+`packaging/winget/README.md`, not generated manifests.
+
+Run the winget preflight before using `wingetcreate`:
+
+```bash
+bash scripts/winget-submission-preflight.sh
+```
+
+The preflight checks the package id, current Windows release URLs, packaging
+metadata, and submission boundary, then prints the `wingetcreate new` and
+`winget validate --manifest` commands. If a manifest directory already exists
+on a Windows packaging host, validate it without committing generated files:
+
+```bash
+bash scripts/winget-submission-preflight.sh --manifest-dir <manifest-directory> --run-validate
+```

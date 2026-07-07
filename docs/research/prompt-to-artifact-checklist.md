@@ -60,7 +60,7 @@ Build DidaCLI as a production-grade, JSON-first Dida365/TickTick CLI:
 | Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb`, `scripts/export-package-manager-repos.sh` | partial | Template URL/hash static validation passes against `v0.2.5`; external tap publication and native install smoke remain pending. |
 | Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json`, `scripts/export-package-manager-repos.sh` | partial | Template JSON, URL/hash, and export layout validation pass against `v0.2.5`; external bucket publication and native install smoke remain pending. |
 | Package-manager export artifact | `.github/workflows/release.yml`, `docs/distribution.md` | partial | Workflow now uploads `dida-package-manager-repos-vX.Y.Z` after release checksums exist; the artifact will be produced by the next tag release. |
-| winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final. |
+| winget plan | `docs/distribution.md`, `packaging/winget/README.md`, `scripts/winget-submission-preflight.sh` | partial | Submission deferred until release cadence and package identity are final; preflight now checks the current release URL, package id, and `winget validate --manifest` handoff. |
 
 ## Verification Evidence
 
@@ -112,6 +112,8 @@ Recently run successfully:
 - package-manager repo export layout test for Homebrew tap and Scoop bucket
 - release workflow syntax and governance checks for the
   `dida-package-manager-repos-vX.Y.Z` artifact handoff
+- winget submission preflight for current release URL, package id, and
+  `winget validate --manifest` handoff
 
 Skipped or blocked verification:
 
@@ -119,8 +121,8 @@ Skipped or blocked verification:
 - Homebrew formula syntax/install smoke remains pending on a packaging host
   with `brew` and `ruby`
 - Scoop install smoke remains pending on a Windows host with Scoop
-- winget manifest generation remains pending until `wingetcreate` validation
-  is run
+- winget manifest generation remains pending until `wingetcreate` generates a
+  manifest and `winget validate --manifest` passes on a Windows packaging host
 - Official MCP habit/focus write smoke: task write smoke succeeded with cleanup;
   habit/focus writes still need disposable targets
 - Official MCP known-id habit/focus reads need disposable habit and focus records.

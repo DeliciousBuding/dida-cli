@@ -16,7 +16,7 @@ run_case() {
   err_file="$(mktemp)"
   (
     cd "$repo_root"
-    tar -cf - README.md Makefile CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md docs/distribution.md npm/README.md scripts .github
+    tar -cf - README.md Makefile CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md docs/distribution.md npm/README.md packaging scripts .github
   ) | (
     cd "$work"
     tar -xf -
@@ -78,5 +78,9 @@ run_case "missing Makefile staticcheck target fails" fail "grep -v 'staticcheck'
 run_case "missing package-manager smoke preflight test fails" fail "grep -v 'package-manager-smoke-preflight' Makefile > next && mv next Makefile"
 
 run_case "missing package-manager smoke preflight script fails" fail "rm scripts/package-manager-smoke-preflight.sh"
+
+run_case "missing winget submission preflight test fails" fail "grep -v 'winget-submission-preflight' Makefile > next && mv next Makefile"
+
+run_case "missing winget validation command fails" fail "grep -v 'winget validate' packaging/winget/README.md > next && mv next packaging/winget/README.md"
 
 echo "validate-repo-governance tests passed"

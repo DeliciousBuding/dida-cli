@@ -133,7 +133,10 @@ Implemented:
 - Release workflow exports package-manager repo layouts as
   `dida-package-manager-repos-vX.Y.Z` after release checksums exist. The next
   tag release will produce the artifact.
-- winget submission notes exist under `packaging/winget/`.
+- winget submission notes exist under `packaging/winget/`, and
+  `scripts/winget-submission-preflight.sh` checks the current release URL,
+  package id, and `winget validate --manifest` handoff before manifest
+  generation.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
 
@@ -143,7 +146,8 @@ Remaining:
 - Homebrew and Scoop templates are not yet published to external package
   repositories, and native package-manager install smoke remains pending.
 - winget manifest generation and submission remain deferred until release
-  cadence and package identity are final.
+  cadence and package identity are final and `winget validate --manifest`
+  passes on a Windows packaging host.
 - npm installer package is published; native macOS npm smoke remains pending.
 
 ## Current Blocking Preconditions

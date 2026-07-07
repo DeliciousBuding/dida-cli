@@ -49,6 +49,7 @@ endif
 	bash scripts/update-packaging-templates.test.sh
 	bash scripts/export-package-manager-repos.test.sh
 	bash scripts/package-manager-smoke-preflight.test.sh
+	bash scripts/winget-submission-preflight.test.sh
 	bash scripts/validate-packaging.sh --metadata-only
 	bash scripts/validate-packaging.test.sh
 	bash scripts/verify-release-archives.test.sh

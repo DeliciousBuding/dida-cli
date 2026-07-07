@@ -62,6 +62,8 @@ run_case "missing npm current package status fails" fail "grep -v '@delicious233
 
 run_case "missing package manager artifact handoff fails" fail "grep -v 'dida-package-manager-repos-vX.Y.Z' ROADMAP.md > next && mv next ROADMAP.md" --version "$current_version"
 
+run_case "missing winget submission preflight fails" fail "grep -v 'winget-submission-preflight' ROADMAP.md > next && mv next ROADMAP.md" --version "$current_version"
+
 run_case "non semver version fails" fail ":" --version 0.2.5
 
 echo "validate-roadmap tests passed"

@@ -58,6 +58,7 @@ require_text "CLI coverage floor \\| Done \\|" "completed CLI coverage roadmap r
 require_text "Status: implemented and published through \`${escaped_version}\`" "release workflow status for $version"
 require_text "Status: published as \`@delicious233/dida-cli@${version#v}\`" "npm status for $version"
 require_text "dida-package-manager-repos-vX\\.Y\\.Z" "package-manager release artifact handoff"
+require_text "winget-submission-preflight\\.sh" "winget submission preflight"
 
 if grep -Eq 'Status: implemented[^[:cntrl:]]*through `v0\.2\.1`|against[[:space:]]+`v0\.2\.1`|against[[:space:]]+`v0\.1\.16`|published through `v0\.2\.1`' ROADMAP.md; then
   echo "ROADMAP.md still contains stale distribution release baseline text" >&2

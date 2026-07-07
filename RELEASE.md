@@ -102,6 +102,14 @@ bash scripts/package-manager-smoke-preflight.sh --run-homebrew-smoke
 bash scripts/package-manager-smoke-preflight.sh --run-scoop-smoke
 ```
 
+For winget, keep manifest generation manual until the package identifier and
+release cadence are final. Run the preflight first; it checks the current
+release URL and prints the Windows Package Manager submission commands.
+
+```bash
+bash scripts/winget-submission-preflight.sh
+```
+
 ## Post-Release Verification
 
 Verify npm against the official registry. Local mirrors can lag after publish.

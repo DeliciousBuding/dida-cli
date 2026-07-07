@@ -73,6 +73,10 @@ for file in "${files[@]}"; do
 done
 
 require_text docs/research/prompt-to-artifact-checklist.md 'Package-manager export artifact' "distribution checklist package-manager artifact row"
+require_text docs/research/prompt-to-artifact-checklist.md 'winget-submission-preflight\.sh' "distribution checklist winget preflight"
+require_text docs/research/prompt-to-artifact-checklist.md 'winget validate --manifest' "distribution checklist winget validation handoff"
 require_text docs/research/roadmap-completion-audit.md 'Release workflow exports package-manager repo layouts' "roadmap audit package-manager artifact evidence"
+require_text docs/research/roadmap-completion-audit.md 'winget-submission-preflight\.sh' "roadmap audit winget preflight evidence"
+require_text docs/research/roadmap-completion-audit.md 'winget validate --manifest' "roadmap audit winget validation handoff"
 
 echo "research audit freshness valid for ${tag}"

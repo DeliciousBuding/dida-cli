@@ -20,6 +20,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Research audit freshness validation now keeps objective and distribution evidence aligned with the current release.
 - Roadmap freshness validation now rejects stale distribution baselines in release, installer, and npm sections.
 - Package-manager smoke preflight now checks exported Homebrew/Scoop layouts before external repository publication.
+- winget submission preflight now checks the current release URL, package id, and local validation boundary before manifest generation.
 
 ### Changed
 - The GitHub Pages homepage now starts from the `v0.2.5` install/auth/verify/read workflow and avoids stale `+today` examples.
@@ -29,6 +30,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Research audit docs now reflect `v0.2.5`, the npm README fix, and the package-manager export handoff path.
 - Roadmap distribution status now reflects `v0.2.5` release assets, npm `0.2.5`, and package-manager export artifacts.
 - Homebrew/Scoop publication docs now separate export validation from native install smoke and external repo creation.
+- winget packaging notes now include the `winget validate --manifest` step and point maintainers at the preflight script.
 - GoReleaser migration is deferred through `v0.3.x`; the current release workflow remains the release path until parity is proven.
 
 ### Tests

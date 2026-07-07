@@ -55,6 +55,10 @@ run_case "missing prompt artifact handoff fails" fail "grep -v 'dida-package-man
 
 run_case "missing roadmap artifact evidence fails" fail "grep -v 'Release workflow exports package-manager repo layouts' docs/research/roadmap-completion-audit.md > next && mv next docs/research/roadmap-completion-audit.md" --version "$current_version"
 
+run_case "missing prompt winget preflight fails" fail "grep -v 'winget-submission-preflight' docs/research/prompt-to-artifact-checklist.md > next && mv next docs/research/prompt-to-artifact-checklist.md" --version "$current_version"
+
+run_case "missing roadmap winget validation handoff fails" fail "grep -v 'winget validate --manifest' docs/research/roadmap-completion-audit.md > next && mv next docs/research/roadmap-completion-audit.md" --version "$current_version"
+
 run_case "non semver version fails" fail ":" --version latest
 
 echo "validate-research-audit tests passed"

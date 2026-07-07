@@ -73,6 +73,8 @@ cp -R "$repo_root/packaging" "$work/packaging"
   '
   grep -q 'Current source release: `v9.8.7`' packaging/README.md
   grep -q 'wingetcreate new https://github.com/DeliciousBuding/dida-cli/releases/download/v9.8.7/dida_v9.8.7_windows_amd64.zip' packaging/winget/README.md
+  grep -q 'winget validate --manifest <manifest-directory>' packaging/winget/README.md
+  grep -q 'scripts/winget-submission-preflight.sh' packaging/winget/README.md
   bash "$validator" --version v9.8.7 --checksums-file "$checksums_file" >/dev/null
 )
 rm -rf "$work"

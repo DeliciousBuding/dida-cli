@@ -127,3 +127,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 新增 `scripts/package-manager-smoke-preflight.sh` 和测试；`make release-check VERSION=v0.2.5` 现在覆盖 package-manager smoke preflight
 - **详情**: [MASTER.md](package-manager-smoke-preflight/progress/MASTER.md)
+
+## winget-submission-preflight
+
+- **描述**: 增加 winget 提交前的本地 preflight，检查 release URL、package id 和 `winget validate --manifest` 交接
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `scripts/winget-submission-preflight.sh` 和测试；`make release-check VERSION=v0.2.5` 现在覆盖 winget submission preflight
+- **详情**: [MASTER.md](winget-submission-preflight/progress/MASTER.md)
