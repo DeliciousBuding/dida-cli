@@ -181,7 +181,7 @@ dry-run layer.
 ## Tasks
 
 ```bash
-dida +today --json
+dida task today --compact --json
 dida task today --compact --json
 dida task latest --limit 10 --project inbox --compact --json
 dida task list --filter today --limit 20 --compact --json

@@ -24,7 +24,7 @@ DidaCLI is a JSON-first CLI for Dida365 / TickTick, built as a single Go binary 
 - Every new CLI command must add a test in `internal/cli/cli_test.go` covering at minimum: the dry-run path, the JSON output shape, and flag parsing.
 - Every new Web API endpoint must add a request-shape unit test in the corresponding `internal/webapi/*_test.go` file.
 - Before claiming an API surface is done, run a reversible live smoke test when possible (create → read-back → delete).
-- Pre-commit checklist: `go test ./...`, `go vet ./...`, `make staticcheck`, `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`.
+- Pre-commit checklist: `go test ./...`, `go vet ./...`, `make staticcheck`, `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...`, and `bash scripts/check-private-state.sh`. Before a release tag, run `make release-check VERSION=vX.Y.Z`.
 - CI runs all tests with `-count=1` (no cache) on every push and PR.
 
 ## Security Rules
@@ -63,7 +63,7 @@ Examples: `feat: add task activity reads`, `fix: redact cookie in upgrade error 
 ## Release Process
 
 - Tag `main` with a semver tag: `git tag -a vX.Y.Z -m "vX.Y.Z"` and push. The tag must point to a commit reachable from `main`.
-- Run `make release-check VERSION=vX.Y.Z` before pushing a release tag. This validates tag metadata, npm version alignment, changelog structure, npm package contents, pinned GitHub Actions, repository governance files, current package-manager template metadata, helper scripts, Staticcheck, and workflow syntax without publishing.
+- Run `make release-check VERSION=vX.Y.Z` before pushing a release tag. This runs the full local release preflight: tests, vet, vulnerability scan, private-state scan, tag metadata, npm version alignment, changelog structure, npm package contents, pinned GitHub Actions, repository governance files, current package-manager template metadata, helper scripts, Staticcheck, and workflow syntax without publishing.
 - Tag push triggers `.github/workflows/release.yml`: validate -> test + vet + vulncheck + private-state check -> multi-platform build (6 targets) -> npm preflight -> GitHub Release with checksums and artifact attestations -> npm install smoke -> npm publish.
 - Prefer npm Trusted Publishing/OIDC for npm releases. Keep `NPM_TOKEN` only as a fallback until the npm package trusted publisher is configured and proven by a real release.
 - Before tagging: update `CHANGELOG.md` with a `## [vX.Y.Z]` section, bump version in `npm/package.json`, and confirm CI is green on `main`.

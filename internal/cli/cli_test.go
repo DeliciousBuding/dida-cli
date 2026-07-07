@@ -1872,6 +1872,26 @@ func TestOpenAPIProjectDeleteRequiresYesJSON(t *testing.T) {
 	}
 }
 
+func TestOpenAPITaskDeleteRequiresYesJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "task", "delete", "--project", "p1", "--task", "t1", "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d, want 1", code)
+	}
+	if stderr.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty for json errors", stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	errPayload := payload["error"].(map[string]any)
+	if errPayload["type"] != "confirmation_required" {
+		t.Fatalf("error.type = %v, want confirmation_required", errPayload["type"])
+	}
+}
+
 func TestOpenAPIFocusFlagParsing(t *testing.T) {
 	from, to, focusType, err := parseOpenAPIFocusListFlags([]string{"--from", "2026-04-01T00:00:00+0800", "--to", "2026-04-02T00:00:00+0800", "--type", "1"})
 	if err != nil {

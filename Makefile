@@ -1,10 +1,20 @@
 STATICCHECK_VERSION ?= v0.7.0
+GOVULNCHECK_VERSION ?= v1.3.0
 CLI_COVER_PROFILE ?= coverage-cli
 
-.PHONY: test build install-local coverage-cli actionlint staticcheck release-check
+.PHONY: test vet vuln private-state build install-local coverage-cli actionlint staticcheck release-check
 
 test:
 	go test ./...
+
+vet:
+	go vet ./...
+
+vuln:
+	go run golang.org/x/vuln/cmd/govulncheck@$(GOVULNCHECK_VERSION) ./...
+
+private-state:
+	bash scripts/check-private-state.sh
 
 build:
 	go build -o bin/dida ./cmd/dida
@@ -31,12 +41,10 @@ endif
 	bash scripts/validate-release-metadata.test.sh
 	bash scripts/validate-changelog.sh --tag "$(VERSION)"
 	bash scripts/validate-changelog.test.sh
-	bash scripts/validate-roadmap.sh --version "$(VERSION)"
-	bash scripts/validate-roadmap.test.sh
-	bash scripts/validate-research-audit.sh --version "$(VERSION)"
-	bash scripts/validate-research-audit.test.sh
-	bash scripts/validate-release-strategy.sh
-	bash scripts/validate-release-strategy.test.sh
+	$(MAKE) test
+	$(MAKE) vet
+	$(MAKE) vuln
+	$(MAKE) private-state
 	bash scripts/validate-website.sh
 	bash scripts/validate-website.test.sh
 	bash scripts/generate-release-notes.test.sh

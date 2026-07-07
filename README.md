@@ -96,7 +96,7 @@ dida doctor --verify --json
 dida doctor --check-upgrade --json
 
 # 3. See today
-dida +today --json
+dida task today --compact --json
 
 # 4. Create a task (preview first)
 dida task create --project <id> --title "Ship v1" --dry-run --json
@@ -113,7 +113,7 @@ DidaCLI exposes 140 local command contracts through `dida schema list --compact 
 | Channel selection | Separate Web API, Official MCP, and Official OpenAPI auth models with local guidance for agents | `channel list` |
 | Agent context | One-call context pack with projects, folders, tags, filters, today, upcoming, quadrant buckets, and outline mode | `agent context` |
 | Sync | Full sync and checkpoint-based incremental sync with normalized views and raw-compatible deltas | `sync all`, `sync checkpoint` |
-| Tasks | Today, latest captured tasks, active lists, task detail, search, upcoming, due counts, create, update, complete, delete, move, parent/subtask assignment | `+today`, `task` |
+| Tasks | Today, latest captured tasks, active lists, task detail, search, upcoming, due counts, create, update, complete, delete, move, parent/subtask assignment | `task` |
 | Task fields | Content, rich description, start and due dates, timezone, priority, tags, checklist items, column, reminders, repeat metadata, all-day, floating | `task create`, `task update` |
 | Projects and organization | Project list/tasks/CRUD, folder CRUD, tag CRUD/rename/merge, filters, Kanban column list and experimental create | `project`, `folder`, `tag`, `filter`, `column` |
 | Comments and files | Comment list/create/update/delete, comment attachment upload, attachment quota, existing task attachment download | `comment`, `attachment` |

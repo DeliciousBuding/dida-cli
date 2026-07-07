@@ -57,7 +57,7 @@ dida tag list --json
 dida filter list --json
 dida column list <project-id> --json
 dida comment list --project <project-id> --task <task-id> --json
-dida +today --compact --json
+dida task today --compact --json
 dida task upcoming --days 14 --limit 50 --compact --json
 dida quadrant list --json
 dida completed today --compact --json

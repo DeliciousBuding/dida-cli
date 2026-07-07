@@ -96,7 +96,7 @@ dida doctor --verify --json
 dida doctor --check-upgrade --json
 
 # 3. 查看今日
-dida +today --json
+dida task today --compact --json
 
 # 4. 创建任务（先预览）
 dida task create --project <id> --title "发布 v1" --dry-run --json
@@ -113,7 +113,7 @@ DidaCLI 通过 `dida schema list --compact --json` 暴露 140 条本地命令契
 | 通道选择 | Web API、官方 MCP、官方 OpenAPI 三条认证模型相互独立，并提供本地通道选择说明 | `channel list` |
 | Agent 上下文 | 一次调用返回项目、文件夹、标签、筛选器、今日、即将到期、四象限分组，支持 outline 模式 | `agent context` |
 | 同步 | 全量同步和基于 checkpoint 的增量同步，返回规范化视图和兼容原始增量 | `sync all`, `sync checkpoint` |
-| 任务 | 今日、最新捕获任务、活动列表、任务详情、搜索、即将到期、到期计数、创建、更新、完成、删除、移动、父子任务关系 | `+today`, `task` |
+| 任务 | 今日、最新捕获任务、活动列表、任务详情、搜索、即将到期、到期计数、创建、更新、完成、删除、移动、父子任务关系 | `task` |
 | 任务字段 | 正文、富文本描述、开始和截止时间、时区、优先级、标签、清单项、看板列、提醒、重复元数据、全天、浮动任务 | `task create`, `task update` |
 | 项目与组织 | 项目列表、项目任务、项目 CRUD、文件夹 CRUD、标签 CRUD/重命名/合并、筛选器、看板列读取和实验性创建 | `project`, `folder`, `tag`, `filter`, `column` |
 | 评论与文件 | 评论列表、创建、更新、删除，评论附件上传，附件配额，已有任务附件下载 | `comment`, `attachment` |

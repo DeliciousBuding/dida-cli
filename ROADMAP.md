@@ -22,9 +22,9 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline (as of v0.2.5)
+## Current Baseline (as of v0.2.6)
 
-Latest release: `v0.2.5` (2026-07-07).
+Latest release: `v0.2.6` (2026-07-07).
 
 ### Three Channels — All Functional
 
@@ -385,7 +385,7 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and published through `v0.2.5`; release `v0.2.5` includes
+Status: implemented and published through `v0.2.6`; release `v0.2.6` includes
 six platform archives, `checksums.txt`, npm provenance, archive attestations,
 and a package-manager repo export artifact handoff for the next tag release.
 Workflow-dispatch trigger exists for manual re-triggering.
@@ -412,7 +412,7 @@ Native macOS installer smoke remains pending.
 - `bin/dida` forwards to the downloaded binary
 - npm auto-publish on tag push (release workflow)
 
-Status: published as `@delicious233/dida-cli@0.2.5` with npm README metadata.
+Status: published as `@delicious233/dida-cli@0.2.6` with npm README metadata.
 npm auto-publish on tag push is in the release workflow. Postinstall binary
 download is covered by Windows and Linux npm install smoke jobs.
 
@@ -473,7 +473,7 @@ package id, and local validation boundary before a maintainer uses
 | Homebrew tap | Medium | Run package-manager smoke preflight on a Homebrew host, then create and publish external repo `homebrew-dida` |
 | Scoop bucket | Medium | Run package-manager smoke preflight on a Scoop host, then create and publish external repo `scoop-bucket` |
 | winget submission preflight | Done | `scripts/winget-submission-preflight.sh` checks release URL, package id, and local validation boundary before manifest generation |
-| Website polish | Done | Pages homepage now matches `v0.2.5` install, auth, schema, task latest, completion, and security paths; release-check validates it |
+| Website polish | Done | Pages homepage now matches `v0.2.6` install, auth, schema, task latest, completion, and security paths; release-check validates it |
 | Live smoke backlog | Medium | OpenAPI/Official MCP reads and disposable writes where account state allows |
 
 ### G3. v0.4.0+ (long-term)

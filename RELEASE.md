@@ -21,12 +21,9 @@ Run these checks before pushing a release tag:
 
 ```bash
 make release-check VERSION=vX.Y.Z
-go test ./...
-go vet ./...
-go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
 ```
 
-`make release-check` validates release metadata, changelog structure, npm package contents, pinned GitHub Actions, repository governance files, current package-manager template metadata, shell release helpers, and workflow syntax. It does not publish anything.
+`make release-check` runs the local release preflight: tests, vet, vulnerability scan, private-state scan, release metadata, changelog structure, npm package contents, pinned GitHub Actions, repository governance files, package-manager template metadata, shell release helpers, Staticcheck, and workflow syntax. It does not publish anything.
 
 ## Automation
 

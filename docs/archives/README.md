@@ -61,7 +61,7 @@
 - **描述**: 增加 roadmap freshness 校验，防止 `ROADMAP.md` 的当前版本和下一里程碑继续滞后
 - **日期**: 2026-07-07
 - **模式**: LOCAL_ONLY
-- **成果**: `make release-check VERSION=v0.2.5` 现在会运行 `scripts/validate-roadmap.sh` 和对应 mutation tests
+- **成果**: 历史切片曾加入 `scripts/validate-roadmap.sh` 和 mutation tests；后续清理已将 prose freshness gate 移出 `release-check`
 - **详情**: [MASTER.md](roadmap-governance-freshness/progress/MASTER.md)
 
 ## website-product-polish
@@ -85,7 +85,7 @@
 - **描述**: 记录 `v0.3.x` 保留当前 release workflow、暂不迁移 GoReleaser 的决策和重评条件
 - **日期**: 2026-07-07
 - **模式**: LOCAL_ONLY
-- **成果**: 新增 `docs/research/release-strategy-goreleaser.md` 和 `scripts/validate-release-strategy.sh`；`make release-check VERSION=v0.2.5` 会阻止 roadmap 回到 undecided 状态
+- **成果**: 新增 `docs/research/release-strategy-goreleaser.md` 和历史 prose validator；后续清理保留决策记录、移除 `release-check` 中的 prose gate
 - **详情**: [MASTER.md](release-strategy-goreleaser-decision/progress/MASTER.md)
 
 ## package-manager-repo-export
@@ -109,7 +109,7 @@
 - **描述**: 将 objective/distribution 审计文档更新到 `v0.2.5`，并增加校验防止 research audit 回到旧 release 基线
 - **日期**: 2026-07-07
 - **模式**: LOCAL_ONLY
-- **成果**: 新增 `scripts/validate-research-audit.sh` 和 mutation tests；`make release-check VERSION=v0.2.5` 现在覆盖 research audit freshness
+- **成果**: 历史切片曾加入 research audit freshness validator；后续清理将 active checklist 收敛到 `roadmap-completion-audit.md` 并移除该 prose gate
 - **详情**: [MASTER.md](research-audit-freshness/progress/MASTER.md)
 
 ## roadmap-distribution-freshness
@@ -117,7 +117,7 @@
 - **描述**: 将 `ROADMAP.md` 详细分发状态从旧 release 证据更新到 `v0.2.5`，并扩展 roadmap freshness 校验
 - **日期**: 2026-07-07
 - **模式**: LOCAL_ONLY
-- **成果**: F1/F2/F3 分发段落对齐当前 release/npm/package-manager artifact；`validate-roadmap` 会拒绝旧分发基线回流
+- **成果**: F1/F2/F3 分发段落对齐当时 release/npm/package-manager artifact；后续清理已停止用 `validate-roadmap` 锁定叙述性文案
 - **详情**: [MASTER.md](roadmap-distribution-freshness/progress/MASTER.md)
 
 ## package-manager-smoke-preflight

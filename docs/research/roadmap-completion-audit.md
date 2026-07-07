@@ -4,16 +4,13 @@ This audit maps the active DidaCLI objective to concrete repository evidence.
 It is conservative: a surface needs command coverage, tests, and safe live
 evidence before it is marked complete.
 
-For the detailed prompt-to-artifact checklist, see
-`docs/research/prompt-to-artifact-checklist.md`.
-
 ## Objective Criteria
 
 | Criterion | Evidence | Status |
 | --- | --- | --- |
 | Three explicit channels: Web API, official MCP, official OpenAPI | `README.md`, `docs/commands.md`, `docs/research/api-channel-inventory.md` | Implemented |
 | JSON command surface for automation | `schema list/show`, `agent context`, stable JSON envelope tests in `internal/cli/cli_test.go` | Implemented |
-| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.2.5`, npm `@delicious233/dida-cli@0.2.5` | Implemented and smoke-tested |
+| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.2.6`, npm `@delicious233/dida-cli@0.2.6` | Implemented and smoke-tested |
 | Root cleanliness | Current tracked root contains only project-level directories/files; generated data stays ignored under `bin/`, `tmp/`, and `data/private/` | Ongoing rule |
 | Secrets kept out of repo | Sensitive scans during changes; auth docs use env/stdin/placeholders | Ongoing rule |
 
@@ -102,7 +99,7 @@ Not complete:
 
 Implemented:
 
-- `v0.2.5` release exists.
+- `v0.2.6` release exists.
 - Release workflow builds Windows, Linux, and macOS assets on amd64/arm64.
 - `checksums.txt` is attached.
 - Windows installer latest smoke passed against the current release line.
@@ -117,7 +114,7 @@ Implemented:
 - npm installer smoke passed on WSL Linux; this also
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as ignored `bin/dida-bin`.
-- npm package `@delicious233/dida-cli@0.2.5` is published, and npm registry
+- npm package `@delicious233/dida-cli@0.2.6` is published, and npm registry
   metadata includes the package README.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
   pinned to `v0.2.5` release assets and checksums.
@@ -166,12 +163,5 @@ Remaining:
   payloads.
 - Additional upload smokes need disposable attachment quota.
 
-## Next Best Actions
-
-1. Create disposable OpenAPI task/project/habit/focus targets and live-smoke
-   write paths with cleanup.
-2. Live-smoke remaining Official MCP read filters with narrow queries, then
-   writes only with disposable targets.
-3. Capture task-level Web API attachment download/preview and association flows.
-4. Keep `docs/api-coverage.md`, `docs/research/*`, schema, skill, and README
-   synchronized with every new command.
+Active next actions live in [`ROADMAP.md`](../../ROADMAP.md). This file remains
+an evidence audit, not a competing work queue.

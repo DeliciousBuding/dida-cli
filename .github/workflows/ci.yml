@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   GOVULNCHECK_VERSION: v1.3.0
   ACTIONLINT_VERSION: v1.7.12

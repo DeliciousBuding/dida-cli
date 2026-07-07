@@ -31,8 +31,7 @@ DidaCLI exposes three separate API channels:
 - [web-api.md](web-api.md) records private Web API endpoint notes.
 - [research/api-channel-inventory.md](research/api-channel-inventory.md) explains channel boundaries.
 - [research/official-channel-validation-matrix.md](research/official-channel-validation-matrix.md) tracks official MCP and OpenAPI verification.
-- [research/roadmap-completion-audit.md](research/roadmap-completion-audit.md) is the current completion audit.
-- [research/prompt-to-artifact-checklist.md](research/prompt-to-artifact-checklist.md) maps the active goal to artifacts and evidence.
+- [research/roadmap-completion-audit.md](research/roadmap-completion-audit.md) maps the active goal to evidence and blockers.
 
 ## Current blockers
 

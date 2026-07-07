@@ -75,6 +75,8 @@ run_case "missing CI staticcheck command fails" fail "grep -v 'staticcheck' .git
 
 run_case "missing Makefile staticcheck target fails" fail "grep -v 'staticcheck' Makefile > next && mv next Makefile"
 
+run_case "missing release-check test gate fails" fail "sed -i '/\$(MAKE) test/d' Makefile"
+
 run_case "missing package-manager smoke preflight test fails" fail "grep -v 'package-manager-smoke-preflight' Makefile > next && mv next Makefile"
 
 run_case "missing package-manager smoke preflight script fails" fail "rm scripts/package-manager-smoke-preflight.sh"

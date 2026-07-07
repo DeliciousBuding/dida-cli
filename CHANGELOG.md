@@ -7,28 +7,30 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.6] - 2026-07-07
+
 ### Added
 - `dida completion <bash|zsh|fish|powershell>` generates local shell completion scripts without requiring auth.
 - `dida doctor --check-upgrade` reports GitHub Release update status in the normal doctor JSON/text diagnostic output.
 - Staticcheck now runs through `make staticcheck`, CI, release validation, and `make release-check`.
 - `make coverage-cli` prints the `internal/cli` coverage profile and function-level coverage summary.
-- Roadmap freshness validation now keeps `ROADMAP.md` aligned with the current release and next milestone.
 - Website validation now keeps the GitHub Pages homepage aligned with the current release, npm install path, auth setup, schema discovery, task latest, completion, and security links.
 - `scripts/update-packaging-templates.sh` regenerates Homebrew, Scoop, packaging README, and winget notes from GitHub Release checksums.
 - `scripts/export-package-manager-repos.sh` exports repo-ready Homebrew tap and Scoop bucket layouts from the validated packaging templates.
-- Release strategy validation now records and checks the GoReleaser decision for `v0.3.x`.
-- Research audit freshness validation now keeps objective and distribution evidence aligned with the current release.
-- Roadmap freshness validation now rejects stale distribution baselines in release, installer, and npm sections.
+- The GoReleaser decision record now documents why the hand-written release workflow remains in place through `v0.3.x`.
 - Package-manager smoke preflight now checks exported Homebrew/Scoop layouts before external repository publication.
 - winget submission preflight now checks the current release URL, package id, and local validation boundary before manifest generation.
 
 ### Changed
-- The GitHub Pages homepage now starts from the `v0.2.5` install/auth/verify/read workflow and avoids stale `+today` examples.
+- `make release-check VERSION=vX.Y.Z` now runs tests, vet, govulncheck, and private-state scanning as part of the local release preflight.
+- CI now cancels superseded runs on the same ref so stale checks do not compete with current verification.
+- The GitHub Pages homepage now starts from the `v0.2.6` install/auth/verify/read workflow and avoids stale `+today` examples.
+- Research audit docs now use `roadmap-completion-audit.md` as the single active checklist; the redundant prompt-to-artifact checklist and prose freshness gate were removed.
+- `release-check` no longer runs roadmap/release-strategy prose validators, and repository governance validation now focuses on structural safety checks instead of README/release copy.
+- OpenAPI write commands now use a single pre-auth dry-run boundary instead of repeating dry-run handling in authenticated execution paths.
 - Package-manager template maintenance now has a tested generator in `make release-check`; external Homebrew tap and Scoop bucket publishing remain separate maintainer steps.
 - Package-manager publishing prep now separates source templates, local export directories, and external repository creation.
 - The release workflow now uploads a package-manager repo export artifact after GitHub Release checksums exist.
-- Research audit docs now reflect `v0.2.5`, the npm README fix, and the package-manager export handoff path.
-- Roadmap distribution status now reflects `v0.2.5` release assets, npm `0.2.5`, and package-manager export artifacts.
 - Homebrew/Scoop publication docs now separate export validation from native install smoke and external repo creation.
 - winget packaging notes now include the `winget validate --manifest` step and point maintainers at the preflight script.
 - GoReleaser migration is deferred through `v0.3.x`; the current release workflow remains the release path until parity is proven.
@@ -265,7 +267,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...HEAD
+[v0.2.6]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.3...v0.2.4
 [v0.2.3]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.2...v0.2.3

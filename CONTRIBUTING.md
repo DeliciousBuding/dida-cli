@@ -24,7 +24,10 @@ go build -o bin/dida ./cmd/dida
    make staticcheck
    go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
    bash scripts/check-private-state.sh
-   bash scripts/validate-actions-pinned.sh
+   ```
+   For release or packaging changes, run the full local preflight:
+   ```bash
+   make release-check VERSION=vX.Y.Z
    ```
 4. Commit with a [conventional commit](#commit-messages) message
 5. Open a pull request
@@ -59,7 +62,7 @@ Examples:
 - [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
 - [ ] `bash scripts/validate-actions-pinned.sh` passes if touching `.github/workflows/`
-- [ ] `bash scripts/validate-repo-governance.sh` passes if touching `.github/`, `README.md`, `SECURITY.md`, `CONTRIBUTING.md`, `RELEASE.md`, or `npm/README.md`
+- [ ] `make release-check VERSION=vX.Y.Z` passes if preparing a release or touching `.github/workflows/`, `scripts/`, `npm/`, or `packaging/`
 - [ ] New/changed commands have schema entries in `internal/cli/schema_cmd.go`
 - [ ] New/changed commands have help text in `internal/cli/help.go`
 - [ ] Docs updated (`docs/commands.md`, `docs/api-coverage.md`, etc.)
