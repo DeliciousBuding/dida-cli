@@ -13,7 +13,7 @@ For the detailed prompt-to-artifact checklist, see
 | --- | --- | --- |
 | Three explicit channels: Web API, official MCP, official OpenAPI | `README.md`, `docs/commands.md`, `docs/research/api-channel-inventory.md` | Implemented |
 | JSON command surface for automation | `schema list/show`, `agent context`, stable JSON envelope tests in `internal/cli/cli_test.go` | Implemented |
-| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.2.1`, npm `0.2.1` | Implemented and smoke-tested |
+| Release distribution | `.github/workflows/release.yml`, `install.sh`, `install.ps1`, release `v0.2.5`, npm `@delicious233/dida-cli@0.2.5` | Implemented and smoke-tested |
 | Root cleanliness | Current tracked root contains only project-level directories/files; generated data stays ignored under `bin/`, `tmp/`, and `data/private/` | Ongoing rule |
 | Secrets kept out of repo | Sensitive scans during changes; auth docs use env/stdin/placeholders | Ongoing rule |
 
@@ -102,11 +102,11 @@ Not complete:
 
 Implemented:
 
-- `v0.2.1` release exists.
+- `v0.2.5` release exists.
 - Release workflow builds Windows, Linux, and macOS assets on amd64/arm64.
 - `checksums.txt` is attached.
-- Windows installer latest smoke passed against `v0.2.1`.
-- WSL Linux installer latest smoke passed against `v0.2.1`.
+- Windows installer latest smoke passed against the current release line.
+- WSL Linux installer latest smoke passed against the current release line.
 - Pinned release install smoke passed on Windows and WSL Linux.
 - Installer smoke covered release binary startup outside the repository.
 - Linux/amd64 `install.sh` smoke passed under WSL.
@@ -117,24 +117,29 @@ Implemented:
 - npm installer smoke passed on WSL Linux; this also
   verified the Unix wrapper/binary split where `bin/dida` remains a Node wrapper
   and the downloaded binary is stored as ignored `bin/dida-bin`.
-- npm package `@delicious233/dida-cli@0.2.1` is published and the local package
-  metadata now matches that release.
+- npm package `@delicious233/dida-cli@0.2.5` is published, and npm registry
+  metadata includes the package README.
 - Package manager templates exist for Homebrew and Scoop under `packaging/`,
-  pinned to `v0.2.1` release assets and checksums.
+  pinned to `v0.2.5` release assets and checksums.
 - Homebrew and Scoop template URL/hash static validation passed against the
-  `v0.2.1` release `checksums.txt` for all six release assets.
+  `v0.2.5` release `checksums.txt` for all six release assets.
 - Homebrew formula install path logic was checked against the release archive
   layout: assets unpack under a top-level `dida_v..._<os>_<arch>/` directory,
   so the formula locates the nested `dida` binary before `bin.install`.
 - Scoop `extract_dir` was checked against the Windows release zip layout:
   `dida.exe` lives under `dida_v..._windows_<arch>/`.
+- `scripts/export-package-manager-repos.sh` exports repo roots for
+  `DeliciousBuding/homebrew-dida` and `DeliciousBuding/scoop-bucket`.
+- Release workflow exports package-manager repo layouts as
+  `dida-package-manager-repos-vX.Y.Z` after release checksums exist. The next
+  tag release will produce the artifact.
 - winget submission notes exist under `packaging/winget/`.
 - Release workflow now uses action major versions that avoid the Node 20
   deprecation warning observed on earlier release runs.
 
 Remaining:
 
-- macOS installer smoke should be repeated for `v0.2.1` on a native macOS host.
+- macOS installer smoke should be repeated on a native macOS host.
 - Homebrew and Scoop templates are not yet published to external package
   repositories, and native package-manager install smoke remains pending.
 - winget manifest generation and submission remain deferred until release

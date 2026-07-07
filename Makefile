@@ -33,6 +33,8 @@ endif
 	bash scripts/validate-changelog.test.sh
 	bash scripts/validate-roadmap.sh --version "$(VERSION)"
 	bash scripts/validate-roadmap.test.sh
+	bash scripts/validate-research-audit.sh --version "$(VERSION)"
+	bash scripts/validate-research-audit.test.sh
 	bash scripts/validate-release-strategy.sh
 	bash scripts/validate-release-strategy.test.sh
 	bash scripts/validate-website.sh

@@ -42,11 +42,11 @@ Build DidaCLI as a production-grade, JSON-first Dida365/TickTick CLI:
 | Explicit request | Evidence | Status | Gap |
 | --- | --- | --- | --- |
 | Tag-push GitHub Release workflow | `.github/workflows/release.yml` | done | None for current workflow. |
-| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.2.1` assets | done | None. |
-| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.2.1` assets | done | None. |
-| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.2.1` assets | done | Native macOS install smoke is still unavailable. |
-| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.2.1` assets | done | None. |
-| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.2.1` | done | None. |
+| Build Windows amd64/arm64 `dida.exe` | `.github/workflows/release.yml`, release `v0.2.5` assets | done | None. |
+| Build Linux amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.2.5` assets | done | None. |
+| Build Darwin amd64/arm64 `dida` | `.github/workflows/release.yml`, release `v0.2.5` assets | done | Native macOS install smoke is still unavailable. |
+| Archive as zip/tar.gz | `.github/workflows/release.yml`, release `v0.2.5` assets | done | None. |
+| Generate `checksums.txt` | `.github/workflows/release.yml`, release `v0.2.5` | done | None. |
 | Release notes include install methods | `.github/workflows/release.yml` release-notes step | done | None. |
 | `install.sh` OS/arch detection and checksum verification | `install.sh` | done | WSL Linux latest smoke passed; macOS native smoke pending. |
 | `install.ps1` OS/arch detection and checksum verification | `install.ps1` | done | Windows latest smoke passed. |
@@ -56,9 +56,10 @@ Build DidaCLI as a production-grade, JSON-first Dida365/TickTick CLI:
 | README Chinese Quickstart | `README.zh-CN.md`, `docs/quickstart.zh-CN.md` | done | Keep examples synchronized with command changes. |
 | LLM/Agent quickstart | `docs/llm-quickstart.md` | done | Keep short and command-first. |
 | Agent warning not to paste cookies/tokens | `README.md`, `README.zh-CN.md`, `docs/quickstart*.md`, `docs/llm-quickstart.md` | done | None. |
-| npm installer package | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | done | `@delicious233/dida-cli@0.2.1` is published; package dry-run verifies wrapper, installer, and manifest contents. |
-| Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb` | partial | Template URL/hash static validation passed against `v0.2.1`; no external tap or native install smoke yet. |
-| Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json` | partial | Template JSON and URL/hash static validation passed against `v0.2.1`; external bucket publication and native install smoke remain pending. |
+| npm installer package | `npm/package.json`, `npm/bin/dida`, `npm/scripts/install.js` | done | `@delicious233/dida-cli@0.2.5` is published with README metadata; package dry-run verifies wrapper, installer, and manifest contents. |
+| Homebrew plan | `docs/distribution.md`, `packaging/homebrew/dida.rb`, `scripts/export-package-manager-repos.sh` | partial | Template URL/hash static validation passes against `v0.2.5`; external tap publication and native install smoke remain pending. |
+| Scoop plan | `docs/distribution.md`, `packaging/scoop/dida.json`, `scripts/export-package-manager-repos.sh` | partial | Template JSON, URL/hash, and export layout validation pass against `v0.2.5`; external bucket publication and native install smoke remain pending. |
+| Package-manager export artifact | `.github/workflows/release.yml`, `docs/distribution.md` | partial | Workflow now uploads `dida-package-manager-repos-vX.Y.Z` after release checksums exist; the artifact will be produced by the next tag release. |
 | winget plan | `docs/distribution.md`, `packaging/winget/README.md` | partial | Submission deferred until release cadence and package identity are final. |
 
 ## Verification Evidence
@@ -69,6 +70,7 @@ Recently run successfully:
 - `go vet ./...`
 - `go run golang.org/x/vuln/cmd/govulncheck@latest ./...`
 - `git diff --check`
+- `make release-check VERSION=v0.2.5`
 - local path and known secret scan
 - Official MCP local dry-run smokes without `DIDA365_TOKEN`:
   `official habit create`, `official habit update`, `official habit checkin`,
@@ -106,6 +108,10 @@ Recently run successfully:
 - Homebrew formula install path checked against release archive layout
 - Scoop `extract_dir` checked against Windows release zip layout
 - release checksum comparison against current release checksums
+- npm registry check for `@delicious233/dida-cli@0.2.5` with README metadata
+- package-manager repo export layout test for Homebrew tap and Scoop bucket
+- release workflow syntax and governance checks for the
+  `dida-package-manager-repos-vX.Y.Z` artifact handoff
 
 Skipped or blocked verification:
 

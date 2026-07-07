@@ -103,3 +103,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 新增 `package-manager-export` release job；仓库治理校验保护 artifact 名称、路径、保留期和导出命令
 - **详情**: [MASTER.md](package-manager-release-artifact/progress/MASTER.md)
+
+## research-audit-freshness
+
+- **描述**: 将 objective/distribution 审计文档更新到 `v0.2.5`，并增加校验防止 research audit 回到旧 release 基线
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `scripts/validate-research-audit.sh` 和 mutation tests；`make release-check VERSION=v0.2.5` 现在覆盖 research audit freshness
+- **详情**: [MASTER.md](research-audit-freshness/progress/MASTER.md)
