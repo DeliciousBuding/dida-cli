@@ -15,10 +15,12 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Roadmap freshness validation now keeps `ROADMAP.md` aligned with the current release and next milestone.
 - Website validation now keeps the GitHub Pages homepage aligned with the current release, npm install path, auth setup, schema discovery, task latest, completion, and security links.
 - `scripts/update-packaging-templates.sh` regenerates Homebrew, Scoop, packaging README, and winget notes from GitHub Release checksums.
+- Release strategy validation now records and checks the GoReleaser decision for `v0.3.x`.
 
 ### Changed
 - The GitHub Pages homepage now starts from the `v0.2.5` install/auth/verify/read workflow and avoids stale `+today` examples.
 - Package-manager template maintenance now has a tested generator in `make release-check`; external Homebrew tap and Scoop bucket publishing remain separate maintainer steps.
+- GoReleaser migration is deferred through `v0.3.x`; the current release workflow remains the release path until parity is proven.
 
 ### Tests
 - CLI coverage increased from 43.9% to 61.3% with local tests for help output, task/project dry-run previews, sync-backed reads, Web API read wrappers, OpenAPI task dry-run previews, and OpenAPI read commands.

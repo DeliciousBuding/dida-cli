@@ -15,6 +15,9 @@ dumping ground for raw captures, secrets, cookies, or local machine paths.
   objective-to-evidence checklist and remaining blockers.
 - [Prompt-to-artifact checklist](prompt-to-artifact-checklist.md): detailed
   requirement-by-requirement evidence map for the active objective.
+- [Release strategy: GoReleaser](release-strategy-goreleaser.md): decision to
+  keep the current release workflow through `v0.3.x` and revisit only after
+  parity is proven.
 
 ## Official Channels
 

@@ -79,3 +79,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 新增 `scripts/update-packaging-templates.sh` 和 mutation tests；`make release-check VERSION=v0.2.5` 会验证生成器
 - **详情**: [MASTER.md](package-manager-template-automation/progress/MASTER.md)
+
+## release-strategy-goreleaser-decision
+
+- **描述**: 记录 `v0.3.x` 保留当前 release workflow、暂不迁移 GoReleaser 的决策和重评条件
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `docs/research/release-strategy-goreleaser.md` 和 `scripts/validate-release-strategy.sh`；`make release-check VERSION=v0.2.5` 会阻止 roadmap 回到 undecided 状态
+- **详情**: [MASTER.md](release-strategy-goreleaser-decision/progress/MASTER.md)

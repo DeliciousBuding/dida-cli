@@ -52,7 +52,7 @@ Latest release: `v0.2.5` (2026-07-07).
 
 ### What's NOT Done Yet
 
-- goreleaser migration is undecided; the current hand-rolled release workflow is still validated
+- goreleaser migration is deferred through `v0.3.x`; the current hand-written release workflow remains the release path
 - No Homebrew tap or Scoop bucket (templates are generated and validated, not published)
 - Remaining OpenAPI and Official MCP live smokes need suitable account state
 - No i18n (all errors English-only)
@@ -457,7 +457,7 @@ deferred until release cadence and package identifier are final.
 
 | Item | Priority | Notes |
 |---|---|---|
-| goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
+| goreleaser migration | Deferred | Keep the current release workflow through `v0.3.x`; decision record is `docs/research/release-strategy-goreleaser.md` |
 | Package-manager template generator | Done | `scripts/update-packaging-templates.sh` regenerates Homebrew, Scoop, packaging README, and winget notes from `checksums.txt`; release-check tests it |
 | Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI after native smoke |
 | Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI after native smoke |
@@ -545,8 +545,8 @@ If another agent takes over, the best sequence is:
 
 For v0.3.0 (next milestone):
 
-1. Decide whether to keep the current release workflow or migrate to goreleaser.
-2. Publish Homebrew tap and Scoop bucket from the generated, validated templates.
+1. Publish Homebrew tap and Scoop bucket from the generated, validated templates.
+2. Re-evaluate GoReleaser only after archive, checksum, npm provenance, attestation, and package-manager publishing parity are proven.
 3. Live-smoke remaining OpenAPI read families and disposable writes.
 4. Live-smoke known-id Official MCP habit/focus reads when account state allows.
 

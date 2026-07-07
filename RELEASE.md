@@ -46,6 +46,14 @@ Fallback npm authentication: define `NPM_TOKEN` as a repository secret. The rele
 
 Emergency manual dispatch may set `allow_changelog_fallback=true`, but normal releases must use an explicit changelog section.
 
+## Release Strategy
+
+The current release workflow stays hand-written through `v0.3.x`. The
+GoReleaser decision record is in
+[`docs/research/release-strategy-goreleaser.md`](docs/research/release-strategy-goreleaser.md).
+Re-evaluate only after archive, checksum, npm provenance, attestation, and
+package-manager publishing parity are proven.
+
 ## Workflow Dependency Pinning
 
 External GitHub Actions in `.github/workflows/` are pinned to full commit SHAs. Keep the trailing version comment, such as `# v6`, so reviewers can see the intended upstream version when updating the SHA.
