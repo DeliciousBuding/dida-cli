@@ -119,3 +119,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: F1/F2/F3 分发段落对齐当前 release/npm/package-manager artifact；`validate-roadmap` 会拒绝旧分发基线回流
 - **详情**: [MASTER.md](roadmap-distribution-freshness/progress/MASTER.md)
+
+## package-manager-smoke-preflight
+
+- **描述**: 增加 Homebrew/Scoop 外部仓库发布前的本地 preflight 和原生 smoke 命令封装
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `scripts/package-manager-smoke-preflight.sh` 和测试；`make release-check VERSION=v0.2.5` 现在覆盖 package-manager smoke preflight
+- **详情**: [MASTER.md](package-manager-smoke-preflight/progress/MASTER.md)

@@ -16,7 +16,7 @@ run_case() {
   err_file="$(mktemp)"
   (
     cd "$repo_root"
-    tar -cf - README.md Makefile CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md npm/README.md .github
+    tar -cf - README.md Makefile CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md docs/distribution.md npm/README.md scripts .github
   ) | (
     cd "$work"
     tar -xf -
@@ -74,5 +74,9 @@ run_case "missing package-manager artifact upload fails" fail "grep -v 'dida-pac
 run_case "missing CI staticcheck command fails" fail "grep -v 'staticcheck' .github/workflows/ci.yml > next && mv next .github/workflows/ci.yml"
 
 run_case "missing Makefile staticcheck target fails" fail "grep -v 'staticcheck' Makefile > next && mv next Makefile"
+
+run_case "missing package-manager smoke preflight test fails" fail "grep -v 'package-manager-smoke-preflight' Makefile > next && mv next Makefile"
+
+run_case "missing package-manager smoke preflight script fails" fail "rm scripts/package-manager-smoke-preflight.sh"
 
 echo "validate-repo-governance tests passed"

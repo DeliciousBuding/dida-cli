@@ -91,6 +91,17 @@ exists. Download the `dida-package-manager-repos-vX.Y.Z` workflow artifact, then
 use its `homebrew-tap/` and `scoop-bucket/` directories as the roots for the
 external repositories after native smoke tests pass.
 
+Before creating or updating external package-manager repositories, run the
+preflight. Without `--run-*` flags it exports and checks the layouts, then
+prints the native smoke commands. Use the smoke flags only on hosts that have
+the package manager installed.
+
+```bash
+bash scripts/package-manager-smoke-preflight.sh
+bash scripts/package-manager-smoke-preflight.sh --run-homebrew-smoke
+bash scripts/package-manager-smoke-preflight.sh --run-scoop-smoke
+```
+
 ## Post-Release Verification
 
 Verify npm against the official registry. Local mirrors can lag after publish.

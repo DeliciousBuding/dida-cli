@@ -175,6 +175,22 @@ Exporting does not create those repositories, push commits, or publish the
 package-manager channels. Treat it as a local staging step before native
 Homebrew and Scoop install smoke tests.
 
+Run the package-manager preflight before using an export:
+
+```bash
+bash scripts/package-manager-smoke-preflight.sh
+```
+
+The default preflight exports the Homebrew tap and Scoop bucket layouts, checks
+that the expected files are present, rejects local paths or secret-like text,
+and prints the native smoke commands. On a host with the package manager
+installed, add the matching flag:
+
+```bash
+bash scripts/package-manager-smoke-preflight.sh --run-homebrew-smoke
+bash scripts/package-manager-smoke-preflight.sh --run-scoop-smoke
+```
+
 After a tag release, the same export is available as the
 `dida-package-manager-repos-vX.Y.Z` workflow artifact. Use that artifact when
 publishing the external tap or bucket, so the submitted files are generated from

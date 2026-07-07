@@ -25,7 +25,10 @@ require_file CONTRIBUTING.md
 require_file CODE_OF_CONDUCT.md
 require_file SECURITY.md
 require_file RELEASE.md
+require_file docs/distribution.md
 require_file npm/README.md
+require_file scripts/package-manager-smoke-preflight.sh
+require_file scripts/package-manager-smoke-preflight.test.sh
 require_file .github/pull_request_template.md
 require_file .github/ISSUE_TEMPLATE/bug_report.yml
 require_file .github/ISSUE_TEMPLATE/feature_request.yml
@@ -105,6 +108,9 @@ require_text .github/workflows/release.yml 'scripts/export-package-manager-repos
 require_text .github/workflows/release.yml 'name: dida-package-manager-repos-\$\{\{ github\.ref_name \}\}' "package-manager artifact name"
 require_text .github/workflows/release.yml 'path: dist/package-manager-repos' "package-manager artifact path"
 require_text .github/workflows/release.yml 'retention-days: 30' "package-manager artifact retention"
+require_text Makefile 'package-manager-smoke-preflight\.test\.sh' "package-manager smoke preflight tests"
+require_text RELEASE.md 'package-manager-smoke-preflight\.sh' "package-manager smoke preflight release docs"
+require_text docs/distribution.md 'package-manager-smoke-preflight\.sh' "package-manager smoke preflight distribution docs"
 require_text Makefile '^staticcheck:' "Makefile staticcheck target"
 require_text Makefile 'honnef\.co/go/tools/cmd/staticcheck@\$\(STATICCHECK_VERSION\)' "pinned Staticcheck make target"
 require_text .github/workflows/ci.yml 'STATICCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "CI Staticcheck version"
