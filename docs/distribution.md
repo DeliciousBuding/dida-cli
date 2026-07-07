@@ -149,5 +149,28 @@ bash scripts/validate-packaging.sh --version vX.Y.Z
 Use `--checksums-file <path>` with both commands when using a local
 `checksums.txt` copy.
 
+Export repository-ready Homebrew tap and Scoop bucket layouts:
+
+```bash
+bash scripts/export-package-manager-repos.sh
+```
+
+The default export is ignored by git and writes:
+
+- `dist/package-manager-repos/homebrew-tap/Formula/dida.rb`
+- `dist/package-manager-repos/homebrew-tap/README.md`
+- `dist/package-manager-repos/scoop-bucket/bucket/dida.json`
+- `dist/package-manager-repos/scoop-bucket/README.md`
+
+The recommended external repositories are:
+
+- `DeliciousBuding/homebrew-dida`, installed as `brew tap DeliciousBuding/dida`
+- `DeliciousBuding/scoop-bucket`, installed as
+  `scoop bucket add dida https://github.com/DeliciousBuding/scoop-bucket`
+
+Exporting does not create those repositories, push commits, or publish the
+package-manager channels. Treat it as a local staging step before native
+Homebrew and Scoop install smoke tests.
+
 Homebrew, Scoop, and winget files are maintainer templates for external
 package-manager submissions.

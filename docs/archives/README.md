@@ -87,3 +87,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 新增 `docs/research/release-strategy-goreleaser.md` 和 `scripts/validate-release-strategy.sh`；`make release-check VERSION=v0.2.5` 会阻止 roadmap 回到 undecided 状态
 - **详情**: [MASTER.md](release-strategy-goreleaser-decision/progress/MASTER.md)
+
+## package-manager-repo-export
+
+- **描述**: 从已验证的 Homebrew/Scoop 模板导出可单独建仓库的 tap/bucket 根目录，但不自动创建或发布外部仓库
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `scripts/export-package-manager-repos.sh` 和测试；`make release-check VERSION=v0.2.5` 现在覆盖外部仓库布局导出
+- **详情**: [MASTER.md](package-manager-repo-export/progress/MASTER.md)

@@ -45,6 +45,7 @@ endif
 	bash scripts/validate-actions-pinned.sh
 	bash scripts/validate-actions-pinned.test.sh
 	bash scripts/update-packaging-templates.test.sh
+	bash scripts/export-package-manager-repos.test.sh
 	bash scripts/validate-packaging.sh --metadata-only
 	bash scripts/validate-packaging.test.sh
 	bash scripts/verify-release-archives.test.sh

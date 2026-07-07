@@ -422,9 +422,11 @@ WSL Linux against `v0.1.16`; published through `v0.2.1`.
 - both should reference GitHub Release assets and checksums
 
 Status: templates exist under `packaging/` and can be regenerated from release
-`checksums.txt` with `scripts/update-packaging-templates.sh`; not published to
-an external tap or bucket yet. Homebrew tap and Scoop bucket publication remains
-planned for v0.3.0.
+`checksums.txt` with `scripts/update-packaging-templates.sh`. Repo-ready
+Homebrew tap and Scoop bucket layouts can be exported with
+`scripts/export-package-manager-repos.sh`; not published to external
+repositories yet. Homebrew tap and Scoop bucket publication remains planned for
+v0.3.0.
 
 ### F5. winget
 
@@ -459,8 +461,9 @@ deferred until release cadence and package identifier are final.
 |---|---|---|
 | goreleaser migration | Deferred | Keep the current release workflow through `v0.3.x`; decision record is `docs/research/release-strategy-goreleaser.md` |
 | Package-manager template generator | Done | `scripts/update-packaging-templates.sh` regenerates Homebrew, Scoop, packaging README, and winget notes from `checksums.txt`; release-check tests it |
-| Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI after native smoke |
-| Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI after native smoke |
+| Package-manager repo export | Done | `scripts/export-package-manager-repos.sh` prepares repo roots for `DeliciousBuding/homebrew-dida` and `DeliciousBuding/scoop-bucket`; release-check tests it |
+| Homebrew tap | Medium | Create and publish external repo `homebrew-dida` after native Homebrew smoke |
+| Scoop bucket | Medium | Create and publish external repo `scoop-bucket` after native Scoop smoke |
 | Website polish | Done | Pages homepage now matches `v0.2.5` install, auth, schema, task latest, completion, and security paths; release-check validates it |
 | Live smoke backlog | Medium | OpenAPI/Official MCP reads and disposable writes where account state allows |
 
@@ -545,7 +548,7 @@ If another agent takes over, the best sequence is:
 
 For v0.3.0 (next milestone):
 
-1. Publish Homebrew tap and Scoop bucket from the generated, validated templates.
+1. Create and publish the external Homebrew tap and Scoop bucket from the exported, validated layouts.
 2. Re-evaluate GoReleaser only after archive, checksum, npm provenance, attestation, and package-manager publishing parity are proven.
 3. Live-smoke remaining OpenAPI read families and disposable writes.
 4. Live-smoke known-id Official MCP habit/focus reads when account state allows.
