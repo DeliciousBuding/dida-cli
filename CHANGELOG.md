@@ -13,6 +13,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Staticcheck now runs through `make staticcheck`, CI, release validation, and `make release-check`.
 - `make coverage-cli` prints the `internal/cli` coverage profile and function-level coverage summary.
 - Roadmap freshness validation now keeps `ROADMAP.md` aligned with the current release and next milestone.
+- Website validation now keeps the GitHub Pages homepage aligned with the current release, npm install path, auth setup, schema discovery, task latest, completion, and security links.
+
+### Changed
+- The GitHub Pages homepage now starts from the `v0.2.5` install/auth/verify/read workflow and avoids stale `+today` examples.
 
 ### Tests
 - CLI coverage increased from 43.9% to 61.3% with local tests for help output, task/project dry-run previews, sync-backed reads, Web API read wrappers, OpenAPI task dry-run previews, and OpenAPI read commands.

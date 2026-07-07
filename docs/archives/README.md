@@ -63,3 +63,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: `make release-check VERSION=v0.2.5` 现在会运行 `scripts/validate-roadmap.sh` 和对应 mutation tests
 - **详情**: [MASTER.md](roadmap-governance-freshness/progress/MASTER.md)
+
+## website-product-polish
+
+- **描述**: 对齐 GitHub Pages 首页与 `v0.2.5` 当前安装、认证、诊断、schema、latest task 和 completion 路径
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 首页去掉旧命令示例和易失效父级资源路径；`make release-check VERSION=v0.2.5` 现在会运行 website copy 校验和 mutation tests
+- **详情**: [MASTER.md](website-product-polish/progress/MASTER.md)

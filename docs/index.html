@@ -3,554 +3,608 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="DidaCLI is a JSON-first command line client for Dida365 and TickTick task automation." />
-    <meta property="og:title" content="DidaCLI - JSON-first Dida365 CLI" />
-    <meta property="og:description" content="A JSON-first CLI for Dida365 and TickTick with stable output and separate Web API, MCP, and OpenAPI auth channels." />
-    <meta property="og:image" content="../assets/logo.svg" />
+    <meta
+      name="description"
+      content="DidaCLI is a JSON-first command line client for Dida365 and TickTick task automation."
+    />
+    <meta property="og:title" content="DidaCLI" />
+    <meta
+      property="og:description"
+      content="Install DidaCLI, verify auth, discover commands, and read recent Dida365 tasks from the shell."
+    />
     <meta property="og:type" content="website" />
     <title>DidaCLI - JSON-first Dida365 CLI</title>
-    <link rel="icon" href="../assets/logo-icon.svg" />
     <style>
       :root {
-        --ink: #111827;
-        --muted: #6b7280;
-        --line: #e2e8f0;
-        --paper: #f8fafc;
-        --soft: #f1f5f9;
-        --accent: #4772FA;
-        --gold: #FFB000;
-        --terminal: #0c1425;
-        --terminal-2: #111d33;
+        color-scheme: light;
+        --ink: #172033;
+        --muted: #5f6d80;
+        --line: #d8dee8;
+        --paper: #f6f8fb;
+        --panel: #ffffff;
+        --blue: #315fec;
+        --blue-dark: #172a66;
+        --amber: #f5a400;
+        --green: #178f62;
+        --terminal: #101624;
+        --terminal-line: #25304a;
       }
 
-      *, *::before, *::after { box-sizing: border-box; }
-      html { scroll-behavior: smooth; }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
 
       body {
         margin: 0;
         background: var(--paper);
         color: var(--ink);
-        font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
-        line-height: 1.5;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        line-height: 1.55;
       }
 
-      a { color: inherit; text-decoration: none; }
+      a {
+        color: inherit;
+      }
 
-      /* ── Nav ── */
+      code,
+      pre {
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", "Courier New",
+          monospace;
+      }
+
+      .skip-link {
+        position: absolute;
+        left: 16px;
+        top: -48px;
+        z-index: 20;
+        padding: 10px 12px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+
+      .skip-link:focus {
+        top: 16px;
+      }
+
       .nav {
-        position: fixed; z-index: 100;
-        inset: 0 0 auto 0;
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 18px clamp(20px, 5vw, 72px);
-        background: rgba(8, 18, 48, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-      }
-      .brand { font-weight: 800; color: #fff; font-size: 17px; letter-spacing: -0.3px; }
-      .brand span { color: var(--gold); }
-      .nav-links { display: flex; gap: 22px; font-size: 14px; color: #8fa8d8; }
-      .nav-links a:hover { color: #fff; }
-
-      /* ── Hero ── */
-      .hero {
-        position: relative;
-        min-height: 100svh;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(340px, 1.1fr);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
         align-items: center;
-        gap: clamp(32px, 6vw, 80px);
-        padding: 110px clamp(24px, 5vw, 72px) 64px;
-        background: linear-gradient(180deg, #081230 0%, #0d1a3a 100%);
-        overflow: hidden;
-      }
-      /* Animated radial glow */
-      .hero::before {
-        content: '';
-        position: absolute;
-        top: 10%; left: 60%;
-        width: 700px; height: 700px;
-        background: radial-gradient(circle, rgba(71,114,250,0.20) 0%, transparent 65%);
-        border-radius: 50%;
-        animation: drift 8s ease-in-out infinite alternate;
-        pointer-events: none;
-      }
-      .hero::after {
-        content: '';
-        position: absolute;
-        bottom: 5%; left: 10%;
-        width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(255,176,0,0.10) 0%, transparent 65%);
-        border-radius: 50%;
-        animation: drift 10s 2s ease-in-out infinite alternate-reverse;
-        pointer-events: none;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 14px clamp(20px, 5vw, 72px);
+        background: rgba(246, 248, 251, 0.94);
+        border-bottom: 1px solid var(--line);
+        backdrop-filter: blur(10px);
       }
 
-      @keyframes drift {
-        from { transform: translate(0, 0) scale(1); }
-        to   { transform: translate(40px, -30px) scale(1.1); }
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--ink);
+        font-size: 18px;
+        font-weight: 800;
+        text-decoration: none;
       }
 
-      .hero-content { position: relative; z-index: 2; color: #fff; max-width: 640px; }
-
-      .eyebrow {
-        margin: 0 0 16px;
-        font-size: 12px; font-weight: 700;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #8fa8d8;
-        opacity: 0; animation: fadeUp 0.6s 0.1s ease forwards;
+      .brand-mark {
+        width: 32px;
+        height: 32px;
+        flex: none;
       }
 
-      .hero h1 {
-        margin: 0;
-        font-size: clamp(52px, 8vw, 110px);
-        line-height: 0.92;
-        letter-spacing: -3px;
-        opacity: 0; animation: fadeUp 0.6s 0.25s ease forwards;
+      .brand span {
+        color: var(--amber);
       }
-      .hero h1 .gold { color: var(--gold); }
 
-      .hero .subtitle {
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+      }
+
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+
+      .hero {
+        min-height: calc(100svh - 61px);
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(360px, 1.1fr);
+        align-items: center;
+        gap: clamp(32px, 6vw, 84px);
+        padding: clamp(56px, 8vw, 96px) clamp(20px, 5vw, 72px)
+          clamp(34px, 5vw, 56px);
+        background:
+          linear-gradient(90deg, rgba(49, 95, 236, 0.08), transparent 45%),
+          var(--paper);
+      }
+
+      .hero-copy {
+        max-width: 650px;
+      }
+
+      .version {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--blue-dark);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      h1 {
+        margin: 18px 0 0;
+        max-width: 620px;
+        font-size: clamp(44px, 7vw, 86px);
+        line-height: 0.98;
+        letter-spacing: 0;
+      }
+
+      .subtitle {
         margin: 24px 0 0;
-        max-width: 520px;
-        font-size: clamp(16px, 1.9vw, 22px);
-        color: #a0b4d8;
-        opacity: 0; animation: fadeUp 0.6s 0.4s ease forwards;
+        max-width: 560px;
+        color: var(--muted);
+        font-size: clamp(17px, 2vw, 21px);
       }
 
-      .cta-row {
-        display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px;
-        opacity: 0; animation: fadeUp 0.6s 0.55s ease forwards;
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 32px;
       }
 
-      @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to   { opacity: 1; transform: translateY(0); }
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 46px;
+        padding: 0 18px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 700;
+        text-decoration: none;
       }
 
-      /* Buttons */
-      .btn {
-        display: inline-flex; align-items: center; gap: 8px;
-        min-height: 48px; padding: 0 20px;
-        border: none; border-radius: 10px;
-        font-weight: 700; font-size: 15px;
-        cursor: pointer;
-        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      .button.primary {
+        background: var(--blue);
+        color: #fff;
       }
-      .btn:hover { transform: translateY(-2px); }
-      .btn:active { transform: translateY(0); }
 
-      .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 4px 24px rgba(71,114,250,0.30); }
-      .btn-primary:hover { box-shadow: 0 8px 32px rgba(71,114,250,0.45); }
-      .btn-gold { background: var(--gold); color: #0a1535; box-shadow: 0 4px 24px rgba(255,176,0,0.25); }
-      .btn-gold:hover { box-shadow: 0 8px 32px rgba(255,176,0,0.40); }
-      .btn-ghost { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.18); }
-
-      /* ── Terminal ── */
-      .terminal-wrap {
-        position: relative; z-index: 2;
-        opacity: 0; animation: terminalIn 0.8s 0.5s ease forwards;
+      .button.secondary {
+        background: var(--panel);
+        border-color: var(--line);
+        color: var(--ink);
       }
-      @keyframes terminalIn {
-        from { opacity: 0; transform: translateY(28px) scale(0.97); }
-        to   { opacity: 1; transform: translateY(0) scale(1); }
+
+      .button:hover {
+        transform: translateY(-1px);
       }
 
       .terminal {
         width: 100%;
-        border-radius: 14px;
+        max-width: 760px;
         overflow: hidden;
         background: var(--terminal);
-        border: 1px solid rgba(71,114,250,0.18);
-        box-shadow:
-          0 2px 0 rgba(71,114,250,0.10),
-          0 20px 60px rgba(0,0,0,0.35),
-          0 0 0 1px rgba(255,255,255,0.03) inset;
+        border: 1px solid var(--terminal-line);
+        border-radius: 8px;
+        box-shadow: 0 18px 44px rgba(23, 32, 51, 0.18);
       }
-      .terminal-bar {
-        display: flex; align-items: center; gap: 7px;
-        padding: 12px 16px;
-        background: var(--terminal-2);
-        border-bottom: 1px solid rgba(255,255,255,0.06);
+
+      .terminal-head {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 42px;
+        padding: 0 16px;
+        background: #151d30;
+        border-bottom: 1px solid var(--terminal-line);
       }
-      .terminal-dot { width: 11px; height: 11px; border-radius: 50%; }
-      .terminal-dot.r { background: #ff5f57; }
-      .terminal-dot.y { background: #ffbd2e; }
-      .terminal-dot.g { background: #28c840; }
-      .terminal-title { flex: 1; text-align: center; font-size: 12px; color: #5a6680; font-family: monospace; }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+      }
+
+      .dot.red {
+        background: #ff5f57;
+      }
+
+      .dot.yellow {
+        background: #ffbd2e;
+      }
+
+      .dot.green {
+        background: #28c840;
+      }
+
+      .terminal-title {
+        flex: 1;
+        color: #8893a9;
+        font-size: 12px;
+        text-align: center;
+      }
 
       .terminal pre {
         margin: 0;
-        padding: 24px clamp(18px, 2.5vw, 32px);
-        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
-        font-size: clamp(12.5px, 1.3vw, 15px);
-        line-height: 1.75;
-        color: #c8d8f8;
+        padding: clamp(20px, 3vw, 32px);
         overflow-x: auto;
+        color: #d6e1f7;
+        font-size: clamp(12px, 1.4vw, 15px);
+        line-height: 1.72;
       }
 
-      .prompt { color: var(--accent); user-select: none; }
-      .gutter { display: inline-block; width: 2ch; color: #3a4a6a; }
-      .key { color: #8fa8d8; }
-      .str { color: #FFB000; }
-      .dim { color: #3e5070; }
-
-      /* Blinking cursor */
-      .cursor {
-        display: inline-block;
-        width: 8px; height: 17px;
-        background: var(--accent);
-        vertical-align: text-bottom;
-        animation: blink 1s step-end infinite;
+      .prompt {
+        color: #79a0ff;
       }
-      @keyframes blink { 50% { opacity: 0; } }
 
-      /* ── Feature Grid ── */
+      .comment {
+        color: #8d9ab3;
+      }
+
+      .ok {
+        color: #79d8a6;
+      }
+
       .section {
-        padding: clamp(72px, 10vw, 128px) clamp(24px, 5vw, 72px);
+        padding: clamp(56px, 8vw, 96px) clamp(20px, 5vw, 72px);
+        border-top: 1px solid var(--line);
       }
-      .section.alt { background: var(--soft); }
-      .section-title {
-        margin: 0; font-size: clamp(32px, 5vw, 64px);
-        line-height: 1; letter-spacing: -1.5px;
+
+      .section-header {
+        max-width: 760px;
       }
+
+      .section h2 {
+        margin: 0;
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 1.08;
+        letter-spacing: 0;
+      }
+
       .section-lead {
-        margin: 16px 0 0; max-width: 660px;
-        font-size: 17px; color: var(--muted);
+        margin: 14px 0 0;
+        color: var(--muted);
+        font-size: 17px;
       }
 
-      .features {
+      .grid {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1px;
-        margin-top: 48px;
-        background: var(--line);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        overflow: hidden;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 32px;
       }
-      .feature {
-        padding: 32px 28px;
-        background: #fff;
-        transition: background 0.15s;
-      }
-      .feature:hover { background: #f8fafc; }
-      .feature-icon {
-        width: 40px; height: 40px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 18px; margin-bottom: 16px;
-        background: rgba(71,114,250,0.08);
-        color: var(--accent);
-      }
-      .feature b { display: block; margin-bottom: 8px; font-size: 17px; }
-      .feature p { margin: 0; color: var(--muted); font-size: 14.5px; }
 
-      /* ── Workflow ── */
+      .tile {
+        min-height: 188px;
+        padding: 22px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .tile h3 {
+        margin: 0 0 8px;
+        font-size: 17px;
+      }
+
+      .tile p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14.5px;
+      }
+
+      .tile code {
+        color: var(--blue-dark);
+      }
+
       .workflow {
         display: grid;
-        grid-template-columns: minmax(0, 0.9fr) minmax(320px, 1.1fr);
-        gap: clamp(40px, 7vw, 88px);
+        grid-template-columns: minmax(0, 0.8fr) minmax(340px, 1.2fr);
+        gap: clamp(28px, 6vw, 76px);
         align-items: start;
       }
-      .steps { border-top: 1px solid var(--line); }
+
+      .step-list {
+        display: grid;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
       .step {
-        display: grid; grid-template-columns: 64px 1fr;
-        gap: 16px; padding: 24px 0;
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        gap: 14px;
+        padding: 18px 0;
         border-bottom: 1px solid var(--line);
       }
+
       .step-num {
-        width: 40px; height: 40px;
-        border-radius: 10px;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 800; font-size: 15px;
-        background: rgba(71,114,250,0.08);
-        color: var(--accent);
-      }
-      .step h4 { margin: 2px 0 4px; font-size: 16px; }
-      .step p { margin: 0; color: var(--muted); font-size: 14.5px; }
-
-      .code-sticky {
-        position: sticky; top: 80px;
-        border-radius: 14px;
-        overflow: hidden;
-        background: var(--terminal);
-        border: 1px solid #1c2844;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+        display: inline-flex;
+        width: 34px;
+        height: 34px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        background: #eaf0ff;
+        color: var(--blue);
+        font-weight: 800;
       }
 
-      /* ── Disclaimer ── */
-      .disclaimer {
-        padding: 40px clamp(24px, 5vw, 72px);
-        background: #081230;
-        text-align: center;
+      .step h3 {
+        margin: 1px 0 4px;
+        font-size: 16px;
+      }
+
+      .step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14.5px;
+      }
+
+      .link-band {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 28px;
+      }
+
+      .link-band a {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--panel);
+        color: var(--ink);
+        font-weight: 700;
+        text-decoration: none;
+      }
+
+      footer {
+        padding: 34px clamp(20px, 5vw, 72px);
+        background: #172033;
+        color: #c8d4e8;
         font-size: 13px;
-        color: #5a6a88;
-        border-top: 1px solid rgba(71,114,250,0.12);
-      }
-      .disclaimer a { color: #8fa8d8; }
-      .disclaimer a:hover { color: #fff; }
-      .disclaimer-inner {
-        max-width: 720px;
-        margin: 0 auto;
-        line-height: 1.8;
-      }
-      .disclaimer-brand {
-        font-weight: 700; color: #8fa8d8;
-      }
-      .disclaimer-divider {
-        display: block;
-        width: 40px; height: 2px;
-        background: rgba(71,114,250,0.25);
-        margin: 14px auto 16px;
-        border-radius: 1px;
       }
 
-      /* ── Final CTA ── */
-      .final {
-        text-align: center;
-        background: #081230;
+      footer a {
         color: #fff;
       }
-      .final p { color: #a0b4d8; }
-      .final .cta-row { justify-content: center; opacity: 1; }
 
-      /* ── Scroll reveal ── */
-      .reveal {
-        opacity: 0;
-        transform: translateY(28px);
-        transition: opacity 0.7s ease, transform 0.7s ease;
-      }
-      .reveal.visible {
-        opacity: 1;
-        transform: translateY(0);
+      .footer-inner {
+        max-width: 980px;
       }
 
-      /* ── Responsive ── */
       @media (max-width: 900px) {
-        .hero, .workflow { grid-template-columns: 1fr; }
-        .features { grid-template-columns: 1fr; }
-        .nav-links { display: none; }
+        .hero,
+        .workflow {
+          grid-template-columns: 1fr;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .nav {
+          align-items: flex-start;
+        }
+
+        .nav-links {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
       }
     </style>
   </head>
   <body>
-
-    <nav class="nav">
-      <a class="brand" href="#">
-        <svg width="28" height="28" viewBox="52 -82 620 620" fill="none" style="vertical-align: middle; margin-right: 8px; margin-top: -2px;">
-          <path d="M176.483,414.386l353.023.187c19.937.011,33.665-17.606,33.688-36.215l.111-91.919c.013-10.867,9.187-18.879,18.962-19.042,10.255-.171,20.421,7.47,20.392,18.975l-.244,99.375c-.107,43.5-36.677,70.77-77.882,70.755l-343.804-.124c-39.552-.014-76.562-28.211-76.561-70.456l.006-317.531c0-36.533,33.02-68.057,69.031-68.087L538.099,0c19.542-.016,37.53,10.024,49.456,24.186,10.924,12.973,15.752,29.424,15.068,45.987-.435,10.541-8.226,18.161-17.551,19.166-9.072.978-20.341-4.122-21.317-14.904-1.547-17.071-13.952-33.382-33.346-33.379l-353.511.066c-18.769.003-32.996,16.531-32.992,34.347l.057,304.1c.003,17.476,13.455,34.807,32.52,34.817Z" fill="#4772FA"/>
-          <path d="M454.246,303.082l-64.973-73.213c-7.819-8.811-4.327-22.633,4.769-28.887,8.162-4.709,17.385-4.3,24.925,1.146l49.916,51.581,141.775-152.254c4.138-4.444,11.782-1.931,15.42,1.252l18.093,17.113c2.457,2.324,3.293,8.667.433,11.704l-162.579,172.646c-8.97,5.526-19.042,5.239-27.78-1.088Z" fill="#FFB000"/>
-          <polygon points="206.262 285.571 205.573 251.074 263.407 213.697 205.255 174.937 205.567 140.468 298.242 200.889 298.168 226.618 206.262 285.571" fill="#4772FA"/>
-          <rect x="297.808" y="274.365" width="75.019" height="25.816" fill="#4772FA"/>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Main navigation">
+      <a class="brand" href="#main" aria-label="DidaCLI home">
+        <svg class="brand-mark" viewBox="52 -82 620 620" fill="none" aria-hidden="true">
+          <path d="M176.483,414.386l353.023.187c19.937.011,33.665-17.606,33.688-36.215l.111-91.919c.013-10.867,9.187-18.879,18.962-19.042,10.255-.171,20.421,7.47,20.392,18.975l-.244,99.375c-.107,43.5-36.677,70.77-77.882,70.755l-343.804-.124c-39.552-.014-76.562-28.211-76.561-70.456l.006-317.531c0-36.533,33.02-68.057,69.031-68.087L538.099,0c19.542-.016,37.53,10.024,49.456,24.186,10.924,12.973,15.752,29.424,15.068,45.987-.435,10.541-8.226,18.161-17.551,19.166-9.072.978-20.341-4.122-21.317-14.904-1.547-17.071-13.952-33.382-33.346-33.379l-353.511.066c-18.769.003-32.996,16.531-32.992,34.347l.057,304.1c.003,17.476,13.455,34.807,32.52,34.817Z" fill="#315fec"/>
+          <path d="M454.246,303.082l-64.973-73.213c-7.819-8.811-4.327-22.633,4.769-28.887,8.162-4.709,17.385-4.3,24.925,1.146l49.916,51.581,141.775-152.254c4.138-4.444,11.782-1.931,15.42,1.252l18.093,17.113c2.457,2.324,3.293,8.667.433,11.704l-162.579,172.646c-8.97,5.526-19.042,5.239-27.78-1.088Z" fill="#f5a400"/>
+          <polygon points="206.262 285.571 205.573 251.074 263.407 213.697 205.255 174.937 205.567 140.468 298.242 200.889 298.168 226.618 206.262 285.571" fill="#315fec"/>
+          <rect x="297.808" y="274.365" width="75.019" height="25.816" fill="#315fec"/>
         </svg>
         Dida<span>CLI</span>
       </a>
       <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#workflow">Workflow</a>
+        <a href="#quickstart">Quickstart</a>
+        <a href="#surface">Command Surface</a>
         <a href="commands.md">Commands</a>
         <a href="https://github.com/DeliciousBuding/dida-cli">GitHub</a>
       </div>
     </nav>
 
-    <main>
-      <!-- ═══ Hero ═══ -->
+    <main id="main">
       <section class="hero">
-        <div class="hero-content">
-          <svg width="72" height="72" viewBox="52 -82 620 620" fill="none" style="margin-bottom: 16px;">
-            <path d="M176.483,414.386l353.023.187c19.937.011,33.665-17.606,33.688-36.215l.111-91.919c.013-10.867,9.187-18.879,18.962-19.042,10.255-.171,20.421,7.47,20.392,18.975l-.244,99.375c-.107,43.5-36.677,70.77-77.882,70.755l-343.804-.124c-39.552-.014-76.562-28.211-76.561-70.456l.006-317.531c0-36.533,33.02-68.057,69.031-68.087L538.099,0c19.542-.016,37.53,10.024,49.456,24.186,10.924,12.973,15.752,29.424,15.068,45.987-.435,10.541-8.226,18.161-17.551,19.166-9.072.978-20.341-4.122-21.317-14.904-1.547-17.071-13.952-33.382-33.346-33.379l-353.511.066c-18.769.003-32.996,16.531-32.992,34.347l.057,304.1c.003,17.476,13.455,34.807,32.52,34.817Z" fill="#4772FA"/>
-            <path d="M454.246,303.082l-64.973-73.213c-7.819-8.811-4.327-22.633,4.769-28.887,8.162-4.709,17.385-4.3,24.925,1.146l49.916,51.581,141.775-152.254c4.138-4.444,11.782-1.931,15.42,1.252l18.093,17.113c2.457,2.324,3.293,8.667.433,11.704l-162.579,172.646c-8.97,5.526-19.042,5.239-27.78-1.088Z" fill="#FFB000"/>
-            <polygon points="206.262 285.571 205.573 251.074 263.407 213.697 205.255 174.937 205.567 140.468 298.242 200.889 298.168 226.618 206.262 285.571" fill="#4772FA"/>
-            <rect x="297.808" y="274.365" width="75.019" height="25.816" fill="#4772FA"/>
-          </svg>
-          <p class="eyebrow">Dida365 / TickTick automation</p>
-          <h1>Dida<span class="gold">CLI</span></h1>
+        <div class="hero-copy">
+          <span class="version">Latest release v0.2.5</span>
+          <h1>DidaCLI</h1>
           <p class="subtitle">
-            A command line client built for agents: stable JSON, browser login,
-            task and resource CRUD, and a private Web API layer that stays explicit.
+            JSON-first CLI for Dida365 and TickTick task automation. Install it
+            with npm, verify auth locally, and give scripts or agents a stable
+            command surface for tasks, projects, schemas, and upgrades.
           </p>
-          <div class="cta-row">
-            <a class="btn btn-primary" href="https://github.com/DeliciousBuding/dida-cli">
-              <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-              GitHub
-            </a>
-            <a class="btn btn-gold" href="commands.md">Read the Docs</a>
+          <div class="actions">
+            <a class="button primary" href="#quickstart">Start with npm</a>
+            <a class="button secondary" href="commands.md">Command reference</a>
+            <a class="button secondary" href="https://www.npmjs.com/package/@delicious233/dida-cli">npm package</a>
           </div>
         </div>
 
-        <div class="terminal-wrap">
-          <div class="terminal">
-            <div class="terminal-bar">
-              <div class="terminal-dot r"></div>
-              <div class="terminal-dot y"></div>
-              <div class="terminal-dot g"></div>
-              <span class="terminal-title">zsh — dida</span>
-            </div>
-            <pre><span class="prompt">❯</span> dida +today --json
-{
-<span class="gutter"></span><span class="key">"ok"</span>: <span class="str">true</span>,
-<span class="gutter"></span><span class="key">"command"</span>: <span class="str">"task today"</span>,
-<span class="gutter"></span><span class="key">"meta"</span>: { <span class="key">"count"</span>: <span class="str">3</span> },
-<span class="gutter"></span><span class="key">"data"</span>: { <span class="key">"tasks"</span>: [ ... ] }
-}
-
-<span class="prompt">❯</span> dida task create \
-  --project school \
-  --title "Review lab notes" \
-  --dry-run --json
-<span class="dim">  { "ok": true, "dry_run": true }  ✓</span>
-<span class="prompt">❯</span> <span class="cursor"></span></pre>
+        <div class="terminal" aria-label="DidaCLI quickstart commands">
+          <div class="terminal-head">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+            <span class="terminal-title">terminal</span>
           </div>
+          <pre><span class="prompt">$</span> npm install -g @delicious233/dida-cli
+<span class="prompt">$</span> dida auth cookie set --token-stdin --json
+<span class="prompt">$</span> dida doctor --verify --json
+<span class="ok">{ "ok": true, "command": "doctor" }</span>
+
+<span class="prompt">$</span> dida schema list --compact --json
+<span class="prompt">$</span> dida task latest --limit 10 --project inbox --compact --json
+<span class="prompt">$</span> dida completion bash</pre>
         </div>
       </section>
 
-      <!-- ═══ Features ═══ -->
-      <section id="features" class="section">
-        <div class="reveal">
-          <h2 class="section-title">Small surface, serious automation.</h2>
-          <p class="section-lead">
-            DidaCLI keeps the commands boring and the behavior inspectable, so a
-            human can run it comfortably and an agent can recover from errors.
-          </p>
-        </div>
-        <div class="features reveal">
-          <div class="feature">
-            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></div>
-            <b>30+ commands</b>
-            <p>Tasks, projects, folders, tags, comments, habits, Pomodoro, trash, search, and stats with explicit read/write boundaries.</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
-            <b>Agent-ready JSON</b>
-            <p>Every <code>--json</code> response returns a consistent envelope: ok, command, meta, data, or error.</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg></div>
-            <b>Three auth channels</b>
-            <p>Web API (cookie), official MCP (token), and OpenAPI (OAuth) -- never mixed, each explicit.</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
-            <b>Dry-run writes</b>
-            <p>All write commands support <code>--dry-run</code> to preview payloads before executing anything.</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
-            <b>Six platforms</b>
-            <p>Windows, Linux, and macOS on amd64 and arm64. Single binary, zero dependencies.</p>
-          </div>
-          <div class="feature">
-            <div class="feature-icon"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <b>Safety built-in</b>
-            <p>Token redaction, <code>--yes</code> for destructives, bounded reads, no raw write tunnel by default.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ═══ Workflow ═══ -->
-      <section id="workflow" class="section alt">
-        <div class="workflow reveal">
-          <div>
-            <h2 class="section-title">Designed for repeated operator loops.</h2>
+      <section id="quickstart" class="section">
+        <div class="workflow">
+          <div class="section-header">
+            <h2>Install, verify, read.</h2>
             <p class="section-lead">
-              Login once, inspect context, perform targeted writes, and keep raw
-              endpoint exploration separate from the stable command surface.
+              The npm package downloads the matching GitHub Release binary
+              during postinstall. Keep cookies out of shell history by importing
+              them through stdin.
             </p>
-          </div>
-          <div>
-            <div class="steps">
-              <div class="step">
-                <div class="step-num">1</div>
-                <div>
-                  <h4>Authenticate locally</h4>
-                  <p>Browser flow captures only the Dida365 <code>t</code> cookie into <code>~/.dida-cli/</code>.</p>
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-num">2</div>
-                <div>
-                  <h4>Build context</h4>
-                  <p>Use <code>project list</code>, <code>+today</code>, <code>upcoming</code>, and <code>agent context</code> before writing.</p>
-                </div>
-              </div>
-              <div class="step">
-                <div class="step-num">3</div>
-                <div>
-                  <h4>Write deliberately</h4>
-                  <p>Preview with <code>--dry-run</code>. Reserve <code>--yes</code> for destructive operations only.</p>
-                </div>
-              </div>
-            </div>
-            <div class="code-sticky" style="margin-top: 32px;">
-              <div class="terminal-bar">
-                <div class="terminal-dot r"></div>
-                <div class="terminal-dot y"></div>
-                <div class="terminal-dot g"></div>
-                <span class="terminal-title">commands</span>
-              </div>
-              <pre style="padding:22px 24px; font-size:13.5px; line-height:1.7;">
-<span class="prompt">❯</span> dida auth status --verify --json
-<span class="prompt">❯</span> dida project list --json
-<span class="prompt">❯</span> dida task upcoming --days 14 --json
-<span class="prompt">❯</span> dida task create --project &lt;id&gt; \
-    --title "Plan review" --dry-run --json
-<span class="prompt">❯</span> dida task create --project &lt;id&gt; \
-    --title "Plan review" --json</pre>
+            <div class="link-band">
+              <a href="quickstart.md">Quickstart</a>
+              <a href="agent-usage.md">Agent usage</a>
+              <a href="https://github.com/DeliciousBuding/dida-cli/blob/main/README.md">README</a>
+              <a href="https://github.com/DeliciousBuding/dida-cli/blob/main/SECURITY.md">Security</a>
             </div>
           </div>
+
+          <ol class="step-list">
+            <li class="step">
+              <span class="step-num">1</span>
+              <div>
+                <h3>Install</h3>
+                <p><code>npm install -g @delicious233/dida-cli</code></p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">2</span>
+              <div>
+                <h3>Add local auth</h3>
+                <p><code>dida auth cookie set --token-stdin --json</code></p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">3</span>
+              <div>
+                <h3>Verify the account channel</h3>
+                <p><code>dida doctor --verify --json</code></p>
+              </div>
+            </li>
+            <li class="step">
+              <span class="step-num">4</span>
+              <div>
+                <h3>Discover and read</h3>
+                <p><code>dida schema list --compact --json</code> and <code>dida task latest --limit 10 --project inbox --compact --json</code></p>
+              </div>
+            </li>
+          </ol>
         </div>
       </section>
 
-      <!-- ═══ Final CTA ═══ -->
-      <section class="section final">
-        <h2 class="section-title reveal">Use Dida365 from the shell, safely.</h2>
-        <p class="section-lead reveal" style="margin-left:auto;margin-right:auto;text-align:center;">
-          Install the binary, login with the browser flow, and give agents a
-          clean task interface they can actually operate.
-        </p>
-        <div class="cta-row reveal" style="justify-content:center;margin-top:36px;opacity:1;">
-          <a class="btn btn-primary" href="https://github.com/DeliciousBuding/dida-cli">Get the Source</a>
-          <a class="btn btn-gold" href="agent-usage.md">Agent Guide</a>
-          <a class="btn btn-ghost" href="skill-installation.md">Install Skill</a>
+      <section id="surface" class="section">
+        <div class="section-header">
+          <h2>Current command surface.</h2>
+          <p class="section-lead">
+            DidaCLI keeps auth channels separate: Web API cookie auth, Official
+            MCP token auth, and Official OpenAPI OAuth. Each command advertises
+            its auth requirement in the schema index.
+          </p>
+        </div>
+
+        <div class="grid">
+          <article class="tile">
+            <h3>Stable JSON for automation</h3>
+            <p>
+              Use <code>--json</code> for a consistent envelope with
+              <code>ok</code>, <code>command</code>, <code>meta</code>,
+              <code>data</code>, and <code>error</code>.
+            </p>
+          </article>
+          <article class="tile">
+            <h3>Compact reads for agents</h3>
+            <p>
+              <code>dida task latest --limit 10 --project inbox --compact --json</code>
+              returns recent active tasks without large raw fields.
+            </p>
+          </article>
+          <article class="tile">
+            <h3>Schema before writes</h3>
+            <p>
+              <code>dida schema list --compact --json</code> and
+              <code>dida schema show task.create --json</code> explain dry-run
+              support and destructive confirmation.
+            </p>
+          </article>
+          <article class="tile">
+            <h3>Shell completion</h3>
+            <p>
+              Generate scripts with <code>dida completion bash</code>,
+              <code>zsh</code>, <code>fish</code>, or <code>powershell</code>.
+            </p>
+          </article>
+          <article class="tile">
+            <h3>Release-aware diagnostics</h3>
+            <p>
+              <code>dida doctor --check-upgrade --json</code> reports the
+              latest GitHub Release without installing an update.
+            </p>
+          </article>
+          <article class="tile">
+            <h3>Private-state guardrails</h3>
+            <p>
+              Token redaction, stdin secret import, dry-run writes, and
+              explicit <code>--yes</code> confirmations are built into the CLI
+              workflow.
+            </p>
+          </article>
         </div>
       </section>
-
-      <!-- ═══ Disclaimer ═══ -->
-      <footer class="disclaimer">
-        <div class="disclaimer-inner">
-          <svg width="36" height="36" viewBox="52 -82 620 620" fill="none" style="margin-bottom: 12px; opacity: 0.6;">
-            <path d="M176.483,414.386l353.023.187c19.937.011,33.665-17.606,33.688-36.215l.111-91.919c.013-10.867,9.187-18.879,18.962-19.042,10.255-.171,20.421,7.47,20.392,18.975l-.244,99.375c-.107,43.5-36.677,70.77-77.882,70.755l-343.804-.124c-39.552-.014-76.562-28.211-76.561-70.456l.006-317.531c0-36.533,33.02-68.057,69.031-68.087L538.099,0c19.542-.016,37.53,10.024,49.456,24.186,10.924,12.973,15.752,29.424,15.068,45.987-.435,10.541-8.226,18.161-17.551,19.166-9.072.978-20.341-4.122-21.317-14.904-1.547-17.071-13.952-33.382-33.346-33.379l-353.511.066c-18.769.003-32.996,16.531-32.992,34.347l.057,304.1c.003,17.476,13.455,34.807,32.52,34.817Z" fill="#4772FA"/>
-            <path d="M454.246,303.082l-64.973-73.213c-7.819-8.811-4.327-22.633,4.769-28.887,8.162-4.709,17.385-4.3,24.925,1.146l49.916,51.581,141.775-152.254c4.138-4.444,11.782-1.931,15.42,1.252l18.093,17.113c2.457,2.324,3.293,8.667.433,11.704l-162.579,172.646c-8.97,5.526-19.042,5.239-27.78-1.088Z" fill="#FFB000"/>
-            <polygon points="206.262 285.571 205.573 251.074 263.407 213.697 205.255 174.937 205.567 140.468 298.242 200.889 298.168 226.618 206.262 285.571" fill="#4772FA"/>
-            <rect x="297.808" y="274.365" width="75.019" height="25.816" fill="#4772FA"/>
-          </svg>
-          <span class="disclaimer-brand">DidaCLI</span> is an independent open-source CLI for
-          <a href="https://dida365.com" target="_blank" rel="noopener">Dida365</a> /
-          <a href="https://ticktick.com" target="_blank" rel="noopener">TickTick</a>-compatible workflows.
-          <span class="disclaimer-divider"></span>
-          Use it with accounts and automations you control, subject to the upstream
-          <a href="https://dida365.com/about/terms" target="_blank" rel="noopener">Terms of Service</a>.
-        </div>
-      </footer>
     </main>
 
-    <script>
-      /* ── Scroll reveal ── */
-      const io = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting) {
-              e.target.classList.add('visible');
-              io.unobserve(e.target);
-            }
-          });
-        },
-        { threshold: 0.12 }
-      );
-      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
-    </script>
-
+    <footer>
+      <div class="footer-inner">
+        DidaCLI is an independent open-source CLI for
+        <a href="https://dida365.com" rel="noopener">Dida365</a> and
+        <a href="https://ticktick.com" rel="noopener">TickTick</a>-compatible
+        workflows. Use it with accounts and automations you control.
+      </div>
+    </footer>
   </body>
 </html>

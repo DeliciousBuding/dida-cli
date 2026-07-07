@@ -458,7 +458,7 @@ deferred until release cadence and package identifier are final.
 | goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
 | Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
 | Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI |
-| Website polish | Medium | Align website copy and command examples with `v0.2.5` |
+| Website polish | Done | Pages homepage now matches `v0.2.5` install, auth, schema, task latest, completion, and security paths; release-check validates it |
 | Live smoke backlog | Medium | OpenAPI/Official MCP reads and disposable writes where account state allows |
 
 ### G3. v0.4.0+ (long-term)
@@ -546,7 +546,6 @@ For v0.3.0 (next milestone):
 2. Publish Homebrew tap and Scoop bucket from the validated templates.
 3. Live-smoke remaining OpenAPI read families and disposable writes.
 4. Live-smoke known-id Official MCP habit/focus reads when account state allows.
-5. Polish the website so install, auth, and command examples match `v0.2.5`.
 
 ## Done Means Done
 
