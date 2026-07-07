@@ -111,3 +111,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 新增 `scripts/validate-research-audit.sh` 和 mutation tests；`make release-check VERSION=v0.2.5` 现在覆盖 research audit freshness
 - **详情**: [MASTER.md](research-audit-freshness/progress/MASTER.md)
+
+## roadmap-distribution-freshness
+
+- **描述**: 将 `ROADMAP.md` 详细分发状态从旧 release 证据更新到 `v0.2.5`，并扩展 roadmap freshness 校验
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: F1/F2/F3 分发段落对齐当前 release/npm/package-manager artifact；`validate-roadmap` 会拒绝旧分发基线回流
+- **详情**: [MASTER.md](roadmap-distribution-freshness/progress/MASTER.md)

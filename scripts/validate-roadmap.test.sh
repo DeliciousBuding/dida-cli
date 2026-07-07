@@ -54,6 +54,14 @@ run_case "stale immediate release block fails" fail "sed -i '/## Current Best Ne
 
 run_case "missing next milestone fails" fail "sed -i '/For v0.3.0 (next milestone):/d' ROADMAP.md" --version "$current_version"
 
+run_case "stale release workflow status fails" fail 'printf "%s\n" "Status: implemented and smoke-tested through \`v0.2.1\`" >> ROADMAP.md' --version "$current_version"
+
+run_case "stale installer smoke status fails" fail 'printf "%s\n" "installer smoke passed against \`v0.1.16\`" >> ROADMAP.md' --version "$current_version"
+
+run_case "missing npm current package status fails" fail "grep -v '@delicious233/dida-cli@0.2.5' ROADMAP.md > next && mv next ROADMAP.md" --version "$current_version"
+
+run_case "missing package manager artifact handoff fails" fail "grep -v 'dida-package-manager-repos-vX.Y.Z' ROADMAP.md > next && mv next ROADMAP.md" --version "$current_version"
+
 run_case "non semver version fails" fail ":" --version 0.2.5
 
 echo "validate-roadmap tests passed"

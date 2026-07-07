@@ -385,9 +385,10 @@ Priority order:
 - `checksums.txt`
 - release notes with install commands
 
-Status: implemented and smoke-tested through `v0.2.1`; release workflow uses
-Node 24-compatible action major versions. Workflow-dispatch trigger added for
-manual re-triggering. YAML heredoc issue fixed in release notes template.
+Status: implemented and published through `v0.2.5`; release `v0.2.5` includes
+six platform archives, `checksums.txt`, npm provenance, archive attestations,
+and a package-manager repo export artifact handoff for the next tag release.
+Workflow-dispatch trigger exists for manual re-triggering.
 
 ### F2. Install Scripts
 
@@ -399,10 +400,10 @@ manual re-triggering. YAML heredoc issue fixed in release notes template.
 - checksum verification
 - install-time `dida version` and `dida doctor --json`
 
-Status: implemented; Windows `install.ps1` latest smoke passed against
-`v0.2.1`, and WSL Linux `install.sh` latest smoke passed against
-`v0.2.1`. The installed-binary OpenAPI client config
-smoke passed against `v0.1.16`.
+Status: implemented; Windows `install.ps1` latest smoke and WSL Linux
+`install.sh` latest smoke are covered by the current release line. The
+installed-binary OpenAPI client config smoke passed during release hardening.
+Native macOS installer smoke remains pending.
 
 ### F3. npm Installer
 
@@ -411,9 +412,9 @@ smoke passed against `v0.1.16`.
 - `bin/dida` forwards to the downloaded binary
 - npm auto-publish on tag push (release workflow)
 
-Status: published as `@delicious233/dida-cli`. npm auto-publish on tag push
-added in release workflow. Postinstall binary download tested on Windows and
-WSL Linux against `v0.1.16`; published through `v0.2.1`.
+Status: published as `@delicious233/dida-cli@0.2.5` with npm README metadata.
+npm auto-publish on tag push is in the release workflow. Postinstall binary
+download is covered by Windows and Linux npm install smoke jobs.
 
 ### F4. Homebrew / Scoop
 

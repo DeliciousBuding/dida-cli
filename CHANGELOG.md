@@ -18,6 +18,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - `scripts/export-package-manager-repos.sh` exports repo-ready Homebrew tap and Scoop bucket layouts from the validated packaging templates.
 - Release strategy validation now records and checks the GoReleaser decision for `v0.3.x`.
 - Research audit freshness validation now keeps objective and distribution evidence aligned with the current release.
+- Roadmap freshness validation now rejects stale distribution baselines in release, installer, and npm sections.
 
 ### Changed
 - The GitHub Pages homepage now starts from the `v0.2.5` install/auth/verify/read workflow and avoids stale `+today` examples.
@@ -25,6 +26,7 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Package-manager publishing prep now separates source templates, local export directories, and external repository creation.
 - The release workflow now uploads a package-manager repo export artifact after GitHub Release checksums exist.
 - Research audit docs now reflect `v0.2.5`, the npm README fix, and the package-manager export handoff path.
+- Roadmap distribution status now reflects `v0.2.5` release assets, npm `0.2.5`, and package-manager export artifacts.
 - GoReleaser migration is deferred through `v0.3.x`; the current release workflow remains the release path until parity is proven.
 
 ### Tests
