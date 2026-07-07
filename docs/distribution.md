@@ -17,8 +17,8 @@ cloning the repository. GitHub Releases are the canonical binary source.
 
 | Channel | Priority | Plan |
 | --- | ---: | --- |
-| Homebrew tap | 4 | Template exists in `packaging/homebrew/dida.rb`; publish from a dedicated tap after native smoke. |
-| Scoop bucket | 4 | Template exists in `packaging/scoop/dida.json`; publish from a dedicated bucket after install smoke. |
+| Homebrew tap | 4 | Template is generated from release checksums under `packaging/homebrew/dida.rb`; publish from a dedicated tap after native smoke. |
+| Scoop bucket | 4 | Manifest is generated from release checksums under `packaging/scoop/dida.json`; publish from a dedicated bucket after install smoke. |
 | winget | 5 | Notes exist in `packaging/winget/README.md`; generate a manifest after release cadence is stable. |
 
 ## GitHub Releases
@@ -138,6 +138,16 @@ Release archive listing checks confirm Homebrew must install from the nested
 `dida_v.../dida` path and Scoop's `extract_dir` matches the Windows zip's
 top-level `dida_v..._windows_<arch>/` directory. Native package-manager smoke
 tests still need hosts with `brew`, Scoop, and `wingetcreate` installed.
+
+Regenerate package-manager templates after a release:
+
+```bash
+bash scripts/update-packaging-templates.sh --version vX.Y.Z
+bash scripts/validate-packaging.sh --version vX.Y.Z
+```
+
+Use `--checksums-file <path>` with both commands when using a local
+`checksums.txt` copy.
 
 Homebrew, Scoop, and winget files are maintainer templates for external
 package-manager submissions.

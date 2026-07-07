@@ -53,10 +53,10 @@ Latest release: `v0.2.5` (2026-07-07).
 ### What's NOT Done Yet
 
 - goreleaser migration is undecided; the current hand-rolled release workflow is still validated
-- No Homebrew tap or Scoop bucket (templates exist, not published)
+- No Homebrew tap or Scoop bucket (templates are generated and validated, not published)
 - Remaining OpenAPI and Official MCP live smokes need suitable account state
 - No i18n (all errors English-only)
-- Website needs polish and better content
+- Website first pass is complete; deeper documentation content can still improve
 
 ## Non-Negotiable Rules
 
@@ -421,8 +421,10 @@ WSL Linux against `v0.1.16`; published through `v0.2.1`.
 - Scoop bucket manifest
 - both should reference GitHub Release assets and checksums
 
-Status: templates exist under `packaging/`; not published to an external tap or
-bucket yet. Homebrew tap and Scoop bucket planned for v0.3.0.
+Status: templates exist under `packaging/` and can be regenerated from release
+`checksums.txt` with `scripts/update-packaging-templates.sh`; not published to
+an external tap or bucket yet. Homebrew tap and Scoop bucket publication remains
+planned for v0.3.0.
 
 ### F5. winget
 
@@ -456,8 +458,9 @@ deferred until release cadence and package identifier are final.
 | Item | Priority | Notes |
 |---|---|---|
 | goreleaser migration | Medium | Replace hand-rolled build script, auto-changelog |
-| Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI |
-| Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI |
+| Package-manager template generator | Done | `scripts/update-packaging-templates.sh` regenerates Homebrew, Scoop, packaging README, and winget notes from `checksums.txt`; release-check tests it |
+| Homebrew tap | Medium | Separate repo `homebrew-tap`, auto-updated by CI after native smoke |
+| Scoop bucket | Medium | Separate repo `scoop-bucket`, auto-updated by CI after native smoke |
 | Website polish | Done | Pages homepage now matches `v0.2.5` install, auth, schema, task latest, completion, and security paths; release-check validates it |
 | Live smoke backlog | Medium | OpenAPI/Official MCP reads and disposable writes where account state allows |
 
@@ -543,7 +546,7 @@ If another agent takes over, the best sequence is:
 For v0.3.0 (next milestone):
 
 1. Decide whether to keep the current release workflow or migrate to goreleaser.
-2. Publish Homebrew tap and Scoop bucket from the validated templates.
+2. Publish Homebrew tap and Scoop bucket from the generated, validated templates.
 3. Live-smoke remaining OpenAPI read families and disposable writes.
 4. Live-smoke known-id Official MCP habit/focus reads when account state allows.
 

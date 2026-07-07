@@ -32,7 +32,7 @@ Before submitting:
 
 Current validation boundary:
 
-- Generate and validate the manifest with `wingetcreate` on a Windows packaging
-  host before submission.
+- Generate and validate the manifest with `wingetcreate` on a Windows
+  packaging host before submission.
 - Keep Homebrew and Scoop native install smoke results in their package-manager
   review notes.

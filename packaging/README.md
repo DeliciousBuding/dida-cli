@@ -17,8 +17,23 @@ Current source release: `v0.2.5`
 
 1. Publish a GitHub Release tag and confirm all archives plus `checksums.txt`
    are attached.
-2. Update versions, URLs, and SHA-256 checksums in the templates.
-3. Test the template in the target package manager before publishing it to an
+2. Run:
+
+   ```bash
+   bash scripts/update-packaging-templates.sh --version v0.2.5
+   ```
+
+   Use `--checksums-file <path>` when preparing from a downloaded or staged
+   checksum file.
+3. Run:
+
+   ```bash
+   bash scripts/validate-packaging.sh --version v0.2.5 --checksums-file <path>
+   ```
+
+   If you rely on the published GitHub Release checksum asset, omit
+   `--checksums-file`.
+4. Test the template in the target package manager before publishing it to an
    external tap, bucket, or manifest repository.
-4. Do not add credentials, local paths, private test accounts, or release
+5. Do not add credentials, local paths, private test accounts, or release
    automation secrets here.

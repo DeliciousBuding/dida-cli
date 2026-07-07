@@ -71,3 +71,11 @@
 - **模式**: LOCAL_ONLY
 - **成果**: 首页去掉旧命令示例和易失效父级资源路径；`make release-check VERSION=v0.2.5` 现在会运行 website copy 校验和 mutation tests
 - **详情**: [MASTER.md](website-product-polish/progress/MASTER.md)
+
+## package-manager-template-automation
+
+- **描述**: 将 Homebrew、Scoop、packaging README 和 winget notes 从手工维护改为由 release `checksums.txt` 生成
+- **日期**: 2026-07-07
+- **模式**: LOCAL_ONLY
+- **成果**: 新增 `scripts/update-packaging-templates.sh` 和 mutation tests；`make release-check VERSION=v0.2.5` 会验证生成器
+- **详情**: [MASTER.md](package-manager-template-automation/progress/MASTER.md)

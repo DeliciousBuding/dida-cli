@@ -68,7 +68,14 @@ gh attestation verify dida_vX.Y.Z_linux_amd64.tar.gz --repo DeliciousBuding/dida
 
 ## Package Manager Templates
 
-Homebrew and Scoop templates contain SHA-256 checksums from the latest published GitHub Release. Keep those templates on the latest checksum-verified release until the next release assets exist, then update the version, URLs, and checksums from `checksums.txt` in a follow-up packaging commit or external tap/bucket PR.
+Homebrew and Scoop templates contain SHA-256 checksums from the latest published GitHub Release. Keep those templates on the latest checksum-verified release until the next release assets exist, then update them from `checksums.txt`:
+
+```bash
+bash scripts/update-packaging-templates.sh --version vX.Y.Z
+bash scripts/validate-packaging.sh --version vX.Y.Z
+```
+
+Use `--checksums-file <path>` for both commands when preparing from a downloaded or staged checksum file. Publish to an external Homebrew tap or Scoop bucket only after native package-manager smoke tests.
 
 ## Post-Release Verification
 
