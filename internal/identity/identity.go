@@ -109,8 +109,8 @@ func ProjectFingerprint(projectIDs []string) string {
 
 // MatchResult describes whether configured channels refer to the same account.
 type MatchResult struct {
-	Match   *bool                    `json:"match"` // nil = unknown/insufficient data
-	Reason  string                   `json:"reason,omitempty"`
+	Match    *bool                      `json:"match"` // nil = unknown/insufficient data
+	Reason   string                     `json:"reason,omitempty"`
 	Channels map[string]ChannelIdentity `json:"channels"`
 }
 
@@ -231,16 +231,16 @@ func StringField(m map[string]any, keys ...string) string {
 				if strings.TrimSpace(t) != "" {
 					return strings.TrimSpace(t)
 				}
-			case fmt.Stringer:
-				s := strings.TrimSpace(t.String())
-				if s != "" {
-					return s
-				}
 			case float64:
 				// JSON numbers sometimes decode as float64.
 				return strings.TrimSpace(fmt.Sprintf("%.0f", t))
 			case json.Number:
 				return strings.TrimSpace(t.String())
+			case fmt.Stringer:
+				s := strings.TrimSpace(t.String())
+				if s != "" {
+					return s
+				}
 			default:
 				s := strings.TrimSpace(fmt.Sprint(t))
 				if s != "" && s != "<nil>" {

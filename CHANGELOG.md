@@ -7,6 +7,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.7] - 2026-07-18
+
 ### Added
 - `dida account whoami` / `dida account verify` bind and compare non-secret channel identities (`~/.dida-cli/identity.json`).
 - Task `--start`/`--due` normalization to Dida UTC wire time; human-friendly `--reminder` forms (`30m`, `1h`, `at-start`).
@@ -280,7 +282,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...HEAD
+[v0.2.7]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.3...v0.2.4

@@ -51,6 +51,55 @@ func TestDoctorJSON(t *testing.T) {
 	if data["upgrade_check"] != "not_run" {
 		t.Fatalf("upgrade_check = %v, want not_run", data["upgrade_check"])
 	}
+	authSources, ok := data["auth_sources"].(map[string]any)
+	if !ok {
+		t.Fatalf("auth_sources missing or wrong type: %T", data["auth_sources"])
+	}
+	for _, key := range []string{"cookie", "official_mcp", "openapi_oauth"} {
+		if _, ok := authSources[key]; !ok {
+			t.Fatalf("auth_sources missing %q: %#v", key, authSources)
+		}
+	}
+	if _, ok := data["identity_match"]; !ok {
+		t.Fatalf("identity_match missing from doctor data")
+	}
+}
+
+func TestAccountWhoamiJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"account", "whoami", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	if payload["ok"] != true {
+		t.Fatalf("ok = %v, want true", payload["ok"])
+	}
+	if payload["command"] != "account whoami" {
+		t.Fatalf("command = %v, want account whoami", payload["command"])
+	}
+	data := payload["data"].(map[string]any)
+	if _, ok := data["identity_path"]; !ok {
+		t.Fatalf("identity_path missing")
+	}
+	if _, ok := data["identity_match"]; !ok {
+		t.Fatalf("identity_match missing")
+	}
+	if note, _ := data["note"].(string); !strings.Contains(note, "account verify") {
+		t.Fatalf("note = %v, want mention of account verify", data["note"])
+	}
+}
+
+func TestAccountUnknownCommand(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"account", "nope", "--json"}, "test-version", &stdout, &stderr)
+	if code == 0 {
+		t.Fatalf("exit code = 0, want non-zero; stdout=%s", stdout.String())
+	}
 }
 
 func TestDoctorVerifyMissingAuthIncludesDiagnosticData(t *testing.T) {

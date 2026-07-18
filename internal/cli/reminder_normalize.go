@@ -32,7 +32,7 @@ func normalizeReminder(value string) (string, error) {
 		}
 		// Accept common ISO-8601 duration forms already used by Dida.
 		if !strings.HasPrefix(strings.ToUpper(body), "P") && !strings.HasPrefix(strings.ToUpper(body), "-P") {
-			return "", fmt.Errorf("invalid TRIGGER reminder %q: expected ISO-8601 duration after TRIGGER:", value)
+			return "", fmt.Errorf("invalid TRIGGER reminder %q: expected ISO-8601 duration after TRIGGER prefix", value)
 		}
 		return "TRIGGER:" + body, nil
 	}

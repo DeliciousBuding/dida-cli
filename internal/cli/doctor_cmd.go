@@ -44,17 +44,17 @@ func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, st
 		"goarch":     runtime.GOARCH,
 		"config_dir": cfgDir,
 		"auth_sources": map[string]bool{
-			"cookie":         cookieExists,
-			"official_mcp":   officialExists,
-			"openapi_oauth":  openapiOAuthExists,
+			"cookie":        cookieExists,
+			"official_mcp":  officialExists,
+			"openapi_oauth": openapiOAuthExists,
 		},
-		"cookie_status":   auth.CookieStatus(),
-		"identities":      identStore.Channels,
-		"identity_match":  match.Match,
-		"match_reason":    match.Reason,
-		"identity_path":   identity.Path(),
-		"network_check":   "not_run",
-		"upgrade_check":   "not_run",
+		"cookie_status":  auth.CookieStatus(),
+		"identities":     identStore.Channels,
+		"identity_match": match.Match,
+		"match_reason":   match.Reason,
+		"identity_path":  identity.Path(),
+		"network_check":  "not_run",
+		"upgrade_check":  "not_run",
 	}
 	if checkUpgrade {
 		data["upgrade_check"] = doctorUpgradeCheck(version)

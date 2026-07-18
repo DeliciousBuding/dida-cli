@@ -10,6 +10,7 @@ check_path() {
     .dida-cli/*|data/private/*|tmp/*|.cache/*|.tmp/*|\
     cookie.json|*/cookie.json|official-mcp-token.json|*/official-mcp-token.json|\
     openapi-oauth.json|*/openapi-oauth.json|openapi-client.json|*/openapi-client.json|\
+    identity.json|*/identity.json|\
     *.out|*.exe|*.dll|*.so|*.dylib|*.log|*.tmp|*.test|\
     *.prof|*.coverprofile|*.tgz|*.zip|*.tar|*.tar.gz|\
     *.har|*.pcap|*.pcapng|*.jsonl|*.ndjson|*.dump|*.sqlite|*.db|*.bak|\
