@@ -13,6 +13,7 @@ Run these before doing useful work:
 
 ```bash
 dida doctor --json
+dida account verify --json
 dida schema list --compact --json
 dida channel list --json
 dida agent context --outline --json
@@ -120,10 +121,23 @@ dida task parent <task-id> --parent <parent-task-id> --project <project-id> --dr
 
 Use first-class task field flags instead of raw payloads: `--content`, `--desc`, `--start`, `--due`, `--timezone`, `--tag`, `--tags`, `--item`, `--column`, `--reminder`, `--repeat`, `--repeat-from`, `--repeat-flag`, `--all-day`, and `--floating`.
 
+Time inputs accept RFC3339, `YYYY-MM-DD[ HH:MM]`, or Dida wire UTC and are normalized before write. Reminder inputs accept human forms (`30m`, `15min`, `1h`, `at-start`) or `TRIGGER:-PT30M`.
+
+### Timed tasks with reminders
+
+Web `/batch/task` rejects `reminders` (HTTP 500). The CLI coordinates:
+
+1. `dida account verify --json` → require `identity_match: true` when both channels are configured
+2. `dida task create ... --reminder 30m --reminder 15m --dry-run --json` → two-step preview
+3. same command without `--dry-run` → Web body, then OpenAPI reminders only
+
+Do not invent cross-account fallback. Identity mismatch is a hard error unless emergency `DIDA_ALLOW_CROSS_ACCOUNT=1`.
+
 Execute narrow writes only after the preview matches intent:
 
 ```bash
 dida task create --project <project-id> --title "Example" --json
+dida task create --project <project-id> --title "Grab code" --start "2026-07-18T20:00:00+08:00" --timezone Asia/Shanghai --reminder 30m --reminder 15m --json
 dida task update <task-id> --project <project-id> --title "New title" --json
 dida task complete <task-id> --project <project-id> --json
 ```

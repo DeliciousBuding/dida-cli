@@ -50,6 +50,12 @@ Latest release: `v0.2.6` (2026-07-07).
 - Error messages redact tokens and sensitive patterns
 - Upgrade enforces checksum verification (fails if checksums.txt missing)
 
+### Recent in-tree improvements (post v0.2.6)
+
+- Cross-channel account identity store + `dida account verify`
+- Coordinated timed-reminder task writes (Web body + OpenAPI reminders)
+- CLI-side time/reminder normalization
+
 ### What's NOT Done Yet
 
 - goreleaser migration is deferred through `v0.3.x`; the current hand-written release workflow remains the release path

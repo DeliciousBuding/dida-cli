@@ -1,3 +1,11 @@
+## Timed tasks with reminders
+
+1. Run `dida account verify --json` and require `identity_match: true` when both Web cookie and OpenAPI OAuth are configured.
+2. Prefer one command:
+   `dida task create --project <id> --title "..." --start "2026-07-18T20:00:00+08:00" --timezone Asia/Shanghai --reminder 30m --reminder 15m --dry-run --json`
+3. Preview shows a two-step plan: Web body (no reminders) + OpenAPI reminders.
+4. Do not invent fallbacks across accounts. Identity mismatch is a hard error unless `DIDA_ALLOW_CROSS_ACCOUNT=1`.
+
 # Agent Usage Guide
 
 Use this guide when DidaCLI is called from Hermes, Codex, Claude Code, or another automation agent.
