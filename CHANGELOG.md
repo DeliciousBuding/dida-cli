@@ -19,6 +19,9 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Avoid Web API `POST /batch/task` HTTP 500 on reminder fields by stripping reminders from Web payloads and applying them via OpenAPI.
 - Reject multi-channel reminder writes when Web and OpenAPI project fingerprints disagree (prevents writing across accounts).
 
+### Changed
+- Require Go `1.26.5` (stdlib `crypto/tls` GO-2026-5856 / Encrypted Client Hello privacy fix).
+
 ### Docs
 - Skill, agent-usage, commands, api-coverage, and channel guide document timed-reminder SOP and identity boundaries.
 
