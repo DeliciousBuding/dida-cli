@@ -1,14 +1,19 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/DeliciousBuding/dida-cli/internal/auth"
 	"github.com/DeliciousBuding/dida-cli/internal/config"
+	"github.com/DeliciousBuding/dida-cli/internal/identity"
+	"github.com/DeliciousBuding/dida-cli/internal/officialmcp"
+	"github.com/DeliciousBuding/dida-cli/internal/openapi"
 )
 
 func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -21,21 +26,35 @@ func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, st
 
 	cfgDir := config.DefaultDir()
 	cookiePath := filepath.Join(cfgDir, "cookie.json")
-	oauthPath := filepath.Join(cfgDir, "oauth.json")
-	openapiOAuthPath := filepath.Join(cfgDir, "openapi-oauth.json")
+	officialPath := officialmcp.TokenConfigPath()
+	openapiOAuthPath := openapi.TokenPath()
 	cookieExists := fileExists(cookiePath)
-	oauthExists := fileExists(oauthPath)
+	officialExists := fileExists(officialPath)
 	openapiOAuthExists := fileExists(openapiOAuthPath)
 
+	identStore, _ := identity.Load()
+	if identStore == nil {
+		identStore = &identity.Store{Channels: map[string]identity.ChannelIdentity{}}
+	}
+	match := identity.EvaluateMatch(identStore)
+
 	data := map[string]any{
-		"version":       version,
-		"goos":          runtime.GOOS,
-		"goarch":        runtime.GOARCH,
-		"config_dir":    cfgDir,
-		"auth_sources":  map[string]bool{"cookie": cookieExists, "oauth": oauthExists, "openapi_oauth": openapiOAuthExists},
-		"cookie_status": auth.CookieStatus(),
-		"network_check": "not_run",
-		"upgrade_check": "not_run",
+		"version":    version,
+		"goos":       runtime.GOOS,
+		"goarch":     runtime.GOARCH,
+		"config_dir": cfgDir,
+		"auth_sources": map[string]bool{
+			"cookie":         cookieExists,
+			"official_mcp":   officialExists,
+			"openapi_oauth":  openapiOAuthExists,
+		},
+		"cookie_status":   auth.CookieStatus(),
+		"identities":      identStore.Channels,
+		"identity_match":  match.Match,
+		"match_reason":    match.Reason,
+		"identity_path":   identity.Path(),
+		"network_check":   "not_run",
+		"upgrade_check":   "not_run",
 	}
 	if checkUpgrade {
 		data["upgrade_check"] = doctorUpgradeCheck(version)
@@ -46,6 +65,16 @@ func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, st
 			"channel": "webapi",
 			"status":  doctorNetworkStatus(verifyResult),
 			"result":  verifyResult,
+		}
+		// Best-effort identity refresh when cookie works.
+		if verifyResult["ok"] == true {
+			ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+			if refreshed, err := verifyAccountIdentities(ctx); err == nil {
+				data["identities"] = refreshed["identities"]
+				data["identity_match"] = refreshed["identity_match"]
+				data["match_reason"] = refreshed["match_reason"]
+			}
+			cancel()
 		}
 		if verifyResult["ok"] != true {
 			if jsonOut {
@@ -74,8 +103,9 @@ func runDoctor(args []string, version string, jsonOut bool, stdout io.Writer, st
 	fmt.Fprintf(stdout, "DidaCLI %s\n", version)
 	fmt.Fprintf(stdout, "Config: %s\n", cfgDir)
 	fmt.Fprintf(stdout, "Cookie auth: %s\n", yesNo(cookieExists))
-	fmt.Fprintf(stdout, "OAuth auth: %s\n", yesNo(oauthExists))
+	fmt.Fprintf(stdout, "Official MCP token: %s\n", yesNo(officialExists))
 	fmt.Fprintf(stdout, "OpenAPI OAuth: %s\n", yesNo(openapiOAuthExists))
+	fmt.Fprintf(stdout, "Identity match: %v (%s)\n", match.Match, match.Reason)
 	if verify {
 		fmt.Fprintf(stdout, "Network check: %v\n", data["network_check"])
 	} else {

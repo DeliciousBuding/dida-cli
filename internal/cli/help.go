@@ -34,6 +34,7 @@ Commands:
   template     Read project templates
   search       Search across Web API indexed content
   user         Read account and session metadata
+  account      Cross-channel identity whoami / verify
   pomo         Read Pomodoro preferences and records
   habit        Read habit preferences, habits, and sections
   quadrant     View active tasks by Eisenhower quadrant
@@ -390,15 +391,17 @@ modifiedTime when needed, and maps --project inbox to the real sync inboxId.
 Task fields:
   --content <text>        Task content
   --desc <markdown>       Rich description field
-  --start <time>          Start date/time
-  --due <time>            Due date/time
-  --timezone <zone>       IANA timezone, e.g. Asia/Shanghai
+  --start <time>          Start date/time (RFC3339, YYYY-MM-DD[ HH:MM], or Dida wire UTC)
+  --due <time>            Due date/time (same formats as --start)
+  --timezone <zone>       IANA timezone, e.g. Asia/Shanghai (default for zoneless times)
   --priority 0|1|3|5      None, low, medium, high
   --tag <name>            Add a tag; repeatable
   --tags a,b              Add comma-separated tags
   --item <title>          Add a checklist item; repeatable
   --column <id>           Kanban column id
-  --reminder <value>      Reminder value; repeatable
+  --reminder <value>      Reminder; repeatable. Human: 30m, 15min, 1h, at-start
+                          or TRIGGER:-PT30M. Reminder writes use Web body + OpenAPI
+                          after account identity match (dida account verify).
   --repeat <rule>         Repeat rule from Web API
   --repeat-from <value>   Repeat base
   --repeat-flag <value>   Repeat flag

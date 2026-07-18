@@ -226,6 +226,11 @@ func runTaskCreate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if err != nil {
 		return failTyped("task create", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
+	start, due, tz, reminders, err := applyTaskFieldNormalization(opts.StartDate, opts.DueDate, opts.TimeZone, opts.Reminders)
+	if err != nil {
+		return failTyped("task create", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
+	}
+	opts.StartDate, opts.DueDate, opts.TimeZone, opts.Reminders = start, due, tz, reminders
 	task := webapi.TaskMutation{
 		ID:         opts.ID,
 		ProjectID:  opts.ProjectID,
@@ -249,22 +254,7 @@ func runTaskCreate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if task.ID == "" {
 		task.ID = webapi.NewTaskID()
 	}
-	payload := map[string]any{"add": []webapi.TaskMutation{task}}
-	if opts.DryRun {
-		return writeMutationPreview("task create", payload, opts.Yes, jsonOut, stdout, stderr)
-	}
-	result, err := executeMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
-		return client.CreateTask(ctx, task)
-	})
-	if err != nil {
-		return failTyped("task create", "api", err.Error(), "", jsonOut, stdout, stderr)
-	}
-	data := map[string]any{"taskId": task.ID, "projectId": task.ProjectID, "result": result}
-	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "task create", Data: data})
-	}
-	fmt.Fprintf(stdout, "Task created: %s\n", task.ID)
-	return 0
+	return writeTaskWithOptionalReminders("task create", task, true, opts.DryRun, opts.Yes, jsonOut, stdout, stderr)
 }
 
 func runTaskUpdate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -272,6 +262,11 @@ func runTaskUpdate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 	if err != nil {
 		return failTyped("task update", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
 	}
+	start, due, tz, reminders, err := applyTaskFieldNormalization(opts.StartDate, opts.DueDate, opts.TimeZone, opts.Reminders)
+	if err != nil {
+		return failTyped("task update", "validation", err.Error(), "run: dida task --help", jsonOut, stdout, stderr)
+	}
+	opts.StartDate, opts.DueDate, opts.TimeZone, opts.Reminders = start, due, tz, reminders
 	task := webapi.TaskMutation{
 		ID:         opts.TaskID,
 		ProjectID:  opts.ProjectID,
@@ -292,22 +287,7 @@ func runTaskUpdate(args []string, jsonOut bool, stdout io.Writer, stderr io.Writ
 		Items:      opts.Items,
 		IsFloating: opts.IsFloating,
 	}
-	payload := map[string]any{"update": []webapi.TaskMutation{task}}
-	if opts.DryRun {
-		return writeMutationPreview("task update", payload, opts.Yes, jsonOut, stdout, stderr)
-	}
-	result, err := executeMutation(func(ctx context.Context, client *webapi.Client) (map[string]any, error) {
-		return client.UpdateTask(ctx, task)
-	})
-	if err != nil {
-		return failTyped("task update", "api", err.Error(), "", jsonOut, stdout, stderr)
-	}
-	data := map[string]any{"taskId": task.ID, "projectId": task.ProjectID, "result": result}
-	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "task update", Data: data})
-	}
-	fmt.Fprintf(stdout, "Task updated: %s\n", task.ID)
-	return 0
+	return writeTaskWithOptionalReminders("task update", task, false, opts.DryRun, opts.Yes, jsonOut, stdout, stderr)
 }
 
 func runTaskComplete(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {

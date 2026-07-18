@@ -74,6 +74,7 @@ func completionCommands() []completionCommand {
 		{Name: "trash", Description: "Read deleted tasks"},
 		{Name: "upgrade", Description: "Check for updates and self-upgrade"},
 		{Name: "user", Description: "Read user profile and sessions"},
+		{Name: "account", Description: "Cross-channel identity whoami/verify"},
 		{Name: "version", Description: "Print version"},
 	}
 	sort.Slice(commands, func(i, j int) bool { return commands[i].Name < commands[j].Name })
