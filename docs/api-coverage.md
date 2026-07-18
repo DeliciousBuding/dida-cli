@@ -18,7 +18,7 @@ This matrix tracks the Dida365 Web API surfaces that DidaCLI intentionally suppo
 | Project columns | `GET /column/project/{projectId}` | `project columns`, `column list` | Stable read | Unit endpoint test and live read |
 | Task CRUD | `POST /batch/task` | `task create/update/complete/delete` | Stable | Unit request tests and live reversible smoke |
 | Latest task view | derived from `GET /batch/check/0` | `task latest` | Stable derived command | Unit tests for created-time sorting and inbox alias mapping |
-| Task advanced fields | `/batch/task` fields | `--content`, `--desc`, `--start`, `--due`, `--timezone`, `--tag`, `--tags`, `--item`, `--column`, `--reminder`, `--repeat*`, `--all-day`, `--floating`, `--priority 0` | Stable | Unit request tests and live reversible smoke |
+| Task advanced fields | `/batch/task` + optional OpenAPI `/task/{id}` for reminders | `--content`, `--desc`, `--start`, `--due`, `--timezone`, `--tag`, `--tags`, `--item`, `--column`, `--reminder`, `--repeat*`, `--all-day`, `--floating`, `--priority 0` | Stable with known limit | Times/reminders normalized in CLI. **Web `/batch/task` with reminders returns HTTP 500**; coordinated path uses Web body then OpenAPI reminders after `account verify` identity match. |
 | Task due activity counts | `POST /task/activity/count/all` | `task due-counts` | Stable read | Unit endpoint test and live read |
 | Task move | `POST /batch/taskProject` | `task move` | Stable | Unit request tests and live reversible smoke |
 | Task parent/subtask | `POST /batch/taskParent` | `task parent` | Stable | Unit request tests and live reversible smoke |

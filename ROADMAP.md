@@ -22,9 +22,9 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline (as of v0.2.6)
+## Current Baseline (as of v0.2.7)
 
-Latest release: `v0.2.6` (2026-07-07).
+Latest release: `v0.2.7` (2026-07-18).
 
 ### Three Channels — All Functional
 
@@ -49,6 +49,12 @@ Latest release: `v0.2.6` (2026-07-07).
 - All HTTP clients have explicit timeouts (30-60s) and response size limits
 - Error messages redact tokens and sensitive patterns
 - Upgrade enforces checksum verification (fails if checksums.txt missing)
+
+### Shipped in v0.2.7
+
+- Cross-channel account identity store + `dida account verify`
+- Coordinated timed-reminder task writes (Web body + OpenAPI reminders)
+- CLI-side time/reminder normalization
 
 ### What's NOT Done Yet
 

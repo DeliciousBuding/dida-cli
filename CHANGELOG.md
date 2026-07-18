@@ -7,6 +7,24 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.7] - 2026-07-18
+
+### Added
+- `dida account whoami` / `dida account verify` bind and compare non-secret channel identities (`~/.dida-cli/identity.json`).
+- Task `--start`/`--due` normalization to Dida UTC wire time; human-friendly `--reminder` forms (`30m`, `1h`, `at-start`).
+- Coordinated reminder writes: Web task body + OpenAPI reminders after identity match.
+- Doctor reports real auth files (`cookie`, `official_mcp`, `openapi_oauth`) plus cached identity match.
+
+### Fixed
+- Avoid Web API `POST /batch/task` HTTP 500 on reminder fields by stripping reminders from Web payloads and applying them via OpenAPI.
+- Reject multi-channel reminder writes when Web and OpenAPI project fingerprints disagree (prevents writing across accounts).
+
+### Changed
+- Require Go `1.26.5` (stdlib `crypto/tls` GO-2026-5856 / Encrypted Client Hello privacy fix).
+
+### Docs
+- Skill, agent-usage, commands, api-coverage, and channel guide document timed-reminder SOP and identity boundaries.
+
 ## [v0.2.6] - 2026-07-07
 
 ### Added
@@ -267,7 +285,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...HEAD
+[v0.2.7]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...v0.2.5
 [v0.2.4]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.3...v0.2.4

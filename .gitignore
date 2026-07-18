@@ -40,6 +40,7 @@ cookie.json
 official-mcp-token.json
 openapi-oauth.json
 openapi-client.json
+identity.json
 
 data/private/
 tmp/

@@ -161,7 +161,17 @@ func TestTaskCreateFullFlagDryRunJSON(t *testing.T) {
 	)
 	data := payload["data"].(map[string]any)
 	requestPayload := data["payload"].(map[string]any)
-	add := requestPayload["add"].([]any)
+	// With --reminder, dry-run previews the coordinated web+openapi plan.
+	if requestPayload["writePlan"] != "web+openapi-reminders" {
+		t.Fatalf("writePlan = %#v, want web+openapi-reminders", requestPayload["writePlan"])
+	}
+	steps := requestPayload["steps"].([]any)
+	if len(steps) != 2 {
+		t.Fatalf("steps len = %d, want 2", len(steps))
+	}
+	webStep := steps[0].(map[string]any)
+	webPayload := webStep["payload"].(map[string]any)
+	add := webPayload["add"].([]any)
 	task := add[0].(map[string]any)
 	if task["id"] != "task-1" || task["projectId"] != "p1" || task["title"] != "Write report" {
 		t.Fatalf("task identity payload = %#v", task)
@@ -169,11 +179,23 @@ func TestTaskCreateFullFlagDryRunJSON(t *testing.T) {
 	if int(task["priority"].(float64)) != 5 || task["timeZone"] != "Asia/Hong_Kong" {
 		t.Fatalf("task scheduling payload = %#v", task)
 	}
+	if task["startDate"] != "2026-07-07T01:00:00.000+0000" {
+		t.Fatalf("startDate = %#v, want normalized UTC wire time", task["startDate"])
+	}
+	if _, hasReminders := task["reminders"]; hasReminders {
+		t.Fatalf("web body should strip reminders, got %#v", task["reminders"])
+	}
 	if tags := task["tags"].([]any); len(tags) != 3 {
 		t.Fatalf("tags = %#v, want 3 entries", tags)
 	}
 	if items := task["items"].([]any); len(items) != 1 {
 		t.Fatalf("items = %#v, want one checklist item", items)
+	}
+	oaStep := steps[1].(map[string]any)
+	oaPayload := oaStep["payload"].(map[string]any)
+	reminders := oaPayload["reminders"].([]any)
+	if len(reminders) != 1 || reminders[0] != "TRIGGER:P0DT9H0M0S" {
+		t.Fatalf("openapi reminders = %#v", reminders)
 	}
 }
 

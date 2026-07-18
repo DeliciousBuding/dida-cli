@@ -27,7 +27,19 @@ auth. Add `--check-upgrade` to query GitHub Releases and include
 `upgrade_check` in JSON output. Upgrade check failures are advisory and do not
 make `doctor` fail.
 
+## Account identity
+
+```bash
+dida account whoami --json
+dida account verify --json
+```
+
+`account whoami` reads cached non-secret identities from `~/.dida-cli/identity.json`.
+`account verify` refreshes Web API `userId`/project fingerprint and OpenAPI project fingerprint, then reports `identity_match`.
+Multi-channel reminder writes require matching identities (or emergency `DIDA_ALLOW_CROSS_ACCOUNT=1`).
+
 ## Schema
+
 
 ```bash
 dida schema list --compact --json
@@ -206,6 +218,7 @@ Omit `--project` to read newest active tasks across all projects.
 dida task create --project <project-id> --title <title> --dry-run --json
 dida task create --project <project-id> --title <title> --content <text> --priority 3 --json
 dida task create --project <project-id> --title <title> --tag work --item "Checklist item" --json
+dida task create --project <project-id> --title <title> --start "2026-07-18T20:00:00+08:00" --reminder 30m --reminder 15m --dry-run --json
 dida task update <task-id> --project <project-id> --title <title> --json
 dida task update <task-id> --project <project-id> --priority 0 --json
 dida task update <task-id> --project <project-id> --tags work,deep --column <column-id> --json
@@ -237,7 +250,8 @@ Task create/update support these Web API fields:
 | `--tag <name>` / `--tags a,b` | Tags |
 | `--item <title>` | Checklist item; repeatable |
 | `--column <id>` | Kanban column id |
-| `--reminder <value>` | Reminder value; repeatable |
+| `--start <time>` / `--due <time>` | Normalized to Dida UTC wire time (`YYYY-MM-DDTHH:mm:ss.000+0000`); accepts RFC3339, `YYYY-MM-DD[ HH:MM]` |
+| `--reminder <value>` | Human `30m`/`15min`/`1h`/`at-start` or `TRIGGER:-PT30M`. With reminders, CLI writes Web body then OpenAPI reminders after `dida account verify` identity match. Web-only reminder fields return HTTP 500. |
 | `--repeat <rule>` / `--repeat-from <value>` / `--repeat-flag <value>` | Repeat metadata |
 | `--all-day` / `--not-all-day` | All-day toggle |
 | `--floating` / `--not-floating` | Floating task toggle |

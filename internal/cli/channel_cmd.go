@@ -120,6 +120,7 @@ func channelGuideData() map[string]any {
 		"jobs": []channelJobGuide{
 			{Job: "first-account-read", Prefer: "webapi", Fallback: "dida sync all --json", Notes: "Use dida agent context --outline --json for compact task references and a deduplicated taskIndex."},
 			{Job: "normal-task-work", Prefer: "webapi", Fallback: "official-mcp when token auth is required", Notes: "Web API task commands have compact reads, dry-run writes, and --yes deletes."},
+			{Job: "timed-reminder-task", Prefer: "webapi body + openapi reminders", Fallback: "none when identity mismatch", Notes: "dida task create/update with --reminder coordinates Web (body) then OpenAPI (reminders). Requires dida account verify identity match. Web batch/task reminders return HTTP 500."},
 			{Job: "habit-focus-work", Prefer: "official-mcp or official-openapi", Fallback: "webapi habit/pomo reads for web-app-only views", Notes: "Use official surfaces first; live writes need disposable targets."},
 			{Job: "public-rest-validation", Prefer: "official-openapi", Notes: "Requires OpenAPI OAuth client config and saved access token."},
 			{Job: "web-app-only-metadata", Prefer: "webapi", Notes: "Use Web API for settings, comments, sharing, calendar, templates, stats, trash, closed history, and search."},
