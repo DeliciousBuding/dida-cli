@@ -16,7 +16,7 @@ type TaskMutation struct {
 	Title      string        `json:"title,omitempty"`
 	Content    string        `json:"content,omitempty"`
 	Desc       string        `json:"desc,omitempty"`
-	AllDay     *bool         `json:"allDay,omitempty"`
+	AllDay     *bool         `json:"isAllDay,omitempty"`
 	StartDate  string        `json:"startDate,omitempty"`
 	DueDate    string        `json:"dueDate,omitempty"`
 	TimeZone   string        `json:"timeZone,omitempty"`

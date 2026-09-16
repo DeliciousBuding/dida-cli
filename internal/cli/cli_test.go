@@ -765,8 +765,8 @@ func TestTaskCreateDryRunJSON(t *testing.T) {
 	if items := task["items"].([]any); len(items) != 1 {
 		t.Fatalf("items len = %d, want 1", len(items))
 	}
-	if task["allDay"] != true {
-		t.Fatalf("allDay = %v, want true", task["allDay"])
+	if task["isAllDay"] != true {
+		t.Fatalf("isAllDay = %v, want true", task["isAllDay"])
 	}
 }
 
