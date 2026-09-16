@@ -7,6 +7,9 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- `task create/update --not-all-day` now sends `isAllDay` to the Web API.
+
 ## [v0.2.7] - 2026-07-18
 
 ### Added

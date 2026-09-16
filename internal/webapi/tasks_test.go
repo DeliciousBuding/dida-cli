@@ -82,6 +82,32 @@ func TestTaskUpdateCanSendPriorityZero(t *testing.T) {
 	}
 }
 
+func TestTaskUpdateCanSendAllDayFalse(t *testing.T) {
+	var rawBody string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("read request: %v", err)
+		}
+		rawBody = string(data)
+		_ = json.NewEncoder(w).Encode(map[string]any{"ok": true})
+	}))
+	defer server.Close()
+
+	client := NewClient("test-token")
+	client.BaseURL = server.URL
+	allDay := false
+	if _, err := client.UpdateTask(context.Background(), TaskMutation{ID: "t1", ProjectID: "p1", AllDay: &allDay}); err != nil {
+		t.Fatalf("UpdateTask() error = %v", err)
+	}
+	if !strings.Contains(rawBody, `"isAllDay":false`) {
+		t.Fatalf("request body missing isAllDay false: %s", rawBody)
+	}
+	if strings.Contains(rawBody, `"allDay"`) {
+		t.Fatalf("request body contains legacy allDay key: %s", rawBody)
+	}
+}
+
 func TestProjectTasksUsesProjectEndpoint(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.Method + " " + r.URL.Path; got != "GET /project/p1/tasks" {
