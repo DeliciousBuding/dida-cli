@@ -770,6 +770,60 @@ func TestTaskCreateDryRunJSON(t *testing.T) {
 	}
 }
 
+func TestTaskAllDayDryRunJSON(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	for _, operation := range []string{"create", "update"} {
+		for _, flag := range []string{"--all-day", "--not-all-day", ""} {
+			name := flag
+			if name == "" {
+				name = "omitted"
+			}
+			t.Run(operation+"/"+name, func(t *testing.T) {
+				args := []string{"task", operation}
+				if operation == "update" {
+					args = append(args, "t1")
+				}
+				args = append(args, "--project", "p1", "--title", "Task", "--dry-run", "--json")
+				if flag != "" {
+					args = append(args, flag)
+				}
+				var stdout, stderr bytes.Buffer
+				if code := Run(args, "test-version", &stdout, &stderr); code != 0 {
+					t.Fatalf("Run() code = %d stderr=%s stdout=%s", code, stderr.String(), stdout.String())
+				}
+				var preview struct {
+					Data struct {
+						Payload map[string][]map[string]any `json:"payload"`
+					} `json:"data"`
+				}
+				if err := json.Unmarshal(stdout.Bytes(), &preview); err != nil {
+					t.Fatalf("decode preview: %v", err)
+				}
+				key := "add"
+				if operation == "update" {
+					key = "update"
+				}
+				tasks := preview.Data.Payload[key]
+				if len(tasks) != 1 {
+					t.Fatalf("%s tasks = %#v, want one task", key, tasks)
+				}
+				task := tasks[0]
+				if _, exists := task["allDay"]; exists {
+					t.Fatalf("legacy allDay key present: %#v", task)
+				}
+				value, exists := task["isAllDay"]
+				if flag == "" {
+					if exists {
+						t.Fatalf("isAllDay must be omitted without a flag: %#v", task)
+					}
+				} else if !exists || value != (flag == "--all-day") {
+					t.Fatalf("isAllDay = %v (present=%v), want %v", value, exists, flag == "--all-day")
+				}
+			})
+		}
+	}
+}
+
 func TestTaskDeleteRequiresYesJSON(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"task", "delete", "t1", "--project", "p1", "--json"}, "test-version", &stdout, &stderr)
