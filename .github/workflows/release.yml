@@ -166,44 +166,9 @@ jobs:
           path: dist/dida_${{ github.ref_name }}_${{ matrix.goos }}_${{ matrix.goarch }}.${{ matrix.archive_ext }}
           if-no-files-found: error
 
-  npm-preflight:
-    name: npm preflight
-    needs: validate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Setup Node.js
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: "24"
-          registry-url: "https://registry.npmjs.org"
-
-      - name: Check npm release readiness
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          set -euo pipefail
-          version="${GITHUB_REF_NAME#v}"
-          bash scripts/validate-npm-package.sh --version "${GITHUB_REF_NAME}"
-          if npm view @delicious233/dida-cli@"$version" version >/dev/null 2>&1; then
-            echo "@delicious233/dida-cli@$version already exists on npm; publish job will skip upload after package validation"
-          else
-            if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
-              echo "NPM_TOKEN is not set; publish job will rely on npm Trusted Publishing/OIDC"
-            elif ! npm whoami >/dev/null 2>&1; then
-              echo "NPM_TOKEN is invalid for npm registry authentication" >&2
-              exit 1
-            fi
-          fi
-
   release:
     name: Create GitHub release
-    needs:
-      - build
-      - npm-preflight
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
