@@ -12,6 +12,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 ### Fixed
 - `task create/update --not-all-day` now sends `isAllDay` to the Web API.
 - Web API task-field documentation now uses the same `isAllDay` mutation name.
+- `openapi logout` now revokes saved OAuth tokens through
+  `POST /oauth/revoke` before clearing local state.
 
 ### Changed
 - Updated the build toolchain to Go 1.26.10, Staticcheck v0.8.2,

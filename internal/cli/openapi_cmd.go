@@ -25,6 +25,7 @@ const (
 )
 
 var openBrowser = openBrowserURL
+var revokeOpenAPIToken = openapi.RevokeToken
 
 func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if len(args) == 0 || args[0] == "-h" || args[0] == "--help" {
@@ -337,17 +338,52 @@ func runOpenAPIStatus(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 }
 
 func runOpenAPILogout(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	tokenStatus := openapi.TokenStatus()
+	revokeAttempted := false
+	revokeSucceeded := false
+	revokeError := ""
+	if tokenStatus["source"] == "oauth" {
+		revokeAttempted = true
+		token, err := openapi.LoadToken()
+		if err != nil {
+			revokeError = "saved token could not be read"
+		} else {
+			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+			err = revokeOpenAPIToken(ctx, token.AccessToken)
+			cancel()
+			if err != nil {
+				revokeError = err.Error()
+			} else {
+				revokeSucceeded = true
+			}
+		}
+	}
 	if err := openapi.ClearToken(); err != nil {
 		return failTyped("openapi logout", "auth", err.Error(), "", jsonOut, stdout, stderr)
 	}
-	tokenStatus := openapi.TokenStatus()
+	tokenStatus = openapi.TokenStatus()
+	remoteRevoke := map[string]any{
+		"attempted": revokeAttempted,
+		"revoked":   revokeSucceeded,
+	}
+	if revokeError != "" {
+		remoteRevoke["error"] = revokeError
+	}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "openapi logout", Data: map[string]any{
 			"token_cleared": true,
+			"remote_revoke": remoteRevoke,
 			"token_status":  tokenStatus,
 		}})
 	}
 	fmt.Fprintln(stdout, "Saved OpenAPI OAuth token cleared.")
+	if revokeAttempted {
+		if revokeSucceeded {
+			fmt.Fprintln(stdout, "Remote OAuth token revocation succeeded.")
+		} else {
+			fmt.Fprintf(stdout, "Remote OAuth token revocation failed: %s\n", revokeError)
+		}
+	}
 	if tokenStatus["source"] == "env" {
 		fmt.Fprintln(stdout, "DIDA365_OPENAPI_TOKEN remains active for this process.")
 	}

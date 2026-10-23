@@ -177,6 +177,36 @@ func ExchangeCode(ctx context.Context, clientID string, clientSecret string, cod
 	return &out, nil
 }
 
+func RevokeToken(ctx context.Context, token string) error {
+	return revokeTokenAt(ctx, DefaultAuthBaseURL, token)
+}
+
+func revokeTokenAt(ctx context.Context, baseURL string, token string) error {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return fmt.Errorf("empty oauth token")
+	}
+	values := url.Values{}
+	values.Set("token", token)
+	endpoint := strings.TrimRight(baseURL, "/") + "/oauth/revoke"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, strings.NewReader(values.Encode()))
+	if err != nil {
+		return fmt.Errorf("build revoke request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	httpClient := &http.Client{Timeout: 30 * time.Second}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("revoke oauth token: %w", err)
+	}
+	defer resp.Body.Close()
+	_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 1<<20))
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("oauth token revoke returned HTTP %d", resp.StatusCode)
+	}
+	return nil
+}
+
 func SaveToken(token *TokenResponse) error {
 	if token == nil || strings.TrimSpace(token.AccessToken) == "" {
 		return fmt.Errorf("empty oauth token")

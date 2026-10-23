@@ -384,6 +384,50 @@ func TestExchangeCodeHTTPError(t *testing.T) {
 	// Error is expected since we can't override DefaultAuthBaseURL
 }
 
+func TestRevokeTokenAt(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("method = %s, want POST", r.Method)
+		}
+		if r.URL.Path != "/oauth/revoke" {
+			t.Fatalf("path = %s, want /oauth/revoke", r.URL.Path)
+		}
+		if got := r.Header.Get("Content-Type"); got != "application/x-www-form-urlencoded" {
+			t.Fatalf("content-type = %q", got)
+		}
+		if err := r.ParseForm(); err != nil {
+			t.Fatalf("ParseForm() error = %v", err)
+		}
+		if got := r.Form.Get("token"); got != "saved-oauth-token" {
+			t.Fatalf("token = %q", got)
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	if err := revokeTokenAt(context.Background(), server.URL, "saved-oauth-token"); err != nil {
+		t.Fatalf("revokeTokenAt() error = %v", err)
+	}
+}
+
+func TestRevokeTokenAtHTTPError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusUnauthorized)
+	}))
+	defer server.Close()
+
+	err := revokeTokenAt(context.Background(), server.URL, "saved-oauth-token")
+	if err == nil || !strings.Contains(err.Error(), "HTTP 401") {
+		t.Fatalf("revokeTokenAt() error = %v, want HTTP 401", err)
+	}
+}
+
+func TestRevokeTokenAtRejectsEmptyToken(t *testing.T) {
+	if err := revokeTokenAt(context.Background(), "https://example.invalid", " "); err == nil {
+		t.Fatalf("revokeTokenAt() error = nil")
+	}
+}
+
 func TestResolveClientIDFromEnv(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "env-client-id")

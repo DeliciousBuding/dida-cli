@@ -40,6 +40,8 @@ Observed auth options:
    `https://dida365.com/oauth/token`
 6. Call OpenAPI endpoints with:
    `Authorization: Bearer <access_token>`
+7. Revoke a saved OAuth access token at:
+   `https://dida365.com/oauth/revoke`
 
 Important implications for DidaCLI:
 
@@ -77,6 +79,10 @@ Practical conclusion:
   before browser launch so agents get a fast JSON error instead of a long wait
 - `DIDA365_OPENAPI_TOKEN` bypasses OAuth setup for single-account use and is
   reported as the active source by `openapi status`
+- `openapi logout` revokes a saved OAuth token through
+  `POST https://dida365.com/oauth/revoke` before clearing local state; the
+  endpoint accepts form-encoded `token` values and returns an idempotent `200`
+  for an already-invalid token
 
 ## Main Resource Areas
 
