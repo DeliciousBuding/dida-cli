@@ -40,6 +40,11 @@ def invoke(args: list[str]) -> tuple[int, list[list[str]]]:
 
     with (
         mock.patch.object(sys, "argv", ["install-agent-plugin.py", *args]),
+        mock.patch.object(
+            INSTALLER.shutil,
+            "which",
+            side_effect=lambda command: f"/usr/bin/{command}",
+        ),
         mock.patch.object(INSTALLER, "run", side_effect=record),
         mock.patch.object(INSTALLER, "run_json", side_effect=inventory_for),
     ):
