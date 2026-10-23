@@ -18,8 +18,13 @@ Last reviewed: 2026-10-23.
 - Go dependency surface: standard library only; `go.mod` is the version source.
 - npm package: no runtime dependencies.
 - GitHub Actions: pinned to full commit SHAs with release comments.
-- Required checks: tests, vet, Staticcheck, `govulncheck`, private-state scan,
-  CodeQL, OpenSSF Scorecard, and agent-plugin manifest validation.
+- Required pull-request checks: tests, vet, Staticcheck, `govulncheck`,
+  private-state scan, CodeQL, and agent-plugin manifest validation. OpenSSF
+  Scorecard runs on `main` and on a schedule.
+- `main` rejects force pushes and deletion, requires linear history, and
+  requires the pull-request checks above. While the project has one active
+  maintainer, pull requests use agent-assisted review rather than a second
+  human approval.
 - Release publication: tag-triggered only after `make release-check VERSION=...`.
 
 The update cadence, CVE response targets, release gates, and trust boundaries

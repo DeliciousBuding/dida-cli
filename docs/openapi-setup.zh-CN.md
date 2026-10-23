@@ -161,6 +161,11 @@ dida openapi status --json
 `source: "env"` 表示当前使用 `DIDA365_OPENAPI_TOKEN`；
 `source: "oauth"` 表示当前使用本地保存的 OAuth Token。
 
+使用本地 OAuth Token 时，`dida openapi logout --json` 会先调用官方
+`POST /oauth/revoke` 尽力撤销远端 token，再清理本地状态。即使网络或撤销请求
+失败，本地 token 仍会删除；JSON 结果通过 `remote_revoke` 报告实际结果。
+环境变量里的 token 不会由该命令撤销。
+
 再做一次真实 API 读取：
 
 ```bash

@@ -7,9 +7,13 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.8] - 2026-10-23
+
 ### Fixed
 - `task create/update --not-all-day` now sends `isAllDay` to the Web API.
 - Web API task-field documentation now uses the same `isAllDay` mutation name.
+- `openapi logout` now revokes saved OAuth tokens through
+  `POST /oauth/revoke` before clearing local state.
 
 ### Changed
 - Updated the build toolchain to Go 1.26.10, Staticcheck v0.8.2,
@@ -26,8 +30,9 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - `openapi call` for constrained access to newly documented REST endpoints.
 - `DIDA365_OPENAPI_TOKEN` support for the OpenAPI personal-token flow added to
   the current official documentation.
-- Portable Codex and Claude Code plugin manifests with one-command install
-  helpers for the DidaCLI skill and official Dida365 MCP server.
+- Agent Plugins 1.0.0 package for Codex plus a Claude Code native adapter and
+  one-command install helpers for the DidaCLI skill and official Dida365 MCP
+  server.
 
 ## [v0.2.7] - 2026-07-18
 
@@ -307,7 +312,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.8...HEAD
+[v0.2.8]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...v0.2.5

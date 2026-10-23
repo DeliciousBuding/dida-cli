@@ -166,6 +166,8 @@ Use openapi call for documented endpoints without a first-class wrapper. GET and
 known read-only POST paths execute directly; other writes require --yes.
 In --json mode, interactive login opens the browser and emits one final JSON envelope.
 Use auth-url and listen-callback for manual no-browser OAuth flows.
+openapi logout best-effort revokes a saved OAuth token before clearing it;
+DIDA365_OPENAPI_TOKEN is never revoked by that command.
 `))
 }
 

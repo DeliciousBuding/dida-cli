@@ -168,6 +168,12 @@ dida openapi status --json
 `source: "env"` means `DIDA365_OPENAPI_TOKEN` is active; `source: "oauth"` means
 the saved OAuth token is active.
 
+When the saved OAuth token is active, `dida openapi logout --json` attempts to
+revoke it through the official `POST /oauth/revoke` endpoint before clearing
+local state. The local token is still cleared if the network or revocation
+request fails, and the JSON result reports `remote_revoke`. An environment
+token is never revoked by this command.
+
 Then verify a real API read:
 
 ```bash

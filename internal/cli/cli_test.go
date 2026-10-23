@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -486,6 +487,81 @@ func TestOpenAPILoginNoOpenPrintsManualURLGuidance(t *testing.T) {
 		if !strings.Contains(text, want) {
 			t.Fatalf("stdout missing %q: %s", want, text)
 		}
+	}
+}
+
+func TestOpenAPILogoutRevokesSavedOAuthToken(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
+	if err := openapi.SaveToken(&openapi.TokenResponse{
+		OAuthToken: openapi.OAuthToken{
+			AccessToken: "saved-oauth-token",
+			TokenType:   "Bearer",
+			CreatedAt:   time.Now().Unix(),
+		},
+	}); err != nil {
+		t.Fatalf("SaveToken() error = %v", err)
+	}
+	original := revokeOpenAPIToken
+	called := false
+	revokeOpenAPIToken = func(ctx context.Context, token string) error {
+		called = true
+		if token != "saved-oauth-token" {
+			t.Fatalf("revoked token = %q", token)
+		}
+		return nil
+	}
+	defer func() { revokeOpenAPIToken = original }()
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "logout", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	if !called {
+		t.Fatalf("saved OAuth token was not submitted for revocation")
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	remoteRevoke := data["remote_revoke"].(map[string]any)
+	if remoteRevoke["attempted"] != true || remoteRevoke["revoked"] != true {
+		t.Fatalf("remote_revoke = %#v", remoteRevoke)
+	}
+	if _, err := openapi.LoadToken(); err == nil {
+		t.Fatalf("saved OAuth token still exists after logout")
+	}
+}
+
+func TestOpenAPILogoutDoesNotRevokeEnvironmentToken(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "personal_api_token_long")
+	original := revokeOpenAPIToken
+	revokeOpenAPIToken = func(ctx context.Context, token string) error {
+		t.Fatalf("environment token was submitted for revocation")
+		return nil
+	}
+	defer func() { revokeOpenAPIToken = original }()
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "logout", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	remoteRevoke := data["remote_revoke"].(map[string]any)
+	if remoteRevoke["attempted"] != false || remoteRevoke["revoked"] != false {
+		t.Fatalf("remote_revoke = %#v", remoteRevoke)
+	}
+	tokenStatus := data["token_status"].(map[string]any)
+	if tokenStatus["source"] != "env" || tokenStatus["available"] != true {
+		t.Fatalf("token_status = %#v", tokenStatus)
 	}
 }
 
