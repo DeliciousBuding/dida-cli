@@ -9,6 +9,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 - `task create/update --not-all-day` now sends `isAllDay` to the Web API.
+- Web API task-field documentation now uses the same `isAllDay` mutation name.
+
+### Changed
+- Updated the build toolchain to Go 1.26.10 and Staticcheck to v0.8.2.
 
 ## [v0.2.7] - 2026-07-18
 
