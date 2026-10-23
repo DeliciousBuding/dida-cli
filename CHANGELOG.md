@@ -7,6 +7,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.8] - 2026-10-23
+
 ### Fixed
 - `task create/update --not-all-day` now sends `isAllDay` to the Web API.
 - Web API task-field documentation now uses the same `isAllDay` mutation name.
@@ -307,7 +309,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.8...HEAD
+[v0.2.8]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...v0.2.6
 [v0.2.5]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.4...v0.2.5

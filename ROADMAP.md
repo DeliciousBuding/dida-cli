@@ -22,9 +22,9 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline (as of v0.2.7)
+## Current Baseline (as of v0.2.8)
 
-Latest release: `v0.2.7` (2026-07-18).
+Latest release: `v0.2.8` (2026-10-23).
 
 ### Three Channels — All Functional
 
@@ -32,7 +32,7 @@ Latest release: `v0.2.7` (2026-07-18).
 |---|---|---|
 | Web API | Browser cookie `t` | Primary, widest coverage |
 | Official MCP | `DIDA365_TOKEN=dp_...` | Focused wrappers + guarded generic call over MCP `2026-07-28`; live catalog is 57 tools |
-| Official OpenAPI | OAuth access token | First-class project/task/focus/habit + generic constrained `call` for newer resources |
+| Official OpenAPI | Personal API token or OAuth access token | First-class project/task/focus/habit + generic constrained `call` for newer resources |
 
 ### Distribution
 
@@ -50,11 +50,12 @@ Latest release: `v0.2.7` (2026-07-18).
 - Error messages redact tokens and sensitive patterns
 - Upgrade enforces checksum verification (fails if checksums.txt missing)
 
-### Shipped in v0.2.7
+### Shipped in v0.2.8
 
-- Cross-channel account identity store + `dida account verify`
-- Coordinated timed-reminder task writes (Web body + OpenAPI reminders)
-- CLI-side time/reminder normalization
+- MCP `2026-07-28` stateless protocol negotiation and guarded generic calls
+- OpenAPI personal-token support and constrained generic REST calls
+- Portable Codex/Claude Code plugin with native installation
+- Current toolchain/actions pins and vulnerability-response policy
 
 ### What's NOT Done Yet
 
