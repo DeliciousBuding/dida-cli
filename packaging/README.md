@@ -3,7 +3,7 @@
 This directory contains maintainer-facing packaging templates for distribution
 channels that usually live in separate repositories or registries.
 
-Current source release: `v0.2.6`
+Current source release: `v0.2.10`
 
 ## Channels
 
@@ -20,7 +20,7 @@ Current source release: `v0.2.6`
 2. Run:
 
    ```bash
-   bash scripts/update-packaging-templates.sh --version v0.2.6
+   bash scripts/update-packaging-templates.sh --version v0.2.10
    ```
 
    Use `--checksums-file <path>` when preparing from a downloaded or staged
@@ -28,7 +28,7 @@ Current source release: `v0.2.6`
 3. Run:
 
    ```bash
-   bash scripts/validate-packaging.sh --version v0.2.6 --checksums-file <path>
+   bash scripts/validate-packaging.sh --version v0.2.10 --checksums-file <path>
    ```
 
    If you rely on the published GitHub Release checksum asset, omit

@@ -7,6 +7,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- Homebrew and Scoop templates now track the checksum-verified `v0.2.10`
+  release assets.
+
 ## [v0.2.10] - 2026-10-23
 
 ### Changed
