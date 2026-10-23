@@ -42,17 +42,27 @@ run_case() {
 
 checksums_file="$(mktemp)"
 trap 'rm -f "$checksums_file"' EXIT
-cat >"$checksums_file" <<'EOF'
-ce2a4927d51dca44ebf0f4416d8c938b299f45365fbf5707d1da48b0064342d7  dida_v0.2.6_windows_amd64.zip
-f38ca3871d71b8f319da6fb2457eda805858d9fa6452319600028228e1ec921d  dida_v0.2.6_windows_arm64.zip
-e60f730dd01343eaa35f79a701a77b944d9d6440236bf8bc7dcfdaae78398dc9  dida_v0.2.6_darwin_amd64.tar.gz
-4af818f143b891ed3d55b297de9f52641f22d953e17aa5f7b2cd2804c6a567fc  dida_v0.2.6_darwin_arm64.tar.gz
-06b7237d69e7701f997501278645f2199080ba572145a9d831971d367c19a11e  dida_v0.2.6_linux_amd64.tar.gz
-aa56c2f60b9b019d89fe684fe5ad3c1bab7eb3df0d4624cefb0462419bed4cdf  dida_v0.2.6_linux_arm64.tar.gz
-EOF
 
 current_version="$(node -e 'console.log(require("./packaging/scoop/dida.json").version)')"
 current_tag="v${current_version}"
+
+node - <<'NODE' >"$checksums_file"
+const fs = require("fs");
+
+const scoop = JSON.parse(fs.readFileSync("packaging/scoop/dida.json", "utf8"));
+const version = scoop.version;
+for (const [arch, key] of [["amd64", "64bit"], ["arm64", "arm64"]]) {
+  console.log(
+    `${scoop.architecture[key].hash}  dida_v${version}_windows_${arch}.zip`
+  );
+}
+
+const homebrew = fs.readFileSync("packaging/homebrew/dida.rb", "utf8");
+const pattern = /url "([^"]+\/(dida_v[^"]+))"\s*\n\s*sha256 "([a-f0-9]{64})"/g;
+for (const match of homebrew.matchAll(pattern)) {
+  console.log(`${match[3]}  ${match[2]}`);
+}
+NODE
 
 run_case "metadata-only clean templates pass" pass ":" --metadata-only --version "$current_tag"
 
@@ -68,8 +78,17 @@ run_case "metadata-only catches version mismatch" fail '
 
 run_case "checksum file clean templates pass" pass ":" --version "$current_tag" --checksums-file "$checksums_file"
 
-run_case "checksum file catches hash mismatch" fail "
-  sed -i '0,/4af8/s/4af8/0000/' packaging/homebrew/dida.rb
-" --version "$current_tag" --checksums-file "$checksums_file"
+run_case "checksum file catches hash mismatch" fail '
+  node -e "
+    const fs = require(\"fs\");
+    const path = \"packaging/homebrew/dida.rb\";
+    const text = fs.readFileSync(path, \"utf8\");
+    const mismatched = text.replace(
+      /(sha256 \")([0-9a-f])/,
+      (_, prefix, first) => prefix + (first === \"0\" ? \"f\" : \"0\")
+    );
+    fs.writeFileSync(path, mismatched);
+  "
+' --version "$current_tag" --checksums-file "$checksums_file"
 
 echo "validate-packaging tests passed"
