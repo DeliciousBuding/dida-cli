@@ -462,14 +462,14 @@ set "SOURCE=%s"
 set "SELF=%s"
 set "PID=%d"
 :wait
-tasklist /FI "PID eq %%PID%%" 2^>NUL | find "%%PID%%" ^>NUL
+tasklist /FI "PID eq %%PID%%" 2>NUL | find "%%PID%%" >NUL
 if not errorlevel 1 (
-  timeout /T 1 /NOBREAK ^>NUL
+  timeout /T 1 /NOBREAK >NUL
   goto wait
 )
-move /Y "%%SOURCE%%" "%%TARGET%%" ^>NUL
+move /Y "%%SOURCE%%" "%%TARGET%%" >NUL
 if errorlevel 1 exit /B 1
-del "%%SELF%%" ^>NUL 2^>NUL
+(goto) 2>NUL & del "%%SELF%%" >NUL 2>NUL
 `, batchSetValue(exePath), batchSetValue(newPath), batchSetValue(scriptPath), pid)
 }
 

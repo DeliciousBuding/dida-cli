@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -711,6 +712,40 @@ func TestBuildWindowsReplacementScriptEscapesPercent(t *testing.T) {
 		if !strings.Contains(script, want) {
 			t.Fatalf("script missing escaped value %q:\n%s", want, script)
 		}
+	}
+}
+
+func TestBuildWindowsReplacementScriptExecutes(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows replacement script")
+	}
+	dir := t.TempDir()
+	target := filepath.Join(dir, "dida.exe")
+	source := target + ".new"
+	scriptPath := filepath.Join(dir, "replace.cmd")
+	if err := os.WriteFile(target, []byte("old"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(source, []byte("new"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	script := buildWindowsReplacementScript(target, source, scriptPath, 999999)
+	if err := os.WriteFile(scriptPath, []byte(script), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	out, err := exec.Command("cmd", "/C", scriptPath).CombinedOutput()
+	if err != nil {
+		t.Fatalf("replacement script failed: %v\n%s", err, out)
+	}
+	got, err := os.ReadFile(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "new" {
+		t.Fatalf("replacement target = %q, want new", got)
+	}
+	if _, err := os.Stat(scriptPath); !os.IsNotExist(err) {
+		t.Fatalf("replacement script was not removed: %v", err)
 	}
 }
 

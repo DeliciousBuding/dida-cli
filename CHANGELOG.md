@@ -7,6 +7,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- Windows self-upgrade now runs its deferred replacement script correctly and
+  removes the temporary batch file without a false failure exit.
+
 ## [v0.2.8] - 2026-10-23
 
 ### Fixed
