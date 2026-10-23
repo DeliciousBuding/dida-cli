@@ -54,6 +54,8 @@ release additionally runs `make release-check VERSION=vX.Y.Z`.
   metadata, packaging templates, and website metadata.
 - Build archives include checksums and artifact attestations.
 - npm publish runs only from the tag-triggered release workflow.
+- npm publication uses GitHub Actions OIDC through a package-scoped Trusted
+  Publisher; no long-lived npm token is configured in the repository.
 - Pull requests never receive publishing credentials.
 
 ## Response Procedure

@@ -62,6 +62,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
+          package-manager-cache: false
 
       - name: Check formatting
         run: |
@@ -264,6 +265,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
+          package-manager-cache: false
 
       - name: Pack npm package
         id: pack
@@ -310,6 +312,7 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "24"
+          package-manager-cache: false
 
       - name: Generate package-manager repos
         shell: bash
@@ -343,12 +346,11 @@ jobs:
         with:
           node-version: "24"
           registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
 
       - name: Prepare npm package
         id: prepare
         shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
@@ -356,32 +358,15 @@ jobs:
           if npm view @delicious233/dida-cli@"$version" version >/dev/null 2>&1; then
             echo "@delicious233/dida-cli@$version already exists on npm; skipping npm publish"
             echo "already_published=true" >> "$GITHUB_OUTPUT"
-          elif ! npm whoami >/dev/null 2>&1; then
-            if [[ -z "${NODE_AUTH_TOKEN:-}" ]]; then
-              echo "No NPM_TOKEN detected; attempting npm Trusted Publishing/OIDC in the publish step"
-              echo "already_published=false" >> "$GITHUB_OUTPUT"
-              echo "auth_mode=trusted-publishing" >> "$GITHUB_OUTPUT"
-            else
-              echo "NPM_TOKEN is invalid for npm registry authentication" >&2
-              exit 1
-            fi
           else
             echo "already_published=false" >> "$GITHUB_OUTPUT"
-            echo "auth_mode=token" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Publish
         if: steps.prepare.outputs.already_published != 'true'
         shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          if [[ "${{ steps.prepare.outputs.auth_mode }}" == "trusted-publishing" ]]; then
-            unset NODE_AUTH_TOKEN
-            echo "Publishing through npm Trusted Publishing/OIDC"
-          else
-            echo "Publishing through NPM_TOKEN fallback"
-          fi
+          echo "Publishing through npm Trusted Publishing/OIDC"
           cd npm
           npm publish --provenance --access public

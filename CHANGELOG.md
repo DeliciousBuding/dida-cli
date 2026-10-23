@@ -7,6 +7,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+- npm release publishing now uses GitHub Actions OIDC only; the long-lived
+  `NPM_TOKEN` fallback path was removed.
+
 ## [v0.2.9] - 2026-10-23
 
 ### Fixed
