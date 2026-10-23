@@ -16,7 +16,7 @@ concurrency:
 env:
   GOVULNCHECK_VERSION: v1.3.0
   ACTIONLINT_VERSION: v1.7.12
-  STATICCHECK_VERSION: v0.7.0
+  STATICCHECK_VERSION: v0.8.2
 
 jobs:
   hygiene:
