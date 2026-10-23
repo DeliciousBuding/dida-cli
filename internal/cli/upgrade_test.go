@@ -179,6 +179,35 @@ func TestExtractBinary(t *testing.T) {
 	})
 }
 
+func TestExtractBinaryRejectsOversizedBinary(t *testing.T) {
+	originalLimit := artifactBinaryMax
+	artifactBinaryMax = 4
+	defer func() { artifactBinaryMax = originalLimit }()
+
+	zipData := buildTestZip(t, "dida_v0.3.0_test/dida", []byte("12345"))
+	if _, err := extractBinary(zipData, "dida_v0.3.0_test.zip"); err == nil ||
+		!strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized zip error = %v, want size limit", err)
+	}
+
+	tarData := buildTestTarGz(t, "dida_v0.3.0_test/dida", []byte("12345"))
+	if _, err := extractBinary(tarData, "dida_v0.3.0_test.tar.gz"); err == nil ||
+		!strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized tar.gz error = %v, want size limit", err)
+	}
+}
+
+func FuzzExtractBinary(f *testing.F) {
+	f.Add([]byte("not-an-archive"))
+	f.Fuzz(func(t *testing.T, data []byte) {
+		if len(data) > 1<<20 {
+			t.Skip()
+		}
+		_, _ = extractBinary(data, "fuzz.zip")
+		_, _ = extractBinary(data, "fuzz.tar.gz")
+	})
+}
+
 func TestUpgradeCheckModeWithMockServer(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/repos/DeliciousBuding/dida-cli/releases/latest" {

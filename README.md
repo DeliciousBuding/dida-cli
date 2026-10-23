@@ -91,9 +91,10 @@ python3 scripts/install-agent-plugin.py claude
 ```
 
 On Windows, replace `python3` with `python`. The installer uses the native
-plugin marketplace commands, installs the CLI when `dida` is missing, and
-verifies that the plugin is enabled. It installs GitHub `main` by default; pass
-`--local` to test the current checkout. See
+plugin marketplace commands, bootstraps and updates the CLI when `dida` is
+missing, and verifies both the enabled plugin and official MCP registration.
+It installs GitHub `main` by default; pass `--local` to test the current
+checkout. MCP account authorization remains an explicit host login step. See
 [`plugins/dida-cli/README.md`](plugins/dida-cli/README.md) for manual commands
 and trust boundaries.
 

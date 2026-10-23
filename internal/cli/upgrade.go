@@ -34,6 +34,7 @@ var releasesLatestURL = githubAPIBase + "/repos/" + defaultRepo + "/releases/lat
 var scheduleWindowsReplacement = scheduleWindowsReplacementCommand
 var artifactDownloadRetryDelay = 200 * time.Millisecond
 var replaceBinaryForUpgrade = replaceBinary
+var artifactBinaryMax int64 = 200 << 20
 
 type githubRelease struct {
 	TagName string        `json:"tag_name"`
@@ -354,12 +355,20 @@ func extractFromZip(data []byte) ([]byte, error) {
 		}
 		name := filepath.Base(f.Name)
 		if name == "dida" || name == "dida.exe" {
+			if f.UncompressedSize64 > uint64(artifactBinaryMax) {
+				return nil, fmt.Errorf(
+					"archive binary %q expands to %d bytes, exceeds %d bytes",
+					name,
+					f.UncompressedSize64,
+					artifactBinaryMax,
+				)
+			}
 			rc, err := f.Open()
 			if err != nil {
 				return nil, err
 			}
 			defer rc.Close()
-			return io.ReadAll(rc)
+			return readArchiveBinary(rc, int64(f.UncompressedSize64), name)
 		}
 	}
 	return nil, fmt.Errorf("dida binary not found in zip archive")
@@ -385,10 +394,41 @@ func extractFromTarGz(data []byte) ([]byte, error) {
 		}
 		name := filepath.Base(hdr.Name)
 		if name == "dida" || name == "dida.exe" {
-			return io.ReadAll(tr)
+			if hdr.Size < 0 || hdr.Size > artifactBinaryMax {
+				return nil, fmt.Errorf(
+					"archive binary %q expands to %d bytes, exceeds %d bytes",
+					name,
+					hdr.Size,
+					artifactBinaryMax,
+				)
+			}
+			return readArchiveBinary(tr, hdr.Size, name)
 		}
 	}
 	return nil, fmt.Errorf("dida binary not found in tar.gz archive")
+}
+
+func readArchiveBinary(reader io.Reader, size int64, name string) ([]byte, error) {
+	if size > artifactBinaryMax {
+		return nil, fmt.Errorf(
+			"archive binary %q expands to %d bytes, exceeds %d bytes",
+			name,
+			size,
+			artifactBinaryMax,
+		)
+	}
+	data, err := io.ReadAll(io.LimitReader(reader, artifactBinaryMax+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > artifactBinaryMax {
+		return nil, fmt.Errorf(
+			"archive binary %q exceeds %d bytes after extraction",
+			name,
+			artifactBinaryMax,
+		)
+	}
+	return data, nil
 }
 
 type replaceResult struct {

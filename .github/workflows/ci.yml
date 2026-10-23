@@ -56,6 +56,9 @@ jobs:
           python3 scripts/validate-agent-plugins.py
           python3 scripts/install-agent-plugin.test.py
 
+      - name: Fuzz archive extraction
+        run: go test ./internal/cli -run '^$' -fuzz '^FuzzExtractBinary$' -fuzztime=10s
+
       - name: Test packaging validator
         run: bash scripts/validate-packaging.test.sh
 

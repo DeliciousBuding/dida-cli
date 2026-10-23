@@ -74,6 +74,11 @@ The bundled remote server is `https://mcp.dida365.com`.
 - DidaCLI's Official MCP token store remains a separate local path.
 - OpenAPI remains a CLI-only channel because it uses a different personal-token
   or OAuth credential model and endpoint set.
+- Installation verifies that the host registered the `dida365` server at the
+  official URL. It deliberately treats registration and account authorization
+  as separate states: an unauthenticated MCP registration is installable, but
+  the installer prints the host-specific login command instead of claiming the
+  channel is ready.
 
 ## Installation
 
@@ -88,10 +93,13 @@ claude plugin install dida-cli@dida-cli
 ```
 
 From a checkout, `python3 scripts/install-agent-plugin.py codex` or `claude`
-installs the marketplace from GitHub `main` by default, installs the CLI first
-when it is missing, and checks that the client reports the plugin as enabled.
-Pass `--local` to test the current checkout or `--source` to select another Git
-marketplace. Windows uses `python` instead of `python3`.
+installs the marketplace from GitHub `main` by default. When `dida` is missing,
+it bootstraps the npm package and then runs DidaCLI's checksum-verified
+self-updater so a lagging npm package does not leave the fresh install behind
+the current GitHub Release. Finally it verifies both the enabled plugin and the
+registered official MCP endpoint. Pass `--local` to test the current checkout
+or `--source` to select another compatible Git marketplace. Windows uses
+`python` instead of `python3`.
 
 The local install path was verified on 2026-10-23 with Codex CLI `0.160.1` and
 Claude Code `2.1.292`; both clients resolved the remote MCP declaration,
@@ -105,5 +113,7 @@ installed the plugin, and reported it enabled.
 - Keep both marketplace names and plugin names equal to `dida-cli`.
 - Do not add lifecycle hooks unless a concrete workflow requires them.
 - Validate both manifests on every change.
+- Run the bounded archive-extraction fuzz target in CI; release archives remain
+  compressed-download and expanded-binary size limited before replacement.
 - Re-check the live Official MCP catalog when the upstream tool count or tool
   names change; the live catalog wins over dated research snapshots.
