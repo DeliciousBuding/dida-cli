@@ -38,9 +38,10 @@ Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`:
 7. export Homebrew tap and Scoop bucket repository layouts as a workflow artifact
 8. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
 
-Preferred npm authentication: configure npm Trusted Publishing for the `@delicious233/dida-cli` package with this GitHub repository and the `release.yml` workflow. This uses GitHub Actions OIDC and does not require a long-lived npm token.
-
-Fallback npm authentication: define `NPM_TOKEN` as a repository secret. The release workflow validates token auth during npm preflight and uses it only when Trusted Publishing is not available.
+Configure npm Trusted Publishing for the `@delicious233/dida-cli` package
+with this GitHub repository and the `release.yml` workflow. Publishing uses
+GitHub Actions OIDC only; the release workflow does not read a long-lived npm
+token.
 
 Emergency manual dispatch may set `allow_changelog_fallback=true`, but normal releases must use an explicit changelog section.
 
