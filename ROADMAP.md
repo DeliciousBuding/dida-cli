@@ -22,9 +22,9 @@ The end state is not "one giant code dump". The end state is:
 - strong docs
 - repeatable verification
 
-## Current Baseline (as of v0.2.9)
+## Current Baseline (as of v0.2.10)
 
-Latest release: `v0.2.9` (2026-10-23).
+Latest release: `v0.2.10` (2026-10-23).
 
 ### Three Channels — All Functional
 
@@ -49,6 +49,13 @@ Latest release: `v0.2.9` (2026-10-23).
 - All HTTP clients have explicit timeouts (30-60s) and response size limits
 - Error messages redact tokens and sensitive patterns
 - Upgrade enforces checksum verification (fails if checksums.txt missing)
+
+### Shipped in v0.2.10
+
+- Agent plugin install verifies the official Dida365 MCP registration
+- Fresh npm bootstrap converges through checksum-verified self-update
+- Expanded upgrade binaries are size limited and fuzzed in CI
+- Security reporting and disclosure expectations are explicit
 
 ### Shipped in v0.2.9
 

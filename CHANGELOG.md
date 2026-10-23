@@ -7,6 +7,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.10] - 2026-10-23
+
 ### Changed
 - npm release publishing now uses GitHub Actions OIDC only; the long-lived
   `NPM_TOKEN` fallback path was removed.
@@ -336,7 +338,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.9...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.10...HEAD
+[v0.2.10]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.9...v0.2.10
 [v0.2.9]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.8...v0.2.9
 [v0.2.8]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...v0.2.7
