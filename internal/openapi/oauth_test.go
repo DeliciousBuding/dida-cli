@@ -270,12 +270,12 @@ func TestLoadTokenErrors(t *testing.T) {
 
 func TestLoadAccessTokenFromEnv(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
-	t.Setenv("DIDA365_OPENAPI_TOKEN", "personal_api_token_long")
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "env-token")
 	token, source, err := LoadAccessToken()
 	if err != nil {
 		t.Fatalf("LoadAccessToken() error = %v", err)
 	}
-	if token != "personal_api_token_long" || source != "env" {
+	if token != "env-token" || source != "env" {
 		t.Fatalf("LoadAccessToken() = token:%q source:%q", token, source)
 	}
 	status := TokenStatus()
