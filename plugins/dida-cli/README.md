@@ -9,6 +9,10 @@ This lightweight portable plugin packages:
 It does not bundle a local MCP process, OAuth token, browser cookie, or task
 data. The official MCP server completes OAuth on first use.
 
+The root `plugin.json` and `mcp.json` follow Agent Plugins 1.0.0. Claude Code
+uses its native `.claude-plugin/plugin.json` and `.mcp.json` adapter, including
+Claude's `http` transport name.
+
 ## Install
 
 From a checkout:

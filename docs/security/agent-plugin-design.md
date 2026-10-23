@@ -10,13 +10,19 @@ browser cookie, task export, hook, or privileged helper.
 
 ```text
 plugins/dida-cli/
-  plugin.json                 portable Agent Plugins manifest for Codex
-  mcp.json                    portable remote MCP declaration
+  plugin.json                 Agent Plugins 1.0.0 package manifest
+  mcp.json                    Agent Plugins 1.0.0 remote MCP declaration
   .claude-plugin/plugin.json  Claude Code manifest adapter
-  .mcp.json                   Claude Code MCP declaration
+  .mcp.json                   Claude Code native MCP adapter
   skills/dida-cli/SKILL.md    shared workflow instructions
   README.md                   install and trust notes
 ```
+
+Both clients share the same skill and remote endpoint, but use their own
+transport vocabulary. The portable root files target the closed Agent Plugins
+1.0.0 schemas; the Claude adapter keeps Claude Code's native `.mcp.json`
+format. The validator checks both contracts rather than assuming they are
+byte-identical.
 
 The repository also exposes:
 
@@ -42,6 +48,8 @@ server.
   future tools require DidaCLI's `--yes` boundary.
 - Browser cookies, MCP tokens, and OpenAPI personal/OAuth credentials never
   cross channels.
+- The portable declaration uses Agent Plugins 1.0.0 `streamable-http`; the
+  Claude adapter uses Claude Code's native `http` transport.
 
 This follows the MCP tool model of model-controlled discovery with a human in
 the loop and JSON Schema-backed inputs rather than a bespoke protocol dialect.
@@ -50,8 +58,11 @@ Reference points:
 
 - [MCP 2026-07-28 tools](https://modelcontextprotocol.io/specification/2026-07-28/server/tools)
 - [MCP 2026-07-28 discovery](https://modelcontextprotocol.io/specification/2026-07-28/server/discover)
+- [Agent Plugins 1.0.0 specification](https://agent-plugins.org/specification)
+- [Agent Plugins MCP configuration](https://agent-plugins.org/plugin-authors/mcp-servers)
 - [Codex plugin packaging](https://developers.openai.com/plugins/build/plugins)
-- [Claude Code plugin creation](https://code.claude.com/docs/en/plugins/create)
+- [Claude Code plugin manifest](https://code.claude.com/docs/en/plugins-reference)
+- [Claude Code plugin installation](https://code.claude.com/docs/en/plugins/install)
 - [Claude Code marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
 
 ## Authentication
@@ -88,7 +99,8 @@ installed the plugin, and reported it enabled.
 ## Maintenance Rules
 
 - Update the plugin version when skills or bundled MCP behavior changes.
-- Keep `mcp.json` and `.mcp.json` byte-equivalent.
+- Keep the portable `mcp.json` on the declared Agent Plugins schema and the
+  Claude `.mcp.json` on Claude Code's native schema.
 - Keep both marketplace names and plugin names equal to `dida-cli`.
 - Do not add lifecycle hooks unless a concrete workflow requires them.
 - Validate both manifests on every change.

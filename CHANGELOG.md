@@ -28,8 +28,9 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - `openapi call` for constrained access to newly documented REST endpoints.
 - `DIDA365_OPENAPI_TOKEN` support for the OpenAPI personal-token flow added to
   the current official documentation.
-- Portable Codex and Claude Code plugin manifests with one-command install
-  helpers for the DidaCLI skill and official Dida365 MCP server.
+- Agent Plugins 1.0.0 package for Codex plus a Claude Code native adapter and
+  one-command install helpers for the DidaCLI skill and official Dida365 MCP
+  server.
 
 ## [v0.2.7] - 2026-07-18
 

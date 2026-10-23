@@ -1,7 +1,8 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
   "mcpServers": {
     "dida365": {
-      "type": "http",
+      "type": "streamable-http",
       "url": "https://mcp.dida365.com"
     }
   }
