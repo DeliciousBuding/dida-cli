@@ -7,6 +7,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [v0.2.9] - 2026-10-23
+
 ### Fixed
 - Windows self-upgrade now runs its deferred replacement script correctly and
   removes the temporary batch file without a false failure exit.
@@ -320,7 +322,8 @@ Initial release.
 - Install scripts for macOS, Linux, and Windows
 - MIT License
 
-[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.9...HEAD
+[v0.2.9]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.8...v0.2.9
 [v0.2.8]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.7...v0.2.8
 [v0.2.7]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.6...v0.2.7
 [v0.2.6]: https://github.com/DeliciousBuding/dida-cli/compare/v0.2.5...v0.2.6
