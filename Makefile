@@ -34,6 +34,7 @@ actionlint:
 
 agent-plugin-check:
 	$(PYTHON) scripts/validate-agent-plugins.py
+	$(PYTHON) scripts/install-agent-plugin.test.py
 
 staticcheck:
 	go run honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION) ./...

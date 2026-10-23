@@ -52,7 +52,9 @@ jobs:
         run: bash scripts/validate-packaging.sh --metadata-only
 
       - name: Validate agent plugin manifests
-        run: python3 scripts/validate-agent-plugins.py
+        run: |
+          python3 scripts/validate-agent-plugins.py
+          python3 scripts/install-agent-plugin.test.py
 
       - name: Test packaging validator
         run: bash scripts/validate-packaging.test.sh

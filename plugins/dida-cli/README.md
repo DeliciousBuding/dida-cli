@@ -15,7 +15,8 @@ Claude's `http` transport name.
 
 ## Install
 
-From a checkout:
+Run the installer from a checkout; by default it installs the plugin
+marketplace from GitHub `main`:
 
 ```bash
 python3 scripts/install-agent-plugin.py codex
@@ -24,10 +25,13 @@ python3 scripts/install-agent-plugin.py claude
 
 On Windows, replace `python3` with `python`.
 
+Pass `--local` to test the plugin files in the current checkout instead of the
+GitHub marketplace. `--source <owner/repo[@ref]>` selects another Git source.
+
 The installer installs `@delicious233/dida-cli` globally when `dida` is missing,
-then adds the repository marketplace, installs `dida-cli@dida-cli`, and verifies
-that the native client reports the plugin as enabled. Pass `--no-cli` when only
-the plugin/MCP server should be installed.
+then adds the marketplace, installs `dida-cli@dida-cli`, and verifies that the
+native client reports the plugin as enabled. Pass `--no-cli` when only the
+plugin/MCP server should be installed.
 
 Native manual install commands:
 
