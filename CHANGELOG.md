@@ -11,7 +11,15 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - npm release publishing now uses GitHub Actions OIDC only; the long-lived
   `NPM_TOKEN` fallback path was removed.
 - The agent-plugin installer now defaults to the GitHub marketplace source and
-  accepts `--local` for checkout-based testing.
+  accepts `--local` for checkout-based testing. It also verifies MCP
+  registration and updates a newly bootstrapped CLI through the checksummed
+  self-updater.
+
+### Security
+- Archive extraction now rejects oversized expanded binaries, and CI runs a
+  bounded fuzz target against ZIP and tar.gz parsing.
+- The security policy now provides an explicit private-report link and
+  acknowledgement, triage, and coordinated-disclosure expectations.
 
 ## [v0.2.9] - 2026-10-23
 

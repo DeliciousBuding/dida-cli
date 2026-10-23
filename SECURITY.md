@@ -7,9 +7,18 @@ release.
 
 ## Reporting a Vulnerability
 
-Please open a private security advisory on GitHub or contact the maintainer privately.
+Report vulnerabilities through the repository's
+[private security advisory form](https://github.com/DeliciousBuding/dida-cli/security/advisories/new).
+If that form is unavailable, open a minimal issue asking the maintainer to
+contact you without including exploit details, credentials, or private data.
 
 Do not include live Dida365 cookies, bearer tokens, private task exports, or full response dumps in public issues.
+
+We aim to acknowledge reports within 3 business days and complete initial
+triage within 7 business days. Fix and coordinated disclosure will usually
+occur within 90 days; reports may be disclosed earlier when a mutually tested
+fix is available. Active exploitation or exposed credentials will be handled
+as an immediate containment incident.
 
 ## Security Baseline
 

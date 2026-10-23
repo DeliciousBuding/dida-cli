@@ -90,8 +90,9 @@ python3 scripts/install-agent-plugin.py claude
 ```
 
 Windows 上把 `python3` 换成 `python`。安装器调用各客户端原生 marketplace
-命令；若 `dida` 不存在，会先安装 CLI，并校验插件已被客户端启用。默认安装
-GitHub `main`，传 `--local` 可测试当前 checkout。手动安装与信任边界见
+命令；若 `dida` 不存在，会先引导安装 CLI 并走校验和自升级，同时校验插件已
+启用、官方 MCP 已注册。默认安装 GitHub `main`，传 `--local` 可测试当前
+checkout。MCP 账户授权仍是独立的主机登录步骤。手动安装与信任边界见
 [`plugins/dida-cli/README.md`](plugins/dida-cli/README.md)。
 
 ## 快速开始
