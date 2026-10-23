@@ -7,6 +7,11 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+- npm release jobs now wait for the official registry to expose the tagged
+  version and update `latest`, instead of treating an asynchronous
+  `npm publish` request as immediately installable.
+
 ### Changed
 - Homebrew and Scoop templates now track the checksum-verified `v0.2.10`
   release assets.

@@ -370,3 +370,38 @@ jobs:
           echo "Publishing through npm Trusted Publishing/OIDC"
           cd npm
           npm publish --provenance --access public
+
+      - name: Verify npm registry visibility
+        shell: bash
+        env:
+          PACKAGE_NAME: "@delicious233/dida-cli"
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          encoded_name="${PACKAGE_NAME/@/%40}"
+          encoded_name="${encoded_name/\//%2F}"
+          deadline=$((SECONDS + 900))
+
+          while true; do
+            packument="$(curl -fsSL \
+              --retry 3 \
+              --retry-all-errors \
+              -H "Cache-Control: no-cache" \
+              "https://registry.npmjs.org/${encoded_name}?cb=$(date +%s)" || true)"
+            published="$(jq -r --arg version "$version" '.versions[$version].version // empty' <<<"${packument:-{}}" 2>/dev/null || true)"
+            latest="$(jq -r '."dist-tags".latest // empty' <<<"${packument:-{}}" 2>/dev/null || true)"
+
+            if [[ "$published" == "$version" && "$latest" == "$version" ]]; then
+              echo "${PACKAGE_NAME}@${version} is visible on the official npm registry and is tagged latest"
+              exit 0
+            fi
+
+            if (( SECONDS >= deadline )); then
+              echo "${PACKAGE_NAME}@${version} did not become visible on npm within 15 minutes" >&2
+              echo "registry resolved=${published:-missing} latest=${latest:-missing}" >&2
+              exit 1
+            fi
+
+            echo "Waiting for npm registry propagation: resolved=${published:-missing} latest=${latest:-missing}"
+            sleep 15
+          done

@@ -37,6 +37,7 @@ Pushing a `vX.Y.Z` tag runs `.github/workflows/release.yml`:
 6. smoke-test npm install on Linux and Windows
 7. export Homebrew tap and Scoop bucket repository layouts as a workflow artifact
 8. publish `@delicious233/dida-cli` to npm with provenance, unless that version already exists
+9. verify the published version is visible from the official npm registry and tagged `latest`
 
 Configure npm Trusted Publishing for the `@delicious233/dida-cli` package
 with this GitHub repository and the `release.yml` workflow. Publishing uses

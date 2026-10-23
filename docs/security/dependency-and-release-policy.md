@@ -56,6 +56,8 @@ release additionally runs `make release-check VERSION=vX.Y.Z`.
 - npm publish runs only from the tag-triggered release workflow.
 - npm publication uses GitHub Actions OIDC through a package-scoped Trusted
   Publisher; no long-lived npm token is configured in the repository.
+- A release is not considered published to npm until the official registry
+  exposes the exact version and promotes it to the `latest` dist-tag.
 - Pull requests never receive publishing credentials.
 
 ## Response Procedure
