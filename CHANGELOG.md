@@ -11,6 +11,10 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Windows self-upgrade now runs its deferred replacement script correctly and
   removes the temporary batch file without a false failure exit.
 
+### Changed
+- GitHub Release publication is no longer blocked by npm registry
+  authentication; npm publication remains an independent downstream job.
+
 ## [v0.2.8] - 2026-10-23
 
 ### Fixed
