@@ -11,6 +11,9 @@ import sys
 from pathlib import Path
 
 
+DEFAULT_MARKETPLACE_SOURCE = "DeliciousBuding/dida-cli"
+
+
 def run(command: list[str]) -> None:
     print("+", " ".join(command))
     subprocess.run(command, check=True)
@@ -47,6 +50,16 @@ def verify_claude_plugin() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("target", choices=("codex", "claude"))
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument(
+        "--source",
+        help="Git marketplace source (owner/repo[@ref], URL, or local path)",
+    )
+    source.add_argument(
+        "--local",
+        action="store_true",
+        help="Install the marketplace from this checkout instead of GitHub",
+    )
     parser.add_argument(
         "--no-cli",
         action="store_true",
@@ -55,6 +68,11 @@ def main() -> int:
     args = parser.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
+    marketplace_source = (
+        str(repo_root)
+        if args.local
+        else args.source or DEFAULT_MARKETPLACE_SOURCE
+    )
     if not args.no_cli and shutil.which("dida") is None:
         if shutil.which("npm") is None:
             print("dida is missing and npm is not available", file=sys.stderr)
@@ -65,14 +83,24 @@ def main() -> int:
         if shutil.which("codex") is None:
             print("codex CLI is not installed or not on PATH", file=sys.stderr)
             return 1
-        run(["codex", "plugin", "marketplace", "add", str(repo_root), "--json"])
+        command = ["codex", "plugin", "marketplace", "add", marketplace_source]
+        if not args.local:
+            command.extend(
+                ["--sparse", ".agents/plugins", "--sparse", "plugins/dida-cli"]
+            )
+        command.append("--json")
+        run(command)
         run(["codex", "plugin", "add", "dida-cli@dida-cli", "--json"])
         verify_codex_plugin()
     else:
         if shutil.which("claude") is None:
             print("claude CLI is not installed or not on PATH", file=sys.stderr)
             return 1
-        run(["claude", "plugin", "marketplace", "add", str(repo_root), "--json"])
+        command = ["claude", "plugin", "marketplace", "add", marketplace_source]
+        if not args.local:
+            command.extend(["--sparse", ".claude-plugin", "plugins/dida-cli"])
+        command.append("--json")
+        run(command)
         run(["claude", "plugin", "install", "dida-cli@dida-cli", "-y", "--json"])
         verify_claude_plugin()
     return 0

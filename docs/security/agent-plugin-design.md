@@ -88,9 +88,10 @@ claude plugin install dida-cli@dida-cli
 ```
 
 From a checkout, `python3 scripts/install-agent-plugin.py codex` or `claude`
-runs the same native commands, installs the CLI first when it is missing, and
-checks that the client reports the plugin as enabled. Windows uses `python`
-instead of `python3`.
+installs the marketplace from GitHub `main` by default, installs the CLI first
+when it is missing, and checks that the client reports the plugin as enabled.
+Pass `--local` to test the current checkout or `--source` to select another Git
+marketplace. Windows uses `python` instead of `python3`.
 
 The local install path was verified on 2026-10-23 with Codex CLI `0.160.1` and
 Claude Code `2.1.292`; both clients resolved the remote MCP declaration,

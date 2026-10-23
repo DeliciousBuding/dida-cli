@@ -10,6 +10,8 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 ### Changed
 - npm release publishing now uses GitHub Actions OIDC only; the long-lived
   `NPM_TOKEN` fallback path was removed.
+- The agent-plugin installer now defaults to the GitHub marketplace source and
+  accepts `--local` for checkout-based testing.
 
 ## [v0.2.9] - 2026-10-23
 
