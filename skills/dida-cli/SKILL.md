@@ -60,7 +60,7 @@ Choose the channel by job, not by habit:
 | Normal task/project/folder/tag/comment work | Web API first-class commands | Broadest web-app coverage, compact reads, dry-run writes, `--yes` deletes. |
 | Official task/project validation with token auth | `dida official ...` | Uses Official MCP; `DIDA365_TOKEN` or saved official token config only. |
 | Habit/focus resource work | Official MCP or `dida openapi ...` | Prefer official surfaces; current live smokes may need disposable habit/focus records. |
-| Public OAuth REST validation | `dida openapi ...` | Requires saved OAuth client config and access token; MCP tokens do not apply. |
+| Public OpenAPI validation | `dida openapi ...` | Uses `DIDA365_OPENAPI_TOKEN` or a saved OAuth access token; MCP tokens do not apply. |
 | Web-app-only metadata | Web API reads | Settings, comments, sharing, calendar, templates, stats, trash, closed history, and search. |
 | Unknown private write flow | No command yet | Document evidence first; do not tunnel writes through raw calls. |
 
@@ -239,12 +239,14 @@ dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05
 Use `dida official token clear --json` only when the operator explicitly wants
 to remove the saved local official MCP token.
 
-Treat `dida official call` as a read-oriented exploration escape hatch. It has
-no dry-run layer, so do not use it for write-capable MCP tools unless the
-operator explicitly approves that specific tool and payload.
+Use `dida official call` for newly published or low-frequency MCP tools. Preview
+every call with `--dry-run --json`. Known read-only tools run directly; writes
+and unrecognized future tools require `--yes`. Do not treat MCP annotations as
+authorization.
 
-Use official OpenAPI only through `dida openapi ...`. It is OAuth-based and
-does not accept MCP `dp_...` tokens or Web API cookies as bearer tokens.
+Use official OpenAPI only through `dida openapi ...`. It accepts
+`DIDA365_OPENAPI_TOKEN` or a saved OAuth access token. MCP tokens, Web API
+cookies, and OAuth client secrets are not interchangeable credentials.
 
 ```bash
 dida openapi doctor --json
@@ -253,10 +255,17 @@ dida openapi client status --json
 dida openapi logout --json
 dida openapi project list --json
 dida openapi project create --args-json "{\"name\":\"Project\",\"viewMode\":\"list\",\"kind\":\"TASK\"}" --dry-run --json
+dida openapi call GET /tag --json
+dida openapi call GET /countdown --json
+dida openapi call POST /tag --args-json "{\"label\":\"work\"}" --dry-run --json
 dida openapi focus list --from 2026-04-01T00:00:00+0800 --to 2026-04-02T00:00:00+0800 --type 1 --json
 dida openapi habit list --json
 dida openapi habit checkin <habit-id> --args-json "{\"stamp\":20260407,\"value\":1}" --dry-run --json
 ```
+
+Use `dida official tools --json` as the live MCP catalog. Do not assume a dated
+tool list is complete. The client negotiates MCP `2026-07-28` stateless
+discovery when available and falls back to the legacy initialize handshake.
 
 If OpenAPI client config is missing, ask the operator to run this locally:
 

@@ -42,7 +42,7 @@ Pick the channel by job:
 | Normal task/project/folder/tag/comment work | Web API first-class commands | Broadest coverage, dry-run writes, explicit `--yes` deletes. |
 | Official token-based task/project validation | `dida official ...` | Uses `DIDA365_TOKEN` or saved official token config, not browser cookies. |
 | Habit/focus work | Official MCP or `dida openapi ...` | Prefer official surfaces; live write tests need disposable records. |
-| Public OAuth REST validation | `dida openapi ...` | Requires OpenAPI OAuth access token. |
+| Public OpenAPI REST validation | `dida openapi ...` | Uses `DIDA365_OPENAPI_TOKEN` or a saved OAuth access token. |
 | Web-app-only metadata | Web API reads | Settings, sharing, calendar, templates, stats, trash, search, closed history. |
 | Unknown private write flow | No command yet | Document endpoint, payload, response, rollback, and live evidence first. |
 
@@ -146,9 +146,22 @@ dida official habit checkin <habit-id> --date 2026-05-09 --value 1 --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 ```
 
-Use `dida openapi ...` only for the official OAuth OpenAPI channel. It requires
-OAuth client credentials plus a saved OAuth access token. Do not try to use MCP
-tokens as OpenAPI bearer tokens.
+For a generic newly published tool, preview first and use the same command
+without `--dry-run` only after review:
+
+```bash
+dida official call create_tag --args-json '{"label":"work"}' --dry-run --json
+dida official call create_tag --args-json '{"label":"work"}' --yes --json
+```
+
+Known read-only MCP tools execute without `--yes`. Writes and unrecognized
+future tools require it. Server annotations are discovery hints, not an
+authorization decision.
+
+Use `dida openapi ...` only for the official OpenAPI channel. It accepts
+`DIDA365_OPENAPI_TOKEN` for single-account automation or OAuth client
+credentials plus a saved OAuth access token. Do not use MCP tokens or Web API
+cookies interchangeably.
 
 ## Repo Skill
 

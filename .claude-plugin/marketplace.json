@@ -1,0 +1,16 @@
+{
+  "name": "dida-cli",
+  "description": "Dida365 and TickTick agent workflows",
+  "owner": {
+    "name": "Delicious233",
+    "url": "https://github.com/DeliciousBuding"
+  },
+  "plugins": [
+    {
+      "name": "dida-cli",
+      "source": "./plugins/dida-cli",
+      "description": "DidaCLI workflows plus the official Dida365 MCP server",
+      "version": "0.1.0"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dida365": {
+      "type": "http",
+      "url": "https://mcp.dida365.com"
+    }
+  }
+}

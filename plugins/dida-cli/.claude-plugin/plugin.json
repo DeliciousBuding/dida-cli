@@ -1,0 +1,12 @@
+{
+  "name": "dida-cli",
+  "version": "0.1.0",
+  "description": "Dida365 and TickTick workflows with DidaCLI plus the official Dida365 MCP server.",
+  "author": {
+    "name": "Delicious233",
+    "url": "https://github.com/DeliciousBuding"
+  },
+  "homepage": "https://deliciousbuding.github.io/dida-cli/",
+  "repository": "https://github.com/DeliciousBuding/dida-cli",
+  "license": "MIT"
+}

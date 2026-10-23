@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/DeliciousBuding/dida-cli/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue?style=flat-square"></a>
-  <img alt="Go 1.26+" src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go&logoColor=white">
+  <img alt="Go 1.26.10+" src="https://img.shields.io/badge/Go-1.26.10+-00ADD8?style=flat-square&logo=go&logoColor=white">
   <a href="https://github.com/DeliciousBuding/dida-cli/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/DeliciousBuding/dida-cli?style=flat-square&logo=github"></a>
   <a href="https://github.com/DeliciousBuding/dida-cli/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/DeliciousBuding/dida-cli/ci.yml?branch=main&label=ci&style=flat-square&logo=github-actions"></a>
   <a href="https://www.npmjs.com/package/@delicious233/dida-cli"><img alt="npm" src="https://img.shields.io/npm/v/@delicious233/dida-cli?style=flat-square&logo=npm"></a>
@@ -24,7 +24,7 @@
 
 ---
 
-DidaCLI builds as a single Go binary with no external Go modules. It keeps Web API cookie auth, Official MCP tokens, and OpenAPI OAuth separate. Commands return a consistent JSON envelope.
+DidaCLI builds as a single Go binary with no external Go modules. It keeps Web API cookie auth, Official MCP tokens, and OpenAPI personal-token/OAuth credentials separate. Commands return a consistent JSON envelope.
 
 ```bash
 $ dida task today --compact --json
@@ -80,6 +80,22 @@ dida doctor --check-upgrade --json
 
 </details>
 
+## Agent Plugins
+
+The repository ships a lightweight Codex/Claude Code plugin containing the
+DidaCLI workflow skill and the official Dida365 MCP server.
+
+```bash
+python3 scripts/install-agent-plugin.py codex
+python3 scripts/install-agent-plugin.py claude
+```
+
+On Windows, replace `python3` with `python`. The installer uses the native
+plugin marketplace commands, installs the CLI when `dida` is missing, and
+verifies that the plugin is enabled. See
+[`plugins/dida-cli/README.md`](plugins/dida-cli/README.md) for manual commands
+and trust boundaries.
+
 ## Quick Start
 
 ```bash
@@ -104,7 +120,7 @@ dida task create --project <id> --title "Ship v1" --dry-run --json
 
 ## Feature Coverage
 
-DidaCLI exposes 140 local command contracts through `dida schema list --compact --json`. The main feature groups are:
+DidaCLI exposes 143 local command contracts through `dida schema list --compact --json`. The main feature groups are:
 
 | Area | What it covers | Entry points |
 |---|---|---|
@@ -120,8 +136,8 @@ DidaCLI exposes 140 local command contracts through `dida schema list --compact 
 | History | Completed tasks, closed-history items, and deleted tasks from trash | `completed`, `closed`, `trash` |
 | Productivity | Pomodoro preferences, records, timing, stats, timeline, task records, habit preferences, habits, sections, check-ins, Eisenhower quadrants | `pomo`, `habit`, `quadrant` |
 | Account metadata | Settings, daily reminders, share contacts, project sharing state, calendar subscriptions/accounts, account stats, project templates, global search, user profile/status/sessions | `settings`, `reminder`, `share`, `calendar`, `stats`, `template`, `search`, `user` |
-| Official MCP | Token management, tool discovery, schema display, raw tool call, project reads, task search/filter/batch writes, habit reads/writes, focus reads/delete | `official` |
-| Official OpenAPI | OAuth client config, browser/manual OAuth, project/task/focus/habit wrappers, completed and filtered task reads | `openapi` |
+| Official MCP | Token management, live tool discovery, focused project/task/habit/focus wrappers, generic dry-run call for the current 57-tool catalog | `official` |
+| Official OpenAPI | Personal API token or OAuth, project/task/focus/habit wrappers, constrained generic call for newer tag/countdown/calendar resources | `openapi` |
 | Raw read probes | Read-only GET escape hatch for verified Web API exploration with structured error details | `raw get` |
 | Distribution and upgrade | Single binary builds, shell completion scripts, npm/install scripts, packaging templates, release archives, checksum-verified self-upgrade | `completion`, `upgrade` |
 
@@ -210,13 +226,17 @@ dida official task batch-add --args-json '{"tasks":[{"title":"Task"}]}' --dry-ru
 dida official habit list --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 
-# OpenAPI (OAuth)
+# OpenAPI (Personal Token or OAuth)
+DIDA365_OPENAPI_TOKEN=personal_token_xxx dida openapi project list --json
+# Or configure the OAuth app:
 dida openapi client set --id <id> --secret-stdin --json
 dida openapi login --browser --json
 dida openapi project list --json
 dida openapi task create --args-json '{"projectId":"<project-id>","title":"Task"}' --dry-run --json
 dida openapi task filter --args-json '{"projectIds":["<project-id>"],"status":[0]}' --json
 dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407 --json
+dida openapi call GET /tag --json
+dida openapi call GET /countdown --json
 ```
 </details>
 
@@ -241,7 +261,7 @@ Full reference: [docs/commands.md](docs/commands.md). Machine-readable reference
 
 | | Web API | Official MCP | Official OpenAPI |
 |---|---|---|---|
-| **Auth** | Browser cookie | Token | OAuth |
+| **Auth** | Browser cookie | Token | Personal API token or OAuth |
 | **Coverage** | Web API resources outside official channels | MCP tool-based | Standard REST |
 | **Setup** | One login | Get token | Register app |
 

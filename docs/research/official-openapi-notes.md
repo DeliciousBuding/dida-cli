@@ -13,7 +13,7 @@ This note records the current findings for the official dida365 OpenAPI channel.
 
 ## Result
 
-A non-OAuth credential from the developer app settings was intentionally tested
+An OAuth client secret from the developer app settings was intentionally tested
 as a bearer token and rejected by the official OpenAPI with:
 
 ```text
@@ -24,9 +24,11 @@ and `WWW-Authenticate: Bearer realm="oauth"`.
 
 ## Interpretation
 
-- The official OpenAPI does not accept the above token as a direct bearer token.
-- The official MCP channel does accept the `dp_...` API token through `DIDA365_TOKEN`.
-- The official OpenAPI uses an OAuth access-token flow. The simple API token is scoped to official MCP.
+- An OAuth client secret is not an access token.
+- The current official OpenAPI documentation separately supports a personal API
+  token created in the web app, plus OAuth access tokens for app authorization.
+- DidaCLI maps personal OpenAPI tokens to `DIDA365_OPENAPI_TOKEN` and keeps them
+  separate from the MCP `DIDA365_TOKEN`.
 
 ## Practical Conclusion
 
@@ -41,11 +43,12 @@ There are currently three distinct channels:
    - official task/project/habit/focus tools
 
 3. Official OpenAPI
-   - auth: likely OAuth access token
-   - requires OAuth credentials; the tested API token is insufficient
+   - auth: personal API token or OAuth access token
+   - client secrets are never accepted as bearer tokens
 
 ## Recommendation
 
 - Keep Web API as the main coverage channel.
-- Keep official MCP as the official token-based channel.
-- Treat official OpenAPI as a future third channel only after obtaining a real OAuth access token and documenting the full auth flow.
+- Keep official MCP as the official task-tool channel.
+- Use official OpenAPI with `DIDA365_OPENAPI_TOKEN` for lightweight
+  single-account REST automation, or use OAuth for multi-user app flows.

@@ -4,7 +4,8 @@ This matrix separates the two official channels:
 
 - `official mcp`: token-based MCP server accessed with `DIDA365_TOKEN` or a
   configured official token store.
-- `official openapi`: OAuth REST API under `/open/v1`.
+- `official openapi`: documented REST API under `/open/v1`, using a personal
+  API token or an OAuth access token.
 
 These channels use different auth models and command paths.
 
@@ -22,10 +23,12 @@ These channels use different auth models and command paths.
 
 | Area | Upstream tool or action | DidaCLI surface | Status | Evidence / next action |
 | --- | --- | --- | --- | --- |
-| Health | `initialize`, `tools/list` | `official doctor` | live-verified | Tool count and sample tools were verified through the MCP server. |
+| Health | `initialize`, `tools/list` | `official doctor` | live-verified | On 2026-10-23 the live server exposed 57 tools; the live catalog remains authoritative. |
 | Discovery | `tools/list` | `official tools` | live-verified | Compact output is default; `--full` preserves raw schemas. |
 | Schema | `tools/list` by name | `official show <tool>` | live-verified | Used to inspect tool contracts before wrapping. |
-| Generic call | `tools/call` | `official call <tool>` | live-verified | Works for read tools such as project list and time-query tasks. |
+| Generic call | `tools/call` | `official call <tool> --dry-run` | implemented with dry-run | Previews any live tool without token/network access; execution still uses the official MCP channel. |
+| Extended task/project tools | assignment, checklist, comments, groups, columns | `official call <tool>` | discoverable | Live catalog verified 2026-10-23; first-class wrappers remain focused on common workflows. |
+| Tags, countdowns, calendar | tag CRUD, `list_countdowns`, calendar reads | `official call <tool>` | discoverable | Use the live schema and `--dry-run` before writes. |
 | Project list | `list_projects` | `official project list` | live-verified | Live smoke succeeded on 2026-05-10; 2026-07-07 refresh returned 7 projects with count-only evidence. Promoted because it is the official-channel project discovery read. |
 | Habit list | `list_habits` | `official habit list` | live-verified | Live smoke succeeded on 2026-05-10; 2026-07-07 refresh succeeded with zero habits. |
 | Habit sections | `list_habit_sections` | `official habit sections` | live-verified | Live smoke succeeded on 2026-05-10; 2026-07-07 refresh returned 3 sections. Output was summarized by count only. |
@@ -37,6 +40,7 @@ These channels use different auth models and command paths.
 | Focus read | `get_focus` | `official focus get --type 0|1` | blocked | Command exists; live read smoke needs a disposable known focus record. |
 | Focus range | `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | live-verified | Bounded type 0 and type 1 range smokes succeeded on 2026-05-10; 2026-07-07 refresh over 2026-01-01 to 2026-07-07 also succeeded with zero records. |
 | Focus delete | `delete_focus` | `official focus delete --type 0|1 --yes` | implemented with dry-run | Local dry-run works without a token. Destructive live delete requires `--yes` and a disposable focus record. |
+| Focus create/update | `create_focus`, `update_focus` | `official call <tool> --dry-run` | discoverable | Both tools are present in the 2026-10-23 live catalog; no first-class wrapper yet. |
 | Project detail | `get_project_by_id` | `official project get` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Project data | `get_project_with_undone_tasks` | `official project data` | live-verified | Live smoke succeeded on 2026-05-10 using a project id discovered through `list_projects`; private project data was not committed. |
 | Time-query task read | `list_undone_tasks_by_time_query` | `official task query` | live-verified | `today` query succeeded on 2026-05-10; 2026-07-07 refresh succeeded with zero tasks. |
@@ -53,16 +57,19 @@ These channels use different auth models and command paths.
 | Area | Endpoint / action | DidaCLI surface | Status | Evidence / next action |
 | --- | --- | --- | --- | --- |
 | Client config | local OAuth app credentials | `openapi client status/set/clear` | implemented | Stores client id/secret locally for OAuth commands; secret is accepted through stdin and not printed. |
+| Personal token | `Authorization: Bearer <personal-token>` | `DIDA365_OPENAPI_TOKEN` | implemented | Keeps the OpenAPI credential separate from MCP `DIDA365_TOKEN`; `openapi status` reports `source: "env"`. |
 | OAuth URL | `GET https://dida365.com/oauth/authorize` | `openapi auth-url` | implemented | Generates authorization URL from env or saved client credentials. |
 | Callback listener | local HTTP callback | `openapi listen-callback` | live-verified | 2026-05-10 listener received a real callback with `code` and matching `state`. |
 | Token exchange | `POST https://dida365.com/oauth/token` | `openapi exchange-code` | live-verified | 2026-05-10 real callback code exchange saved a bearer token locally. |
 | Interactive login | OAuth URL + listener + token exchange | `openapi login` | live-verified | OAuth browser approval, callback handling, and token persistence are proven without committing token material. |
+| Generic endpoint call | any documented `/open/v1` path | `openapi call <METHOD> <path>` | implemented with dry-run | GET and known read-only POST paths run directly; other methods require `--yes`. |
 | Project list | `GET /open/v1/project` | `openapi project list` | live-verified | 2026-05-10 live smoke returned a valid list shape; 2026-07-07 refresh returned 6 projects with count-only evidence. |
 | Project get/data | `GET /open/v1/project/{id}`, `/data` | `openapi project get/data` | live-verified | 2026-05-10 live smoke succeeded against a project discovered through `openapi project list`; 2026-07-07 refresh also succeeded against a discovered project, with private project data omitted. |
 | Task CRUD | `/open/v1/task...` | `openapi task get/create/update/complete/delete/move` | partially live-verified | 2026-05-10 project-scoped `task get` succeeded. Write commands require disposable live tasks before final smoke. |
-| Task query | `/open/v1/task/completed`, `/open/v1/task/filter` | `openapi task completed/filter` | live-verified | 2026-05-10 bounded `completed` and `filter` reads succeeded; 2026-07-07 refresh returned 25 completed tasks and 0 filtered open tasks with count-only evidence. |
+| Task query | `/open/v1/task/completed`, `/open/v1/task/filter`, `/open/v1/task/undone` | `openapi task completed/filter`; generic `openapi call` for undone | live-verified | 2026-05-10 bounded `completed` and `filter` reads succeeded; 2026-07-07 refresh returned 25 completed tasks and 0 filtered open tasks with count-only evidence. `/task/undone` is allowlisted as a read-only generic call. |
 | Focus | `/open/v1/focus...` | `openapi focus get/list/delete` | partially live-verified | 2026-05-10 bounded `focus list` succeeded for type 0 and type 1; 2026-07-07 refresh over 2026-01-01 to 2026-07-07 also succeeded with zero records. Known-id `get` and `delete` need disposable focus records. |
 | Habit | `/open/v1/habit...` | `openapi habit list/get/create/update/checkin/checkins` | partially live-verified | 2026-05-10 `habit list` succeeded; 2026-07-07 refresh succeeded with zero habits. Known-id reads and writes need disposable habit data. |
+| Expanded official resources | tags, groups, columns, comments, search, assign, countdown, preference | `openapi call` | implemented with dry-run | The DIDA CLI package linked by Dida365 help exposes these paths; wrapper promotion remains usage-driven. |
 
 This matrix is an evidence log. Active next actions live in
 [`ROADMAP.md`](../../ROADMAP.md).

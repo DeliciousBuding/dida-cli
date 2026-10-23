@@ -120,6 +120,10 @@ dida official habit sections --json
 dida official habit get <habit-id> --json
 dida official habit create --args-json "{\"name\":\"Read\",\"type\":\"Boolean\"}" --dry-run --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
+dida official call list_countdowns --args-json "{}" --dry-run --json
+dida official call get_comment --args-json "{\"project_id\":\"<project-id>\",\"task_id\":\"<task-id>\"}" --json
+dida official call create_tag --args-json "{\"label\":\"work\"}" --dry-run --json
+dida official call create_tag --args-json "{\"label\":\"work\"}" --yes --json
 dida openapi doctor --json
 dida openapi status --json
 dida openapi logout --json
@@ -127,6 +131,10 @@ dida openapi client status --json
 dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi auth-url --json
 dida openapi exchange-code --code <code> --json
+dida openapi call GET /tag --json
+dida openapi call GET /countdown --json
+dida openapi call POST /task/undone --args-json "{\"startDate\":\"2026-10-20T00:00:00+0800\",\"endDate\":\"2026-10-23T23:59:59+0800\"}" --json
+dida openapi call POST /tag --args-json "{\"label\":\"work\"}" --dry-run --json
 dida openapi project list --json
 dida openapi project get <project-id> --json
 dida openapi project data <project-id> --json
@@ -176,19 +184,23 @@ dida user sessions --limit 10 --json
 ```
 
 Use `dida official token clear --json` only when intentionally removing the
-saved local official MCP token. Use `dida official call ...` primarily for
-read-only exploration after checking `dida official show <tool-name> --json`;
-prefer first-class `official project/task/habit/focus` wrappers for normal
-work.
+saved local official MCP token. Use `dida official call ...` for newly
+published or low-frequency tools after checking
+`dida official show <tool-name> --json`; prefer first-class
+`official project/task/habit/focus` wrappers for normal work.
 
 For OpenAPI OAuth setup, read `default_redirect_uri`, `default_scope`, and
 `next` from `dida openapi doctor --json`. Configure the developer app redirect
 URL to that exact URI before running `dida openapi login --browser --json`.
+For single-account automation, set `DIDA365_OPENAPI_TOKEN` instead; it is
+reported as `source: "env"` by `dida openapi status --json`.
 
-Use `official call` primarily for read-only exploration and schema-backed
-probes. For writes, prefer first-class `official task/habit/focus ... --dry-run`
-wrappers or get explicit operator approval; `official call` itself has no
-dry-run layer.
+Preview generic MCP calls with `official call <tool> --dry-run --json`.
+`official call` executes the fixed read-only tool allowlist directly; writes and
+unrecognized future tools require `--yes`. The allowlist intentionally ignores
+server annotations for authorization because MCP annotations are untrusted
+hints. `openapi call` executes GET and known read-only POST paths directly;
+other methods require `--yes`.
 
 ## Tasks
 
@@ -405,10 +417,11 @@ dida openapi habit checkin <habit-id> --args-json "{\"stamp\":20260407,\"value\"
 dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407 --json
 ```
 
-These commands use the official OAuth OpenAPI channel and require a saved
-OpenAPI access token from `dida openapi login`. Focus `--type` follows the
-official API values: `0` for Pomodoro and `1` for Timing. Habit and focus write
-commands support `--dry-run`; focus delete requires `--yes` when executed.
+These commands use the official OpenAPI channel. Set `DIDA365_OPENAPI_TOKEN`
+for single-account use, or complete OAuth login and use the saved access token.
+Focus `--type` follows the official API values: `0` for Pomodoro and `1` for
+Timing. Habit and focus write commands support `--dry-run`; focus delete
+requires `--yes` when executed.
 `dida openapi login --browser --json` emits one final JSON envelope after browser
 authorization completes. For manual no-browser OAuth, use `dida openapi
 auth-url --json` and `dida openapi listen-callback --json`.

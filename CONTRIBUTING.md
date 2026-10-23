@@ -11,7 +11,7 @@ go test ./...
 go build -o bin/dida ./cmd/dida
 ```
 
-**Requirements:** Go 1.26+, Python 3 with Playwright (only for browser login testing)
+**Requirements:** Go 1.26.10+, Python 3 with Playwright (only for browser login testing)
 
 ## Development Workflow
 
@@ -22,7 +22,7 @@ go build -o bin/dida ./cmd/dida
    go test ./...
    go vet ./...
    make staticcheck
-   go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
+   go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
    bash scripts/check-private-state.sh
    ```
    For release or packaging changes, run the full local preflight:
@@ -59,7 +59,7 @@ Examples:
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
 - [ ] `make staticcheck` passes
-- [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
+- [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
 - [ ] `bash scripts/validate-actions-pinned.sh` passes if touching `.github/workflows/`
 - [ ] `make release-check VERSION=vX.Y.Z` passes if preparing a release or touching `.github/workflows/`, `scripts/`, `npm/`, or `packaging/`

@@ -23,7 +23,7 @@ DidaCLI exposes three separate API channels:
 | --- | --- | --- | --- |
 | Web API | Browser cookie `t` | Web API resources outside the official channels | Primary working channel. |
 | Official MCP | `DIDA365_TOKEN` or configured token store | Official task/project/habit/focus tools | Token-based project/task reads and task writes are live-smoked; habit list, sections, and focus range reads are verified. |
-| Official OpenAPI | OAuth access token | Official REST project/task/focus/habit endpoints | OAuth login and project reads are live-verified; write smokes and known-id habit/focus paths need disposable targets. |
+| Official OpenAPI | Personal API token or OAuth access token | Official REST project/task/focus/habit endpoints | Personal-token path is supported; OAuth login and project reads are live-verified; write smokes and known-id habit/focus paths need disposable targets. |
 
 ## Coverage and evidence
 

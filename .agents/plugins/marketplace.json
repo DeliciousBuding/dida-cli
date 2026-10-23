@@ -1,0 +1,20 @@
+{
+  "name": "dida-cli",
+  "interface": {
+    "displayName": "DidaCLI"
+  },
+  "plugins": [
+    {
+      "name": "dida-cli",
+      "source": {
+        "source": "local",
+        "path": "./plugins/dida-cli"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

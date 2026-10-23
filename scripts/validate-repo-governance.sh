@@ -25,8 +25,20 @@ require_file CONTRIBUTING.md
 require_file CODE_OF_CONDUCT.md
 require_file SECURITY.md
 require_file RELEASE.md
+require_file .github/dependabot.yml
 require_file docs/distribution.md
+require_file docs/security/dependency-and-release-policy.md
+require_file docs/security/agent-plugin-design.md
 require_file npm/README.md
+require_file plugins/dida-cli/plugin.json
+require_file plugins/dida-cli/mcp.json
+require_file plugins/dida-cli/.claude-plugin/plugin.json
+require_file plugins/dida-cli/.mcp.json
+require_file plugins/dida-cli/skills/dida-cli/SKILL.md
+require_file .agents/plugins/marketplace.json
+require_file .claude-plugin/marketplace.json
+require_file scripts/install-agent-plugin.py
+require_file scripts/validate-agent-plugins.py
 require_file scripts/package-manager-smoke-preflight.sh
 require_file scripts/package-manager-smoke-preflight.test.sh
 require_file scripts/winget-submission-preflight.sh
@@ -57,6 +69,7 @@ require_text .github/pull_request_template.md 'go vet \./\.\.\.' "go vet checkli
 require_text .github/pull_request_template.md 'make staticcheck' "staticcheck checklist item"
 require_text .github/pull_request_template.md 'govulncheck' "govulncheck checklist item"
 require_text .github/pull_request_template.md 'check-private-state\.sh' "private-state checklist item"
+require_text .github/pull_request_template.md 'validate-agent-plugins\.py' "agent plugin validation checklist item"
 require_text .github/pull_request_template.md 'CHANGELOG\.md' "changelog checklist item"
 require_text .github/pull_request_template.md 'docs updated|Docs updated' "docs checklist item"
 
@@ -73,6 +86,9 @@ require_text .github/ISSUE_TEMPLATE/config.yml 'blank_issues_enabled: true' "bla
 require_text .github/ISSUE_TEMPLATE/config.yml 'security/advisories/new' "private security advisory contact link"
 require_text .github/ISSUE_TEMPLATE/config.yml 'docs/commands.md' "command reference contact link"
 require_text SECURITY.md 'private security advisory' "private advisory reporting path"
+require_text SECURITY.md 'govulncheck' "vulnerability scanning policy"
+require_text SECURITY.md 'docs/security/dependency-and-release-policy\.md' "dependency policy pointer"
+require_text SECURITY.md 'Agent Plugins' "agent plugin security boundary"
 require_text CONTRIBUTING.md 'scripts/check-private-state\.sh|check-private-state\.sh' "private-state contribution guidance"
 require_text CONTRIBUTING.md 'CODE_OF_CONDUCT\.md' "code of conduct contribution guidance"
 require_text CONTRIBUTING.md 'SECURITY\.md' "security reporting contribution guidance"
@@ -108,14 +124,64 @@ require_text Makefile 'package-manager-smoke-preflight\.test\.sh' "package-manag
 require_text Makefile 'winget-submission-preflight\.test\.sh' "winget submission preflight tests"
 require_text packaging/winget/README.md 'winget validate --manifest' "winget validation command"
 require_text Makefile '^staticcheck:' "Makefile staticcheck target"
+require_text Makefile '^agent-plugin-check:' "Makefile agent plugin target"
 require_text Makefile 'honnef\.co/go/tools/cmd/staticcheck@\$\(STATICCHECK_VERSION\)' "pinned Staticcheck make target"
 require_text Makefile '\$\(MAKE\) test' "release-check test gate"
 require_text Makefile '\$\(MAKE\) vet' "release-check vet gate"
 require_text Makefile '\$\(MAKE\) vuln' "release-check vulnerability gate"
 require_text Makefile '\$\(MAKE\) private-state' "release-check private-state gate"
 require_text .github/workflows/ci.yml 'STATICCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "CI Staticcheck version"
+require_text .github/workflows/ci.yml 'GOVULNCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "CI govulncheck version"
+require_text .github/workflows/ci.yml 'ACTIONLINT_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "CI actionlint version"
 require_text .github/workflows/ci.yml 'honnef\.co/go/tools/cmd/staticcheck@\$\{STATICCHECK_VERSION\}' "CI Staticcheck command"
 require_text .github/workflows/release.yml 'STATICCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "release Staticcheck version"
+require_text .github/workflows/release.yml 'GOVULNCHECK_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "release govulncheck version"
+require_text .github/workflows/release.yml 'ACTIONLINT_VERSION: v[0-9]+\.[0-9]+\.[0-9]+' "release actionlint version"
 require_text .github/workflows/release.yml 'honnef\.co/go/tools/cmd/staticcheck@\$\{STATICCHECK_VERSION\}' "release Staticcheck command"
+require_text .github/workflows/release.yml 'scripts/validate-agent-plugins\.py' "release agent plugin validation"
+
+require_text .github/dependabot.yml 'package-ecosystem: "github-actions"' "Dependabot actions updates"
+require_text .github/dependabot.yml 'package-ecosystem: "npm"' "Dependabot npm updates"
+require_text .github/dependabot.yml 'interval: "monthly"' "monthly Dependabot cadence"
+require_text .github/dependabot.yml 'groups:' "grouped Dependabot updates"
+require_text docs/security/dependency-and-release-policy.md 'High and critical vulnerabilities' "vulnerability response target"
+require_text docs/security/agent-plugin-design.md 'https://mcp.dida365.com' "official MCP server boundary"
+require_text plugins/dida-cli/plugin.json '"name": "dida-cli"' "portable plugin name"
+require_text plugins/dida-cli/.claude-plugin/plugin.json '"name": "dida-cli"' "Claude plugin name"
+require_text .agents/plugins/marketplace.json '"path": "./plugins/dida-cli"' "Codex marketplace plugin path"
+require_text .claude-plugin/marketplace.json '"source": "./plugins/dida-cli"' "Claude marketplace plugin path"
+
+go_version=$(awk '$1 == "go" { print $2; exit }' go.mod)
+case "$go_version" in
+  1.26.*) ;;
+  *)
+    echo "go.mod must stay on the supported Go 1.26 line, got ${go_version:-missing}" >&2
+    exit 1
+    ;;
+esac
+
+make_staticcheck=$(awk -F'= ' '/^STATICCHECK_VERSION/ { print $2; exit }' Makefile)
+ci_staticcheck=$(awk -F': ' '/STATICCHECK_VERSION:/ { print $2; exit }' .github/workflows/ci.yml)
+release_staticcheck=$(awk -F': ' '/STATICCHECK_VERSION:/ { print $2; exit }' .github/workflows/release.yml)
+if [[ -z "$make_staticcheck" || "$make_staticcheck" != "$ci_staticcheck" || "$make_staticcheck" != "$release_staticcheck" ]]; then
+  echo "Staticcheck versions must match across Makefile, CI, and release workflow" >&2
+  exit 1
+fi
+
+make_govulncheck=$(awk -F'= ' '/^GOVULNCHECK_VERSION/ { print $2; exit }' Makefile)
+ci_govulncheck=$(awk -F': ' '/GOVULNCHECK_VERSION:/ { print $2; exit }' .github/workflows/ci.yml)
+release_govulncheck=$(awk -F': ' '/GOVULNCHECK_VERSION:/ { print $2; exit }' .github/workflows/release.yml)
+if [[ -z "$make_govulncheck" || "$make_govulncheck" != "$ci_govulncheck" || "$make_govulncheck" != "$release_govulncheck" ]]; then
+  echo "govulncheck versions must match across Makefile, CI, and release workflow" >&2
+  exit 1
+fi
+
+make_actionlint=$(awk -F'= ' '/^ACTIONLINT_VERSION/ { print $2; exit }' Makefile)
+ci_actionlint=$(awk -F': ' '/ACTIONLINT_VERSION:/ { print $2; exit }' .github/workflows/ci.yml)
+release_actionlint=$(awk -F': ' '/ACTIONLINT_VERSION:/ { print $2; exit }' .github/workflows/release.yml)
+if [[ -z "$make_actionlint" || "$make_actionlint" != "$ci_actionlint" || "$make_actionlint" != "$release_actionlint" ]]; then
+  echo "actionlint versions must match across Makefile, CI, and release workflow" >&2
+  exit 1
+fi
 
 echo "repository governance files valid"

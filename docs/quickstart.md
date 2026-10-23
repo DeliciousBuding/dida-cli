@@ -114,11 +114,13 @@ dida official task batch-add --args-json '{"tasks":[{"title":"Task"}]}' --dry-ru
 
 ## Official OpenAPI
 
-Official OpenAPI is OAuth-based REST. It is separate from Web API and official
-MCP.
+Official OpenAPI is documented REST and supports a personal API token or OAuth.
+It is separate from Web API and official MCP.
 
 ```bash
 dida openapi doctor --json
+DIDA365_OPENAPI_TOKEN=personal_token_xxx dida openapi project list --json
+# Or configure OAuth:
 dida openapi client set --id <client-id> --secret-stdin --json
 dida openapi login --browser --json
 dida openapi project list --json

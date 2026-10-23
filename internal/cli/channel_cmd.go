@@ -68,7 +68,7 @@ func channelGuideData() map[string]any {
 					"settings, sharing, calendar, templates, stats, trash, closed history, and search",
 				},
 				AvoidFor: []string{
-					"public OAuth REST validation",
+					"public OpenAPI REST validation",
 					"new private write flows without captured request and rollback evidence",
 				},
 				FirstChecks: []string{
@@ -99,12 +99,12 @@ func channelGuideData() map[string]any {
 			{
 				ID:   "official-openapi",
 				Name: "Official OpenAPI",
-				Auth: "OAuth access token saved by dida openapi login --browser --json",
-				Role: "Official OAuth REST channel",
+				Auth: "DIDA365_OPENAPI_TOKEN or OAuth access token saved by dida openapi login --browser --json",
+				Role: "Official OpenAPI REST channel",
 				BestFor: []string{
 					"public REST contract validation",
 					"OpenAPI project/task/focus/habit wrappers",
-					"OAuth integration testing",
+					"personal-token and OAuth integration testing",
 				},
 				AvoidFor: []string{
 					"MCP dp tokens",
@@ -122,14 +122,14 @@ func channelGuideData() map[string]any {
 			{Job: "normal-task-work", Prefer: "webapi", Fallback: "official-mcp when token auth is required", Notes: "Web API task commands have compact reads, dry-run writes, and --yes deletes."},
 			{Job: "timed-reminder-task", Prefer: "webapi body + openapi reminders", Fallback: "none when identity mismatch", Notes: "dida task create/update with --reminder coordinates Web (body) then OpenAPI (reminders). Requires dida account verify identity match. Web batch/task reminders return HTTP 500."},
 			{Job: "habit-focus-work", Prefer: "official-mcp or official-openapi", Fallback: "webapi habit/pomo reads for web-app-only views", Notes: "Use official surfaces first; live writes need disposable targets."},
-			{Job: "public-rest-validation", Prefer: "official-openapi", Notes: "Requires OpenAPI OAuth client config and saved access token."},
+			{Job: "public-rest-validation", Prefer: "official-openapi", Notes: "Uses DIDA365_OPENAPI_TOKEN or saved OAuth access token."},
 			{Job: "web-app-only-metadata", Prefer: "webapi", Notes: "Use Web API for settings, comments, sharing, calendar, templates, stats, trash, closed history, and search."},
 			{Job: "unknown-private-write", Prefer: "none", Notes: "Document endpoint, payload, response, rollback, and live evidence before adding a command."},
 		},
 		"authBoundaries": []string{
 			"Do not send Web API cookie t to Official MCP or OpenAPI commands.",
 			"Do not send DIDA365_TOKEN or dp tokens to Web API or OpenAPI commands.",
-			"Do not treat an OpenAPI OAuth access token as a browser cookie or MCP token.",
+			"Do not treat an OpenAPI personal token or OAuth access token as a browser cookie or MCP token.",
 		},
 		"blockers": []channelBlockerGuide{
 			{Blocker: "openapi-live-resource-calls", EvidenceNeeded: "dida openapi login --browser --json saves an OAuth token, then dida openapi project list --json succeeds."},

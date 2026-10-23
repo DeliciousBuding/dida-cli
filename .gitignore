@@ -32,6 +32,8 @@ node_modules/
 *.log
 *.tmp
 *.test
+*.pyc
+__pycache__/
 
 .env
 .env.*

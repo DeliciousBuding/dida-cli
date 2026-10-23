@@ -3,10 +3,16 @@
 This document is a repo-authored summary of the official Dida365 OpenAPI page.
 It is intended for implementation planning and channel comparison inside DidaCLI.
 
-Source material was reviewed from a locally saved copy of the developer page
-and the public documentation URL:
+Source material was reviewed from the live developer documentation and the
+public documentation URL:
 
 - `https://developer.dida365.com/docs/index.html#/openapi`
+- `https://developer.dida365.com/docs/openapi.md`
+
+The expanded resource mapping was rechecked on 2026-10-23 against
+`@suibiji/dida-cli@0.1.14`, the DIDA CLI package linked by the official
+Dida365 help center. DidaCLI still treats the developer page and live API
+responses as the primary contract.
 
 ## Purpose
 
@@ -17,24 +23,31 @@ Compared with the official MCP channel, it is lower-level and OAuth-oriented.
 ## Auth Model
 
 The official OpenAPI is not based on the browser cookie `t`.
-It is also not the same token model as the official MCP `dp_...` token flow.
+It accepts either a personal API token or an OAuth access token as a Bearer
+credential. DidaCLI keeps the personal-token environment variable separate from
+the MCP token channel.
 
-Observed auth flow:
+Observed auth options:
 
-1. Register an app in the Dida365 developer center to obtain a `client_id` and `client_secret`.
-2. Redirect the user to the Dida365 authorization page:
+1. For single-account automation, create a personal API token in the web app
+   and send it as `Authorization: Bearer <personal-token>`.
+2. For app authorization, register an app in the Dida365 developer center to
+   obtain a `client_id` and `client_secret`.
+3. Redirect the user to the Dida365 authorization page:
    `https://dida365.com/oauth/authorize`
-3. Receive an authorization `code` on the configured `redirect_uri`.
-4. Exchange that `code` for an OAuth access token at:
+4. Receive an authorization `code` on the configured `redirect_uri`.
+5. Exchange that `code` for an OAuth access token at:
    `https://dida365.com/oauth/token`
-5. Call OpenAPI endpoints with:
+6. Call OpenAPI endpoints with:
    `Authorization: Bearer <access_token>`
 
-Important implication for DidaCLI:
+Important implications for DidaCLI:
 
-- this channel is the OAuth-based third channel for documented REST resources
+- this channel is the documented REST third channel; OAuth is one credential
+  mode and personal API tokens are the lightweight mode
 - it should not be modeled as a drop-in replacement for Web API cookie auth
-- it should not be conflated with the official MCP `DIDA365_TOKEN=dp_...` flow
+- personal OpenAPI tokens use `DIDA365_OPENAPI_TOKEN`, separate from the MCP
+  `DIDA365_TOKEN=dp_...` flow
 
 ## Verified Runtime Findings
 
@@ -53,7 +66,8 @@ The following behavior was verified directly during implementation work:
 Practical conclusion:
 
 - `client_id` and `client_secret` are not themselves an OpenAPI access token
-- a real OAuth authorization code flow is still required before the OpenAPI can be used as a live third channel
+- an OpenAPI call still needs either a personal API token or a real OAuth access
+  token
 - DidaCLI now has local OAuth plumbing for this flow:
   `openapi client set`, `openapi auth-url`, `openapi login`,
   `openapi listen-callback`, `openapi exchange-code`, `openapi status`, and
@@ -61,15 +75,21 @@ Practical conclusion:
 - `openapi login` is designed for local callback URLs such as
   `http://127.0.0.1:17890/callback`; non-loopback redirect hosts are rejected
   before browser launch so agents get a fast JSON error instead of a long wait
+- `DIDA365_OPENAPI_TOKEN` bypasses OAuth setup for single-account use and is
+  reported as the active source by `openapi status`
 
 ## Main Resource Areas
 
-The reviewed page groups the official OpenAPI into four main resource areas:
+The current mapping spans these resource areas:
 
 1. Task
 2. Project
-3. Focus
-4. Habit
+3. Project group and column
+4. Task comment and assignment
+5. Tag
+6. Focus
+7. Habit
+8. Countdown and preference
 
 It also includes a Definitions section for the main response models.
 
@@ -81,10 +101,18 @@ Documented task paths include:
 - `POST /open/v1/task`
 - `POST /open/v1/task/{taskId}`
 - `POST /open/v1/project/{projectId}/task/{taskId}/complete`
+- `POST /open/v1/task/completeTasks`
 - `DELETE /open/v1/project/{projectId}/task/{taskId}`
 - `POST /open/v1/task/move`
+- `POST /open/v1/task/assign`
+- `POST /open/v1/task/unassign`
 - `POST /open/v1/task/completed`
 - `POST /open/v1/task/filter`
+- `POST /open/v1/task/search`
+- `POST /open/v1/task/undone`
+- `GET /open/v1/project/{projectId}/task/{taskId}/comments`
+- `POST /open/v1/project/{projectId}/task/{taskId}/comment`
+- `DELETE /open/v1/project/{projectId}/task/{taskId}/comment/{id}`
 
 The task model in the page covers the familiar fields:
 
@@ -111,9 +139,17 @@ Documented project paths include:
 - `GET /open/v1/project`
 - `GET /open/v1/project/{projectId}`
 - `GET /open/v1/project/{projectId}/data`
+- `GET /open/v1/project/{projectId}/members`
 - `POST /open/v1/project`
 - `POST /open/v1/project/{projectId}`
 - `DELETE /open/v1/project/{projectId}`
+- `GET /open/v1/project/group`
+- `POST /open/v1/project/group`
+- `POST /open/v1/project/group/{projectGroupId}`
+- `DELETE /open/v1/project/group/{projectGroupId}`
+- `GET /open/v1/project/{projectId}/column`
+- `POST /open/v1/project/{projectId}/column`
+- `POST /open/v1/project/{projectId}/column/{columnId}`
 
 The project-related models include:
 
@@ -131,6 +167,8 @@ Documented focus paths include:
 
 - `GET /open/v1/focus/{focusId}`
 - `GET /open/v1/focus`
+- `POST /open/v1/focus`
+- `POST /open/v1/focus/{focusId}`
 - `DELETE /open/v1/focus/{focusId}`
 
 The page documents an `OpenFocus` model and related task-brief structures.
@@ -142,6 +180,7 @@ OAuth validation.
 Documented habit paths include:
 
 - `GET /open/v1/habit/{habitId}`
+- `GET /open/v1/habit/sections`
 - `GET /open/v1/habit`
 - `POST /open/v1/habit`
 - `POST /open/v1/habit/{habitId}`
@@ -157,6 +196,32 @@ The page also documents the habit data models:
 This is now wrapped in DidaCLI as
 `openapi habit list/get/create/update/checkin/checkins`, pending live OAuth
 validation.
+
+## Tag, Preference, And Countdown Endpoints
+
+Additional documented and mapped paths include:
+
+- `GET /open/v1/tag`
+- `POST /open/v1/tag`
+- `PUT /open/v1/tag`
+- `PUT /open/v1/tag/rename?scope=...`
+- `DELETE /open/v1/tag/delete?scope=...`
+- `POST /open/v1/preference`
+- `GET /open/v1/countdown`
+
+These do not yet have dedicated first-class wrappers. Use the constrained
+generic command:
+
+```bash
+dida openapi call GET /tag --json
+dida openapi call POST /preference --args-json '{}' --json
+dida openapi call POST /tag --args-json '{"label":"work"}' --dry-run --json
+```
+
+`GET` and the known read-only POST paths `/preference`, `/task/completed`,
+`/task/filter`, `/task/search`, and `/task/undone` execute without `--yes`.
+Other writes require
+`--yes`.
 
 ## Definitions Covered By The Page
 
@@ -182,18 +247,15 @@ These definitions are useful when comparing:
 
 ## What The Official OpenAPI Does Not Cover Well
 
-Compared with the private Web API currently used by DidaCLI, the reviewed page
-does not give us the broader surface we already rely on for:
+Compared with the private Web API currently used by DidaCLI, the official
+mapping still does not replace:
 
-- comments
-- tags
-- project groups / folders
 - share metadata
 - calendar subscription metadata
 - template listing
 - broad account settings and Web-specific preferences
-- raw search across multiple resource types
 - closed history and many web-only operational views
+- session and device metadata
 
 So even with OAuth support in DidaCLI, the official OpenAPI still should not
 replace the Web API as the broadest coverage channel.
@@ -212,6 +274,10 @@ The current first-class official OpenAPI command surface covers:
 - task get/create/update/complete/delete/move/completed/filter
 - focus get/list/delete
 - habit list/get/create/update/checkin/checkins
+
+The `openapi call` escape hatch now covers newly documented endpoints without a
+first-class wrapper while preserving the OAuth host boundary and a write
+confirmation gate.
 
 The least urgent official OpenAPI work is broad account-level functionality,
 because that is where the private Web API is currently much more capable.

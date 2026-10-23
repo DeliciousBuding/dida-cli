@@ -1,123 +1,131 @@
 # Official MCP Tool Crosswalk
 
-This file maps the official dida365 MCP tools to the current DidaCLI command
-surface and highlights which official tools are most valuable to wrap as
-first-class commands.
+Live snapshot: **57 tools**, verified against `https://mcp.dida365.com` on
+2026-10-23 with `dida official tools --full --json`.
 
-## Project Tools
+The live `tools/list` response is the authority. This page records the current
+surface and the intended command strategy; it is not a hand-maintained schema.
 
-| Official MCP tool | Current DidaCLI equivalent | Assessment |
+## Coverage Strategy
+
+DidaCLI uses two layers instead of cloning every upstream tool into a parallel
+command tree:
+
+1. **First-class wrappers** for stable, high-value reads and writes with local
+   validation and `--dry-run` previews.
+2. **`official call <tool>`** for newly published or low-frequency tools.
+   Preview with `dida official call <tool> --args-json '...' --dry-run --json`
+   before executing. A fixed read-only tool allowlist runs directly; writes and
+   unrecognized future tools require `--yes`.
+
+The live server advertised MCP `2026-07-28` stateless discovery and per-request
+metadata. DidaCLI negotiates that protocol first and retains the legacy
+initialize handshake only as a fallback.
+
+The 2026-10-23 response included `outputSchema` and annotations for all 57
+tools. No current input schema used `x-mcp-header`; the client still treats
+annotations as untrusted discovery hints rather than authorization metadata.
+
+The live catalog can be inspected with:
+
+```bash
+dida official doctor --json
+dida official tools --limit 100 --json
+dida official show <tool-name> --json
+```
+
+## Projects And Organization
+
+| Official tool | DidaCLI surface | Status |
 | --- | --- | --- |
-| `list_projects` | `official project list` | Wrapped after live evidence because project discovery is a common official-channel first read |
-| `get_project_by_id` | `official project get` | Wrapped |
-| `get_project_with_undone_tasks` | `official project data` | Wrapped as a bundle read |
-| `get_task_by_id` | `official task get` | Wrapped; use when only task id is known |
-| `get_task_in_project` | `official task get --project <project-id>` | Wrapped; use when project id is known |
-| `create_project` | `project create` | Overlap |
-| `update_project` | `project update` | Overlap |
+| `list_projects` | `official project list` | first-class |
+| `get_project_by_id` | `official project get` | first-class |
+| `get_project_with_undone_tasks` | `official project data` | first-class |
+| `list_project_members` | `official call list_project_members` | generic |
+| `create_project` | `official call create_project` | generic; Web API wrapper also exists |
+| `update_project` | `official call update_project` | generic; Web API wrapper also exists |
+| `list_project_groups` | `official call list_project_groups` | generic |
+| `create_project_group` | `official call create_project_group` | generic |
+| `update_project_group` | `official call update_project_group` | generic |
+| `delete_project_group` | `official call delete_project_group --yes` | generic; destructive |
+| `list_columns` | `official call list_columns` | generic |
+| `create_column` | `official call create_column` | generic |
+| `update_column` | `official call update_column` | generic |
 
-## Task Write Tools
+## Tasks
 
-| Official MCP tool | Current DidaCLI equivalent | Assessment |
+| Official tool | DidaCLI surface | Status |
 | --- | --- | --- |
-| `create_task` | `task create` | Overlap |
-| `update_task` | `task update` | Overlap |
-| `complete_task` | `task complete` | Overlap |
-| `complete_tasks_in_project` | `official task complete-project` | Wrapped with local dry-run preview; live-smoked with a disposable task on 2026-05-10 |
-| `move_task` | `task move` | Overlap |
-| `batch_add_tasks` | `official task batch-add` | Wrapped with `--args-json` / `--args-file` and dry-run preview; live-smoked with cleanup on 2026-05-10 |
-| `batch_update_tasks` | `official task batch-update` | Wrapped with `--args-json` / `--args-file` and dry-run preview; live-smoked with cleanup on 2026-05-10 |
+| `get_task_by_id` | `official task get` | first-class |
+| `get_task_in_project` | `official task get --project <id>` | first-class |
+| `search_task` | `official task search` | first-class |
+| `list_undone_tasks_by_time_query` | `official task query` | first-class |
+| `list_undone_tasks_by_date` | `official task undone` | first-class |
+| `filter_tasks` | `official task filter` | first-class |
+| `batch_add_tasks` | `official task batch-add` | first-class, dry-run |
+| `batch_update_tasks` | `official task batch-update` | first-class, dry-run |
+| `complete_tasks_in_project` | `official task complete-project` | first-class, dry-run |
+| `create_task` | `official call create_task` | generic; Web API wrapper also exists |
+| `update_task` | `official call update_task` | generic; Web API wrapper also exists |
+| `complete_task` | `official call complete_task` | generic |
+| `complete_checklist_item` | `official call complete_checklist_item` | generic |
+| `delete_task` | `official call delete_task --yes` | generic; destructive |
+| `move_task` | `official call move_task` | generic |
+| `assign_task` | `official call assign_task` | generic |
+| `unassign_task` | `official call unassign_task` | generic |
+| `list_completed_tasks_by_date` | `official call list_completed_tasks_by_date` | generic |
+| `search` | `official call search` | generic, complement to `search_task` |
+| `fetch` | `official call fetch` | generic, ID-based full task fetch |
 
-## Task Read / Query Tools
+## Comments, Tags, Countdowns, And Calendar
 
-| Official MCP tool | Current DidaCLI equivalent | Assessment |
+| Official tool | DidaCLI surface | Status |
 | --- | --- | --- |
-| `get_task_in_project` | `task get` | Overlap; official is stricter |
-| `get_task_by_id` | `task get` | Overlap |
-| `fetch` | `task get` or `raw get` depending on use | Useful but overlapping |
-| `search` | `search all` | Overlap; official may be narrower and cleaner |
-| `search_task` | `official task search` | Wrapped; Web API search remains separate |
-| `filter_tasks` | `official task filter` | Wrapped |
-| `list_undone_tasks_by_date` | `official task undone` | Wrapped |
-| `list_undone_tasks_by_time_query` | `official task query` | Wrapped as a friendlier query command |
-| `list_completed_tasks_by_date` | `completed list` | Overlap |
+| `get_comment` | `official call get_comment` | generic |
+| `add_comment` | `official call add_comment` | generic; write-capable |
+| `delete_comment` | `official call delete_comment --yes` | generic; destructive |
+| `list_tags` | `official call list_tags` | generic |
+| `create_tag` | `official call create_tag` | generic |
+| `rename_tag` | `official call rename_tag` | generic |
+| `update_tag` | `official call update_tag` | generic |
+| `delete_tag` | `official call delete_tag --yes` | generic; destructive |
+| `list_countdowns` | `official call list_countdowns` | generic |
+| `list_calendar_accounts` | `official call list_calendar_accounts` | generic |
+| `query_calendar_events` | `official call query_calendar_events` | generic; bounded read |
 
-## Habit Tools
+## Habits, Focus, And Preferences
 
-| Official MCP tool | Current DidaCLI equivalent | Assessment |
+| Official tool | DidaCLI surface | Status |
 | --- | --- | --- |
-| `list_habits` | `habit list` | Overlap |
-| `list_habit_sections` | `habit sections` | Overlap |
-| `get_habit` | `official habit get` | Wrapped |
-| `create_habit` | `official habit create` | Wrapped |
-| `update_habit` | `official habit update` | Wrapped |
-| `upsert_habit_checkins` | `official habit checkin` | Wrapped for one check-in at a time |
-| `get_habit_checkins` | `habit checkins` | Overlap |
+| `list_habits` | `official habit list` | first-class |
+| `list_habit_sections` | `official habit sections` | first-class |
+| `get_habit` | `official habit get` | first-class |
+| `create_habit` | `official habit create` | first-class, dry-run |
+| `update_habit` | `official habit update` | first-class, dry-run |
+| `upsert_habit_checkins` | `official habit checkin` | first-class, dry-run |
+| `get_habit_checkins` | `official habit checkins` | first-class |
+| `get_focus` | `official focus get` | first-class |
+| `get_focuses_by_time` | `official focus list` | first-class |
+| `delete_focus` | `official focus delete --yes` | first-class, destructive |
+| `create_focus` | `official call create_focus` | generic; required `startTime`, `endTime`, `type` |
+| `update_focus` | `official call update_focus` | generic; type required |
+| `get_user_preference` | `official call get_user_preference` | generic |
 
-## Focus Tools
+## What Changed In The 2026-10-23 Snapshot
 
-| Official MCP tool | Current DidaCLI equivalent | Assessment |
-| --- | --- | --- |
-| `get_focus` | `official focus get --type 0|1` | Wrapped; upstream requires focus id and type |
-| `get_focuses_by_time` | `official focus list --from-time ... --to-time ... --type 0|1` | Wrapped; upstream requires `from_time`, `to_time`, and type |
-| `delete_focus` | `official focus delete --type 0|1 --yes` | Wrapped; upstream requires focus id and type |
+- The official catalog now exposes task assignment, checklist completion,
+  comments, tag mutations, project groups/columns, countdowns, calendar access,
+  and focus creation/update.
+- The former claim that comments, tags, and folders are Web-API-only is stale.
+- The catalog remains narrower than the private Web API for sharing, templates,
+  account sessions, broad settings, and some calendar metadata.
 
-## Preference Tool
+## Tool Contract Rules
 
-| Official MCP tool | Current DidaCLI equivalent | Assessment |
-| --- | --- | --- |
-| `get_user_preference` | `settings get` | Overlap, but official contract is narrower and cleaner |
-
-## Best Official MCP Candidates For First-Class Wrapping
-
-These are the official MCP tools with the strongest justification for dedicated
-commands instead of only `official call`.
-
-1. `get_project_by_id` - wrapped as `official project get`
-2. `get_project_with_undone_tasks` - wrapped as `official project data`
-3. `complete_tasks_in_project` - wrapped as `official task complete-project`
-4. `batch_add_tasks` - wrapped as `official task batch-add`
-5. `batch_update_tasks` - wrapped as `official task batch-update`
-6. `filter_tasks` - wrapped as `official task filter`
-7. `list_undone_tasks_by_date` - wrapped as `official task undone`
-8. `search_task` - wrapped as `official task search`
-9. `list_undone_tasks_by_time_query` - wrapped as `official task query`
-10. `get_habit` - wrapped as `official habit get`
-11. `create_habit` - wrapped as `official habit create`
-12. `update_habit` - wrapped as `official habit update`
-13. `upsert_habit_checkins` - wrapped as `official habit checkin`
-14. `get_focus` - wrapped as `official focus get`
-15. `get_focuses_by_time` - wrapped as `official focus list`
-16. `delete_focus` - wrapped as `official focus delete`
-
-## Notable Overlap Pattern
-
-The official MCP channel is not a replacement for the Web API channel.
-
-What it is best at:
-
-- well-defined task and project operations
-- official token-based auth
-- clean typed schemas
-- batch task operations
-- habit write support
-- focus support
-
-What the Web API still does better:
-
-- comments
-- tags
-- folders
-- sharing
-- calendar metadata
-- templates
-- web-only settings
-- account/session metadata
-- attachment quota and broader account surfaces
-
-## Current Recommendation
-
-- Keep `official call` as the generic power-user / exploration surface.
-- Promote only the high-value official tools into first-class commands.
-- Avoid cloning the entire official MCP catalogue into parallel command trees
-  unless there is a real UX or capability gain.
+- Use the live catalog and schemas, not an embedded copy, for discovery.
+- Treat the MCP `inputSchema` as the argument authority. Current MCP schemas use
+  JSON Schema 2020-12 with an object root.
+- Treat annotations as hints; host approval and DidaCLI confirmation remain the
+  authorization boundary.
+- Do not expose a generic write without a dry-run preview or explicit `--yes`.
+- Preserve deterministic tool ordering and do not rewrite upstream results.

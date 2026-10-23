@@ -12,7 +12,22 @@ Version numbers follow [Semantic Versioning](https://semver.org/).
 - Web API task-field documentation now uses the same `isAllDay` mutation name.
 
 ### Changed
-- Updated the build toolchain to Go 1.26.10 and Staticcheck to v0.8.2.
+- Updated the build toolchain to Go 1.26.10, Staticcheck v0.8.2,
+  govulncheck v1.9.0, and actionlint v1.7.12.
+- Refreshed pinned GitHub Actions, CodeQL, Scorecard, Dependabot grouping, and
+  the dependency/release security policy.
+
+### Added
+- `official call --dry-run` for safe preview of newly published MCP tools.
+- Fixed read-only allowlisting for `official call`; writes and unrecognized
+  future tools now require `--yes`.
+- MCP `2026-07-28` stateless discovery and per-request metadata negotiation,
+  with paginated tool discovery and legacy handshake fallback.
+- `openapi call` for constrained access to newly documented REST endpoints.
+- `DIDA365_OPENAPI_TOKEN` support for the OpenAPI personal-token flow added to
+  the current official documentation.
+- Portable Codex and Claude Code plugin manifests with one-command install
+  helpers for the DidaCLI skill and official Dida365 MCP server.
 
 ## [v0.2.7] - 2026-07-18
 

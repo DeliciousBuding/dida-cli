@@ -12,30 +12,49 @@ import (
 	"time"
 )
 
-func TestToolsHandshakeFlow(t *testing.T) {
-	var initSeen, notifySeen, toolsSeen bool
+func TestToolsStatelessFlow(t *testing.T) {
+	var discoverSeen bool
+	toolsPages := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var payload map[string]any
 		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 			t.Fatalf("decode request: %v", err)
 		}
 		switch payload["method"] {
-		case "initialize":
-			initSeen = true
-			w.Header().Set("Mcp-Session-Id", "sess-1")
-			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{"protocolVersion": InitProtocolVersion}})
-		case "notifications/initialized":
-			notifySeen = true
-			w.WriteHeader(http.StatusNoContent)
+		case "server/discover":
+			discoverSeen = true
+			assertModernRequest(t, r, payload, "server/discover", "")
+			_ = json.NewEncoder(w).Encode(map[string]any{
+				"jsonrpc": "2.0",
+				"id":      1,
+				"result": map[string]any{
+					"resultType":        "complete",
+					"supportedVersions": []string{LatestProtocolVersion},
+				},
+			})
 		case "tools/list":
-			toolsSeen = true
-			if got := r.Header.Get("Mcp-Session-Id"); got != "sess-1" {
-				t.Fatalf("session header = %q, want sess-1", got)
+			toolsPages++
+			assertModernRequest(t, r, payload, "tools/list", "")
+			params := payload["params"].(map[string]any)
+			result := map[string]any{
+				"resultType": "complete",
+				"ttlMs":      300000,
+				"cacheScope": "public",
+				"tools":      []map[string]any{{"name": "list_projects", "description": "List"}},
 			}
-			if got := r.Header.Get("MCP-Protocol-Version"); got != ProtocolVersion {
-				t.Fatalf("protocol header = %q, want %q", got, ProtocolVersion)
+			if toolsPages == 1 {
+				if _, ok := params["cursor"]; ok {
+					t.Fatalf("first page unexpectedly had cursor %#v", params["cursor"])
+				}
+				result["tools"] = []map[string]any{{"name": "list_projects", "description": "List"}}
+				result["nextCursor"] = "page-2"
+			} else {
+				if params["cursor"] != "page-2" {
+					t.Fatalf("second page cursor = %#v", params["cursor"])
+				}
+				result["tools"] = []map[string]any{{"name": "get_user_preference", "description": "Preference"}}
 			}
-			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 2, "result": map[string]any{"tools": []map[string]any{{"name": "list_projects", "description": "List"}}}})
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 2, "result": result})
 		default:
 			t.Fatalf("unexpected method %#v", payload["method"])
 		}
@@ -47,15 +66,101 @@ func TestToolsHandshakeFlow(t *testing.T) {
 	if err := client.Initialize(context.Background(), "test", "0.1.0"); err != nil {
 		t.Fatalf("Initialize() error = %v", err)
 	}
+	if !client.Stateless || client.ProtocolVersion != LatestProtocolVersion {
+		t.Fatalf("negotiation = stateless:%v protocol:%q", client.Stateless, client.ProtocolVersion)
+	}
 	tools, err := client.Tools(context.Background())
 	if err != nil {
 		t.Fatalf("Tools() error = %v", err)
 	}
-	if !initSeen || !notifySeen || !toolsSeen {
-		t.Fatalf("handshake flags = init:%v notify:%v tools:%v", initSeen, notifySeen, toolsSeen)
+	if !discoverSeen || toolsPages != 2 {
+		t.Fatalf("request flags = discover:%v toolsPages:%d", discoverSeen, toolsPages)
 	}
-	if len(tools) != 1 || tools[0].Name != "list_projects" {
+	if len(tools) != 2 || tools[0].Name != "list_projects" || tools[1].Name != "get_user_preference" {
 		t.Fatalf("tools = %#v", tools)
+	}
+	if client.ToolListTTLMs != 300000 || client.ToolListCacheScope != "public" {
+		t.Fatalf("tool cache metadata = ttl:%d scope:%q", client.ToolListTTLMs, client.ToolListCacheScope)
+	}
+}
+
+func TestInitializeFallsBackToLegacyHandshake(t *testing.T) {
+	var initSeen, notifySeen, toolsSeen bool
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		switch payload["method"] {
+		case "server/discover":
+			http.Error(w, "method not found", http.StatusNotFound)
+		case "initialize":
+			initSeen = true
+			w.Header().Set("Mcp-Session-Id", "sess-1")
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{"protocolVersion": LegacyProtocolVersion}})
+		case "notifications/initialized":
+			notifySeen = true
+			if got := r.Header.Get("MCP-Protocol-Version"); got != LegacyProtocolVersion {
+				t.Fatalf("notification protocol header = %q, want %q", got, LegacyProtocolVersion)
+			}
+			w.WriteHeader(http.StatusNoContent)
+		case "tools/list":
+			toolsSeen = true
+			if got := r.Header.Get("Mcp-Session-Id"); got != "sess-1" {
+				t.Fatalf("session header = %q, want sess-1", got)
+			}
+			if got := r.Header.Get("MCP-Protocol-Version"); got != LegacyProtocolVersion {
+				t.Fatalf("protocol header = %q, want %q", got, LegacyProtocolVersion)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 2, "result": map[string]any{"tools": []map[string]any{{"name": "list_projects"}}}})
+		default:
+			t.Fatalf("unexpected method %#v", payload["method"])
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.URL = server.URL
+	if err := client.Initialize(context.Background(), "test", "0.1.0"); err != nil {
+		t.Fatalf("Initialize() error = %v", err)
+	}
+	if client.Stateless || client.ProtocolVersion != LegacyProtocolVersion || client.SessionID != "sess-1" {
+		t.Fatalf("fallback = stateless:%v protocol:%q session:%q", client.Stateless, client.ProtocolVersion, client.SessionID)
+	}
+	tools, err := client.Tools(context.Background())
+	if err != nil {
+		t.Fatalf("Tools() error = %v", err)
+	}
+	if !initSeen || !notifySeen || !toolsSeen || len(tools) != 1 {
+		t.Fatalf("flags = init:%v notify:%v tools:%v count:%d", initSeen, notifySeen, toolsSeen, len(tools))
+	}
+}
+
+func assertModernRequest(t *testing.T, r *http.Request, payload map[string]any, method string, toolName string) {
+	t.Helper()
+	if got := r.Header.Get("MCP-Protocol-Version"); got != LatestProtocolVersion {
+		t.Fatalf("protocol header = %q, want %q", got, LatestProtocolVersion)
+	}
+	if got := r.Header.Get("Mcp-Method"); got != method {
+		t.Fatalf("method header = %q, want %q", got, method)
+	}
+	if got := r.Header.Get("Mcp-Name"); got != toolName {
+		t.Fatalf("name header = %q, want %q", got, toolName)
+	}
+	if got := r.Header.Get("Mcp-Session-Id"); got != "" {
+		t.Fatalf("stateless request carried session header %q", got)
+	}
+	params, _ := payload["params"].(map[string]any)
+	meta, _ := params["_meta"].(map[string]any)
+	if got := meta["io.modelcontextprotocol/protocolVersion"]; got != LatestProtocolVersion {
+		t.Fatalf("meta protocol version = %#v, want %q", got, LatestProtocolVersion)
+	}
+	if _, ok := meta["io.modelcontextprotocol/clientCapabilities"].(map[string]any); !ok {
+		t.Fatalf("meta client capabilities = %#v", meta["io.modelcontextprotocol/clientCapabilities"])
+	}
+	info, _ := meta["io.modelcontextprotocol/clientInfo"].(map[string]any)
+	if info["name"] != "test" || info["version"] != "0.1.0" {
+		t.Fatalf("meta client info = %#v", info)
 	}
 }
 
@@ -79,13 +184,15 @@ func TestCallToolUnwrapsStructuredContent(t *testing.T) {
 		}
 		method := payload["method"]
 		switch method {
-		case "initialize":
-			w.Header().Set("Mcp-Session-Id", "sess-1")
-			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{"protocolVersion": InitProtocolVersion}})
-		case "notifications/initialized":
-			w.WriteHeader(http.StatusNoContent)
+		case "server/discover":
+			assertModernRequest(t, r, payload, "server/discover", "")
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{
+				"resultType":        "complete",
+				"supportedVersions": []string{LatestProtocolVersion},
+			}})
 		case "tools/call":
 			step++
+			assertModernRequest(t, r, payload, "tools/call", "list_projects")
 			params := payload["params"].(map[string]any)
 			if params["name"] != "list_projects" {
 				t.Fatalf("tool name = %#v", params["name"])
@@ -94,6 +201,7 @@ func TestCallToolUnwrapsStructuredContent(t *testing.T) {
 				"jsonrpc": "2.0",
 				"id":      3,
 				"result": map[string]any{
+					"resultType":        "complete",
 					"structuredContent": map[string]any{"result": []map[string]any{{"id": "p1"}}},
 				},
 			})
@@ -118,6 +226,44 @@ func TestCallToolUnwrapsStructuredContent(t *testing.T) {
 	items := result.([]any)
 	if len(items) != 1 {
 		t.Fatalf("result = %#v", result)
+	}
+}
+
+func TestCallToolReturnsExecutionError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var payload map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			t.Fatalf("decode request: %v", err)
+		}
+		switch payload["method"] {
+		case "server/discover":
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{
+				"resultType":        "complete",
+				"supportedVersions": []string{LatestProtocolVersion},
+			}})
+		case "tools/call":
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 3, "result": map[string]any{
+				"resultType": "complete",
+				"isError":    true,
+				"content": []map[string]any{{
+					"type": "text",
+					"text": "task not found",
+				}},
+			}})
+		default:
+			t.Fatalf("unexpected method %#v", payload["method"])
+		}
+	}))
+	defer server.Close()
+
+	client := NewClient("token")
+	client.URL = server.URL
+	if err := client.Initialize(context.Background(), "test", "0.1.0"); err != nil {
+		t.Fatalf("Initialize() error = %v", err)
+	}
+	_, err := client.CallTool(context.Background(), "get_task_by_id", map[string]any{"task_id": "missing"})
+	if err == nil || !strings.Contains(err.Error(), "task not found") {
+		t.Fatalf("CallTool() error = %v", err)
 	}
 }
 
@@ -377,13 +523,14 @@ func TestToolSchemaFindsTool(t *testing.T) {
 		var payload map[string]any
 		_ = json.NewDecoder(r.Body).Decode(&payload)
 		switch payload["method"] {
-		case "initialize":
-			w.Header().Set("Mcp-Session-Id", "s1")
-			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{"protocolVersion": InitProtocolVersion}})
-		case "notifications/initialized":
-			w.WriteHeader(http.StatusNoContent)
+		case "server/discover":
+			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{
+				"resultType":        "complete",
+				"supportedVersions": []string{LatestProtocolVersion},
+			}})
 		case "tools/list":
 			_ = json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 2, "result": map[string]any{
+				"resultType": "complete",
 				"tools": []map[string]any{
 					{"name": "list_projects", "description": "List all"},
 					{"name": "get_task", "description": "Get task"},
