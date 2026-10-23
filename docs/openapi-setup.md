@@ -6,12 +6,32 @@ channel used by DidaCLI.
 Use this guide when you need to:
 
 - register or configure a Dida365 developer app
+- use a personal API token without registering an OAuth app
 - save `client_id` and `client_secret` locally for DidaCLI
 - configure the OAuth `redirect_uri` correctly
 - complete OAuth login once and then reuse the saved access token
 
 This guide is not for the Web API cookie channel and not for the official MCP
 `DIDA365_TOKEN` channel.
+
+## Quick Start With A Personal API Token
+
+The official Dida365 OpenAPI documentation now supports a personal API token
+for single-account automation. Create one in the web app under
+**Settings > Account > API Token**, then expose it only to the current process:
+
+```bash
+export DIDA365_OPENAPI_TOKEN='<personal-api-token>'
+dida openapi status --json
+dida openapi project list --json
+```
+
+PowerShell: `$env:DIDA365_OPENAPI_TOKEN = '<personal-api-token>'`.
+
+This token is handled as a Bearer token by the OpenAPI channel. It is a separate
+environment variable from the MCP `DIDA365_TOKEN`; do not cross-wire the two
+channels. The OAuth sections below remain necessary for multi-user apps or when
+you specifically need OAuth scopes and refresh behavior.
 
 ## What You Need
 
@@ -139,11 +159,14 @@ dida openapi exchange-code --code <code> --json
 
 ## Verify The Saved Token
 
-After either login path succeeds, verify the saved access token:
+After either login path succeeds, verify the OAuth token:
 
 ```bash
 dida openapi status --json
 ```
+
+`source: "env"` means `DIDA365_OPENAPI_TOKEN` is active; `source: "oauth"` means
+the saved OAuth token is active.
 
 Then verify a real API read:
 

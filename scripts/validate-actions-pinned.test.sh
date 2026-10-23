@@ -44,6 +44,6 @@ run_case "current workflows pass" pass ":"
 
 run_case "tag reference fails" fail "sed -i '0,/actions\\/checkout@[a-f0-9]\\{40\\}/s//actions\\/checkout@v6/' .github/workflows/ci.yml"
 
-run_case "missing version comment fails" fail "sed -i '0,/ # v6/s///' .github/workflows/ci.yml"
+run_case "missing version comment fails" fail "sed -i '0,/ # v7\\.0\\.1/s///' .github/workflows/ci.yml"
 
 echo "validate-actions-pinned tests passed"

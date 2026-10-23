@@ -13,11 +13,15 @@ This note records the current view of DidaCLI's two possible upstream channels.
 - Endpoint: `https://mcp.dida365.com`
 - Auth: `Bearer <DIDA365_TOKEN>`
 - Shape: JSON-RPC over Streamable HTTP MCP
+- Protocol: advertises `2026-07-28` stateless requests and returns cacheable
+  `tools/list` metadata
 - Observed strengths:
   - official token flow
-  - explicit tool catalogue
+  - explicit, live tool catalogue (57 tools on 2026-10-23)
   - typed schemas for advertised tools
   - cleaner external integration story
+  - task comments, assignment, tags, project groups/columns, countdowns, and
+    calendar reads alongside task/project/habit/focus resources
 - Observed limits:
   - smaller capability surface than the observed Web API
   - many account-level and Web-only surfaces are not present
@@ -30,7 +34,8 @@ This note records the current view of DidaCLI's two possible upstream channels.
 - Observed strengths:
   - broader coverage
   - closer to real web-app behavior
-  - includes settings, comments, sharing metadata, templates, statistics, closed history, and other surfaces not exposed by official MCP
+  - includes broader account settings, sharing metadata, templates, statistics,
+    closed history, and other surfaces not fully exposed by official MCP
 - Observed limits:
   - private and drift-prone
   - weaker official stability guarantees

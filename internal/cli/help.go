@@ -18,7 +18,7 @@ Usage:
 Commands:
   doctor       Check local config, auth status, endpoint health, and updates
   official     Inspect the official dida365 MCP channel
-  openapi      Use the official OAuth-based OpenAPI channel
+  openapi      Use the official OpenAPI personal-token or OAuth channel
   agent        Agent-oriented context pack
   auth         Manage local cookie auth
   sync         Sync tasks/projects/tags
@@ -97,7 +97,7 @@ Usage:
   dida official token <status|set|clear> [--json]
   dida official tools [--limit N] [--full] [--json]
   dida official show <tool-name> [--json]
-  dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--json]
+  dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--dry-run|--yes] [--json]
   dida official project <subcommand> [options] [--json]
   dida official task <subcommand> [options] [--json]
   dida official habit <subcommand> [options] [--json]
@@ -105,7 +105,9 @@ Usage:
 
 These commands use the official dida365 MCP server. DIDA365_TOKEN takes
 precedence over the saved token config.
-Prefer first-class wrappers for writes; official call has no dry-run layer.
+Prefer first-class wrappers for common writes. Use official call --dry-run to
+preview any newly published MCP tool before executing it. Known read-only tools
+run directly; writes and unrecognized future tools require --yes.
 `))
 }
 
@@ -132,6 +134,7 @@ Usage:
   dida openapi auth-url [--redirect-uri URL] [--scope SCOPES] [--state VALUE] [--json]
   dida openapi listen-callback [--host HOST] [--port PORT] [--json]
   dida openapi exchange-code --code CODE [--redirect-uri URL] [--scope SCOPES] [--json]
+  dida openapi call <GET|POST|PUT|DELETE> <path> [--args-json <json>|--args-file <file>] [--dry-run|--yes] [--json]
   dida openapi project list [--json]
   dida openapi project get <project-id> [--json]
   dida openapi project data <project-id> [--json]
@@ -156,8 +159,11 @@ Usage:
   dida openapi habit checkin <habit-id> --args-json <json> [--dry-run] [--json]
   dida openapi habit checkins --habit-ids <ids> --from YYYYMMDD --to YYYYMMDD [--json]
 
-These commands use the official OAuth-based OpenAPI channel.
-They require DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.
+These commands use the official OpenAPI channel.
+Use DIDA365_OPENAPI_TOKEN, or complete OAuth with
+DIDA365_OPENAPI_CLIENT_ID and DIDA365_OPENAPI_CLIENT_SECRET.
+Use openapi call for documented endpoints without a first-class wrapper. GET and
+known read-only POST paths execute directly; other writes require --yes.
 In --json mode, interactive login opens the browser and emits one final JSON envelope.
 Use auth-url and listen-callback for manual no-browser OAuth flows.
 `))

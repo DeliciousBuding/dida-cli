@@ -15,8 +15,9 @@
 - [ ] `go test ./...` passes
 - [ ] `go vet ./...` passes
 - [ ] `make staticcheck` passes
-- [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...` passes
+- [ ] `go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...` passes
 - [ ] `bash scripts/check-private-state.sh` passes
+- [ ] `python3 scripts/validate-agent-plugins.py` passes when plugin files change
 - [ ] `make release-check VERSION=vX.Y.Z` passes if this changes release, CI, npm, scripts, or packaging
 - [ ] Schema updated (if adding/changing commands)
 - [ ] Docs updated (if adding/changing commands)

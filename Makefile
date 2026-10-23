@@ -1,8 +1,10 @@
 STATICCHECK_VERSION ?= v0.8.2
-GOVULNCHECK_VERSION ?= v1.3.0
+GOVULNCHECK_VERSION ?= v1.9.0
+ACTIONLINT_VERSION ?= v1.7.12
 CLI_COVER_PROFILE ?= coverage-cli
+PYTHON ?= python3
 
-.PHONY: test vet vuln private-state build install-local coverage-cli actionlint staticcheck release-check
+.PHONY: test vet vuln private-state build install-local coverage-cli actionlint staticcheck agent-plugin-check release-check
 
 test:
 	go test ./...
@@ -28,7 +30,10 @@ coverage-cli:
 	go tool cover -func=$(CLI_COVER_PROFILE)
 
 actionlint:
-	go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+	go run github.com/rhysd/actionlint/cmd/actionlint@$(ACTIONLINT_VERSION)
+
+agent-plugin-check:
+	$(PYTHON) scripts/validate-agent-plugins.py
 
 staticcheck:
 	go run honnef.co/go/tools/cmd/staticcheck@$(STATICCHECK_VERSION) ./...
@@ -62,4 +67,5 @@ endif
 	bash scripts/validate-packaging.test.sh
 	bash scripts/verify-release-archives.test.sh
 	$(MAKE) staticcheck
+	$(MAKE) agent-plugin-check
 	$(MAKE) actionlint

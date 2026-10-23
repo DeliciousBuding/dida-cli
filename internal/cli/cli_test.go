@@ -372,6 +372,7 @@ func TestOpenAPIDoctorIncludesRedirectAndNextActions(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "")
 	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "")
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 	var stdout, stderr bytes.Buffer
 	code := Run([]string{"openapi", "doctor", "--json"}, "test-version", &stdout, &stderr)
 	if code != 0 {
@@ -389,7 +390,7 @@ func TestOpenAPIDoctorIncludesRedirectAndNextActions(t *testing.T) {
 	if len(next) < 2 {
 		t.Fatalf("next actions too short: %v", next)
 	}
-	if !strings.Contains(next[0].(string), "openapi client set") {
+	if !strings.Contains(next[0].(string), "DIDA365_OPENAPI_TOKEN") {
 		t.Fatalf("first next action = %v", next[0])
 	}
 	if !slices.ContainsFunc(next, func(action any) bool {
@@ -400,10 +401,36 @@ func TestOpenAPIDoctorIncludesRedirectAndNextActions(t *testing.T) {
 	}
 }
 
+func TestOpenAPIDoctorPersonalTokenNeedsNoOAuthSetup(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "")
+	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "")
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "personal_api_token_long")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "doctor", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, stderr.String())
+	}
+	var payload map[string]any
+	if err := json.Unmarshal(stdout.Bytes(), &payload); err != nil {
+		t.Fatalf("invalid json: %v\n%s", err, stdout.String())
+	}
+	data := payload["data"].(map[string]any)
+	next := data["next"].([]any)
+	if len(next) != 1 || next[0] != "dida openapi project list --json" {
+		t.Fatalf("next actions = %v", next)
+	}
+	tokenStatus := data["token"].(map[string]any)
+	if tokenStatus["source"] != "env" || tokenStatus["available"] != true {
+		t.Fatalf("token status = %#v", tokenStatus)
+	}
+}
+
 func TestOpenAPILoginBrowserOpenFailureReturnsAuthorizationURL(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	t.Setenv("DIDA365_OPENAPI_CLIENT_ID", "client-id")
 	t.Setenv("DIDA365_OPENAPI_CLIENT_SECRET", "client-secret")
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 	port := freeTCPPort(t)
 	original := openBrowser
 	openBrowser = func(target string) error {
@@ -1512,15 +1539,56 @@ func TestOfficialToolsFlagValidation(t *testing.T) {
 }
 
 func TestOfficialCallFlagParsing(t *testing.T) {
-	tool, payload, err := parseOfficialCallFlags([]string{"list_projects", "--args-json", "{\"query\":\"today\"}"})
+	options, err := parseOfficialCallFlags([]string{"list_projects", "--args-json", "{\"query\":\"today\"}", "--dry-run"})
 	if err != nil {
 		t.Fatalf("parseOfficialCallFlags() error = %v", err)
 	}
-	if tool != "list_projects" {
-		t.Fatalf("tool = %q, want list_projects", tool)
+	if options.Tool != "list_projects" {
+		t.Fatalf("tool = %q, want list_projects", options.Tool)
 	}
-	if payload["query"] != "today" {
-		t.Fatalf("payload = %#v", payload)
+	if options.Payload["query"] != "today" {
+		t.Fatalf("payload = %#v", options.Payload)
+	}
+	if !options.DryRun || options.Yes {
+		t.Fatalf("options = %#v", options)
+	}
+}
+
+func TestOfficialCallConfirmationPolicy(t *testing.T) {
+	readTools := []string{
+		"list_projects",
+		"get_task_in_project",
+		"search",
+		"fetch",
+		"query_calendar_events",
+		"get_user_preference",
+	}
+	for _, name := range readTools {
+		if !isOfficialReadTool(name) {
+			t.Fatalf("isOfficialReadTool(%q) = false, want true", name)
+		}
+	}
+	writeOrUnknownTools := []string{
+		"create_task",
+		"delete_task",
+		"add_comment",
+		"newly_published_future_read",
+	}
+	for _, name := range writeOrUnknownTools {
+		if isOfficialReadTool(name) {
+			t.Fatalf("isOfficialReadTool(%q) = true, want false", name)
+		}
+	}
+
+	options, err := parseOfficialCallFlags([]string{"delete_task", "--yes", "--args-json", `{"task_id":"t1"}`})
+	if err != nil {
+		t.Fatalf("parseOfficialCallFlags(--yes) error = %v", err)
+	}
+	if !options.Yes || options.DryRun {
+		t.Fatalf("options = %#v", options)
+	}
+	if _, err := parseOfficialCallFlags([]string{"delete_task", "--dry-run", "--yes"}); err == nil {
+		t.Fatal("--dry-run and --yes should be mutually exclusive")
 	}
 }
 
@@ -1920,6 +1988,89 @@ func TestOpenAPIJSONWriteFlags(t *testing.T) {
 	}
 }
 
+func TestOpenAPICallFlagParsing(t *testing.T) {
+	options, err := parseOpenAPICallFlags([]string{"POST", "/tag", "--args-json", `{"label":"work"}`, "--dry-run"})
+	if err != nil {
+		t.Fatalf("parseOpenAPICallFlags() error = %v", err)
+	}
+	if options.Method != "POST" || options.Path != "/tag" || !options.DryRun || !options.HasPayload {
+		t.Fatalf("options = %#v", options)
+	}
+	if !isOpenAPIReadOnlyRequest("POST", "/task/filter") {
+		t.Fatal("POST /task/filter should be classified as read-only")
+	}
+	if !isOpenAPIReadOnlyRequest("POST", "/task/undone") {
+		t.Fatal("POST /task/undone should be classified as read-only")
+	}
+	if isOpenAPIReadOnlyRequest("POST", "/tag") {
+		t.Fatal("POST /tag must require confirmation")
+	}
+}
+
+func TestOpenAPICallRejectsInvalidCombinations(t *testing.T) {
+	cases := [][]string{
+		{"TRACE", "/tag"},
+		{"GET", "relative"},
+		{"GET", "/tag/../project"},
+		{"GET", "/tag/%2e%2e/project"},
+		{"GET", "/tag", "--args-json", `{}`},
+		{"POST", "/tag", "--dry-run", "--yes"},
+	}
+	for _, args := range cases {
+		if _, err := parseOpenAPICallFlags(args); err == nil {
+			t.Fatalf("parseOpenAPICallFlags(%v) error = nil", args)
+		}
+	}
+}
+
+func TestOpenAPICallDryRunAndConfirmation(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"openapi", "call", "POST", "/tag", "--args-json", `{"label":"work"}`, "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run(dry-run) code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), `"dry_run": true`) || !strings.Contains(stdout.String(), `"/tag"`) {
+		t.Fatalf("dry-run output = %s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"openapi", "call", "POST", "/tag", "--args-json", `{"label":"work"}`, "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run(write without yes) code = %d stdout = %s", code, stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "confirmation_required") {
+		t.Fatalf("write confirmation output = %s", stdout.String())
+	}
+}
+
+func TestOfficialCallDryRunDoesNotRequireToken(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_TOKEN", "")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"official", "call", "list_countdowns", "--args-json", `{}`, "--dry-run", "--json"}, "test-version", &stdout, &stderr)
+	if code != 0 {
+		t.Fatalf("Run() code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "list_countdowns") || !strings.Contains(stdout.String(), `"dry_run": true`) {
+		t.Fatalf("stdout = %s", stdout.String())
+	}
+}
+
+func TestOfficialCallWriteRequiresConfirmation(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_TOKEN", "")
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"official", "call", "create_task", "--args-json", `{"title":"Smoke"}`, "--json"}, "test-version", &stdout, &stderr)
+	if code != 1 {
+		t.Fatalf("Run() code = %d stderr = %s stdout = %s", code, stderr.String(), stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "confirmation_required") || !strings.Contains(stdout.String(), "requires --yes") {
+		t.Fatalf("stdout = %s", stdout.String())
+	}
+}
+
 func TestOpenAPIProjectDryRunDoesNotRequireToken(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
 	var stdout, stderr bytes.Buffer
@@ -2091,7 +2242,9 @@ func TestWriteSubcommandHelpDoesNotMutateOrRequireAuth(t *testing.T) {
 		{name: "official task write", args: []string{"official", "task", "batch-add", "--help"}, want: "dida official task batch-add"},
 		{name: "official habit write", args: []string{"official", "habit", "checkin", "--help"}, want: "dida official habit checkin"},
 		{name: "official focus delete", args: []string{"official", "focus", "delete", "--help"}, want: "dida official focus delete"},
+		{name: "official call", args: []string{"official", "call", "--help"}, want: "dida official call"},
 		{name: "openapi client set", args: []string{"openapi", "client", "set", "--help"}, want: "dida openapi client set --id"},
+		{name: "openapi call", args: []string{"openapi", "call", "--help"}, want: "dida openapi call"},
 		{name: "openapi project write", args: []string{"openapi", "project", "create", "--help"}, want: "dida openapi project create"},
 		{name: "openapi task write", args: []string{"openapi", "task", "move", "--help"}, want: "dida openapi task move"},
 		{name: "openapi habit write", args: []string{"openapi", "habit", "checkin", "--help"}, want: "dida openapi habit checkin"},
@@ -2167,10 +2320,11 @@ func TestCompanionSkillMentionsAgentCriticalCommands(t *testing.T) {
 		"dida official token clear --json",
 		"dida openapi status --json",
 		"dida openapi logout --json",
+		"dida openapi call GET /tag --json",
 		"dida raw get /path --api-version v1|v2 --json",
 		"Never ask the user to paste cookies",
 		"official call",
-		"no dry-run layer",
+		"--dry-run",
 		"no habit delete tool",
 	}
 	for _, want := range required {

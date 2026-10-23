@@ -16,7 +16,9 @@ run_case() {
   err_file="$(mktemp)"
   (
     cd "$repo_root"
-    tar -cf - README.md Makefile CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md docs/distribution.md npm/README.md packaging scripts .github
+    tar -cf - README.md Makefile go.mod CONTRIBUTING.md CODE_OF_CONDUCT.md SECURITY.md RELEASE.md \
+      docs/distribution.md docs/security npm/README.md packaging plugins scripts .github \
+      .agents .claude-plugin
   ) | (
     cd "$work"
     tar -xf -
@@ -73,7 +75,15 @@ run_case "missing package-manager artifact upload fails" fail "grep -v 'dida-pac
 
 run_case "missing CI staticcheck command fails" fail "grep -v 'staticcheck' .github/workflows/ci.yml > next && mv next .github/workflows/ci.yml"
 
+run_case "govulncheck version drift fails" fail "sed -i '0,/GOVULNCHECK_VERSION: v1\\.9\\.0/s//GOVULNCHECK_VERSION: v1.8.0/' .github/workflows/ci.yml"
+
+run_case "actionlint version drift fails" fail "sed -i '0,/ACTIONLINT_VERSION: v1\\.7\\.12/s//ACTIONLINT_VERSION: v1.7.11/' .github/workflows/ci.yml"
+
 run_case "missing Makefile staticcheck target fails" fail "grep -v 'staticcheck' Makefile > next && mv next Makefile"
+
+run_case "missing agent plugin manifest fails" fail "rm plugins/dida-cli/plugin.json"
+
+run_case "missing Dependabot config fails" fail "rm .github/dependabot.yml"
 
 run_case "missing release-check test gate fails" fail "sed -i '/\$(MAKE) test/d' Makefile"
 

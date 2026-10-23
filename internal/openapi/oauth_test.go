@@ -44,6 +44,7 @@ func TestRedactForStatus(t *testing.T) {
 
 func TestTokenStatusDoesNotExposeLocalPath(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 	status := TokenStatus()
 	if _, ok := status["path"]; ok {
 		t.Fatalf("TokenStatus exposed local path: %#v", status)
@@ -55,6 +56,7 @@ func TestTokenStatusDoesNotExposeLocalPath(t *testing.T) {
 
 func TestTokenStatusAvailable(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 	token := &TokenResponse{
 		OAuthToken: OAuthToken{
 			AccessToken: "test_access_token_value_long",
@@ -187,6 +189,7 @@ func TestClearClientConfig(t *testing.T) {
 
 func TestSaveLoadClearToken(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 
 	token := &TokenResponse{
 		OAuthToken: OAuthToken{
@@ -240,6 +243,7 @@ func TestSaveTokenRejectsEmpty(t *testing.T) {
 
 func TestLoadTokenErrors(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 
 	// missing file
 	_, err := LoadToken()
@@ -261,6 +265,26 @@ func TestLoadTokenErrors(t *testing.T) {
 	_, err = LoadToken()
 	if err == nil || !strings.Contains(err.Error(), "no access token") {
 		t.Fatalf("LoadToken() empty token: err = %v", err)
+	}
+}
+
+func TestLoadAccessTokenFromEnv(t *testing.T) {
+	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "env-token")
+	token, source, err := LoadAccessToken()
+	if err != nil {
+		t.Fatalf("LoadAccessToken() error = %v", err)
+	}
+	if token != "env-token" || source != "env" {
+		t.Fatalf("LoadAccessToken() = token:%q source:%q", token, source)
+	}
+	status := TokenStatus()
+	if status["source"] != "env" || status["available"] != true {
+		t.Fatalf("TokenStatus() = %#v", status)
+	}
+	all, _ := json.Marshal(status)
+	if strings.Contains(string(all), "personal_api_token_long") {
+		t.Fatalf("TokenStatus leaked full token: %s", string(all))
 	}
 }
 
@@ -430,6 +454,7 @@ func TestClientConfigStatusMissing(t *testing.T) {
 
 func TestTokenStatusMissing(t *testing.T) {
 	t.Setenv("DIDA_CONFIG_DIR", t.TempDir())
+	t.Setenv("DIDA365_OPENAPI_TOKEN", "")
 	status := TokenStatus()
 	if status["available"] != false {
 		t.Fatalf("available = %v, want false", status["available"])

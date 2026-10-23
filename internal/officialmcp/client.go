@@ -18,18 +18,25 @@ import (
 )
 
 const DefaultURL = "https://mcp.dida365.com"
-const ProtocolVersion = "2024-11-05"
-const InitProtocolVersion = "2025-03-26"
+const LatestProtocolVersion = "2026-07-28"
+const LegacyProtocolVersion = "2025-11-25"
 
 type Client struct {
-	URL        string
-	Token      string
-	HTTPClient *http.Client
-	SessionID  string
+	URL                string
+	Token              string
+	HTTPClient         *http.Client
+	SessionID          string
+	ProtocolVersion    string
+	Stateless          bool
+	ToolListCacheScope string
+	ToolListTTLMs      int64
+	clientName         string
+	clientVersion      string
 }
 
 type Tool struct {
 	Name         string         `json:"name"`
+	Title        string         `json:"title,omitempty"`
 	Description  string         `json:"description,omitempty"`
 	InputSchema  map[string]any `json:"inputSchema,omitempty"`
 	OutputSchema map[string]any `json:"outputSchema,omitempty"`
@@ -143,12 +150,21 @@ func NewClient(token string) *Client {
 }
 
 func (c *Client) Initialize(ctx context.Context, clientName string, clientVersion string) error {
+	c.clientName = clientName
+	c.clientVersion = clientVersion
+	if err := c.discover(ctx); err == nil {
+		c.Stateless = true
+		c.ProtocolVersion = LatestProtocolVersion
+		return nil
+	}
+	c.Stateless = false
+	c.ProtocolVersion = LegacyProtocolVersion
 	body := map[string]any{
 		"jsonrpc": "2.0",
 		"id":      1,
 		"method":  "initialize",
 		"params": map[string]any{
-			"protocolVersion": InitProtocolVersion,
+			"protocolVersion": LegacyProtocolVersion,
 			"clientInfo": map[string]any{
 				"name":    clientName,
 				"version": clientVersion,
@@ -156,12 +172,15 @@ func (c *Client) Initialize(ctx context.Context, clientName string, clientVersio
 			"capabilities": map[string]any{},
 		},
 	}
-	resp, headers, err := c.post(ctx, body, false)
+	resp, headers, err := c.post(ctx, body, requestOptions{})
 	if err != nil {
 		return err
 	}
 	if resp.Error != nil {
 		return fmt.Errorf("official mcp initialize failed: %s", resp.Error.Message)
+	}
+	if negotiated := strings.TrimSpace(stringValue(resp.Result["protocolVersion"])); negotiated != "" {
+		c.ProtocolVersion = negotiated
 	}
 	if sessionID := headers.Get("Mcp-Session-Id"); sessionID != "" {
 		c.SessionID = sessionID
@@ -171,44 +190,101 @@ func (c *Client) Initialize(ctx context.Context, clientName string, clientVersio
 	return c.NotifyInitialized(ctx)
 }
 
+type requestOptions struct {
+	ProtocolVersion string
+	Method          string
+	ToolName        string
+}
+
+func (c *Client) discover(ctx context.Context) error {
+	body := map[string]any{
+		"jsonrpc": "2.0",
+		"id":      1,
+		"method":  "server/discover",
+		"params": map[string]any{
+			"_meta": c.requestMeta(),
+		},
+	}
+	resp, _, err := c.post(ctx, body, requestOptions{
+		ProtocolVersion: LatestProtocolVersion,
+		Method:          "server/discover",
+	})
+	if err != nil {
+		return err
+	}
+	if resp.Error != nil {
+		return fmt.Errorf("official mcp server/discover failed: %s", resp.Error.Message)
+	}
+	versions, _ := resp.Result["supportedVersions"].([]any)
+	for _, raw := range versions {
+		if stringValue(raw) == LatestProtocolVersion {
+			return nil
+		}
+	}
+	return fmt.Errorf("official mcp does not advertise protocol %s", LatestProtocolVersion)
+}
+
 func (c *Client) NotifyInitialized(ctx context.Context) error {
 	body := map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "notifications/initialized",
 		"params":  map[string]any{},
 	}
-	_, _, err := c.post(ctx, body, true)
+	_, _, err := c.post(ctx, body, requestOptions{ProtocolVersion: c.ProtocolVersion})
 	return err
 }
 
 func (c *Client) Tools(ctx context.Context) ([]Tool, error) {
-	body := map[string]any{
-		"jsonrpc": "2.0",
-		"id":      2,
-		"method":  "tools/list",
-		"params":  map[string]any{},
-	}
-	resp, _, err := c.post(ctx, body, true)
-	if err != nil {
-		return nil, err
-	}
-	if resp.Error != nil {
-		return nil, fmt.Errorf("official mcp tools/list failed: %s", resp.Error.Message)
-	}
-	rawTools, _ := resp.Result["tools"].([]any)
-	tools := make([]Tool, 0, len(rawTools))
-	for _, raw := range rawTools {
-		if item, ok := raw.(map[string]any); ok {
-			tools = append(tools, Tool{
-				Name:         stringValue(item["name"]),
-				Description:  stringValue(item["description"]),
-				InputSchema:  mapValue(item["inputSchema"]),
-				OutputSchema: mapValue(item["outputSchema"]),
-				Annotations:  mapValue(item["annotations"]),
-			})
+	tools := []Tool{}
+	cursor := ""
+	seenCursors := map[string]bool{}
+	for page := 0; page < 100; page++ {
+		params := map[string]any{}
+		if c.Stateless {
+			params["_meta"] = c.requestMeta()
 		}
+		if cursor != "" {
+			params["cursor"] = cursor
+		}
+		body := map[string]any{
+			"jsonrpc": "2.0",
+			"id":      2,
+			"method":  "tools/list",
+			"params":  params,
+		}
+		resp, _, err := c.post(ctx, body, c.methodOptions("tools/list", ""))
+		if err != nil {
+			return nil, err
+		}
+		if resp.Error != nil {
+			return nil, fmt.Errorf("official mcp tools/list failed: %s", resp.Error.Message)
+		}
+		c.ToolListCacheScope = stringValue(resp.Result["cacheScope"])
+		c.ToolListTTLMs = int64Value(resp.Result["ttlMs"])
+		rawTools, _ := resp.Result["tools"].([]any)
+		for _, raw := range rawTools {
+			if item, ok := raw.(map[string]any); ok {
+				tools = append(tools, Tool{
+					Name:         stringValue(item["name"]),
+					Title:        stringValue(item["title"]),
+					Description:  stringValue(item["description"]),
+					InputSchema:  mapValue(item["inputSchema"]),
+					OutputSchema: mapValue(item["outputSchema"]),
+					Annotations:  mapValue(item["annotations"]),
+				})
+			}
+		}
+		nextCursor := stringValue(resp.Result["nextCursor"])
+		if nextCursor == "" {
+			return tools, nil
+		}
+		if seenCursors[nextCursor] {
+			return nil, fmt.Errorf("official mcp tools/list repeated cursor %q", nextCursor)
+		}
+		seenCursors[nextCursor] = true
+		cursor = nextCursor
 	}
-	return tools, nil
+	return nil, fmt.Errorf("official mcp tools/list exceeded 100 pages")
 }
 
 func (c *Client) ToolSchema(ctx context.Context, name string) (*Tool, error) {
@@ -235,17 +311,48 @@ func (c *Client) CallTool(ctx context.Context, name string, arguments map[string
 			"arguments": arguments,
 		},
 	}
-	resp, _, err := c.post(ctx, body, true)
+	if c.Stateless {
+		body["params"].(map[string]any)["_meta"] = c.requestMeta()
+	}
+	resp, _, err := c.post(ctx, body, c.methodOptions("tools/call", name))
 	if err != nil {
 		return nil, err
 	}
 	if resp.Error != nil {
 		return nil, fmt.Errorf("official mcp tools/call failed: %s", resp.Error.Message)
 	}
+	if resultType := stringValue(resp.Result["resultType"]); resultType != "" && resultType != "complete" {
+		return nil, fmt.Errorf("official mcp tools/call returned resultType %q; multi-round-trip interactions are not supported", resultType)
+	}
+	if isError, _ := resp.Result["isError"].(bool); isError {
+		return nil, fmt.Errorf("official mcp tool %s failed: %s", name, toolErrorMessage(resp.Result))
+	}
 	return unwrapToolResult(resp.Result), nil
 }
 
-func (c *Client) post(ctx context.Context, payload map[string]any, includeProtocol bool) (rpcResponse, http.Header, error) {
+func (c *Client) methodOptions(method string, toolName string) requestOptions {
+	if !c.Stateless {
+		return requestOptions{ProtocolVersion: c.ProtocolVersion}
+	}
+	return requestOptions{
+		ProtocolVersion: c.ProtocolVersion,
+		Method:          method,
+		ToolName:        toolName,
+	}
+}
+
+func (c *Client) requestMeta() map[string]any {
+	return map[string]any{
+		"io.modelcontextprotocol/protocolVersion":    LatestProtocolVersion,
+		"io.modelcontextprotocol/clientCapabilities": map[string]any{},
+		"io.modelcontextprotocol/clientInfo": map[string]any{
+			"name":    c.clientName,
+			"version": c.clientVersion,
+		},
+	}
+}
+
+func (c *Client) post(ctx context.Context, payload map[string]any, options requestOptions) (rpcResponse, http.Header, error) {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return rpcResponse{}, nil, fmt.Errorf("encode request: %w", err)
@@ -257,10 +364,16 @@ func (c *Client) post(ctx context.Context, payload map[string]any, includeProtoc
 	req.Header.Set("Authorization", "Bearer "+c.Token)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json, text/event-stream")
-	if includeProtocol {
-		req.Header.Set("MCP-Protocol-Version", ProtocolVersion)
+	if options.ProtocolVersion != "" {
+		req.Header.Set("MCP-Protocol-Version", options.ProtocolVersion)
 	}
-	if c.SessionID != "" {
+	if options.Method != "" {
+		req.Header.Set("Mcp-Method", options.Method)
+	}
+	if options.ToolName != "" {
+		req.Header.Set("Mcp-Name", options.ToolName)
+	}
+	if !c.Stateless && c.SessionID != "" {
 		req.Header.Set("Mcp-Session-Id", c.SessionID)
 	}
 	httpClient := c.HTTPClient
@@ -331,6 +444,19 @@ func stringValue(value any) string {
 	return text
 }
 
+func int64Value(value any) int64 {
+	switch number := value.(type) {
+	case float64:
+		return int64(number)
+	case int64:
+		return number
+	case int:
+		return int64(number)
+	default:
+		return 0
+	}
+}
+
 func mapValue(value any) map[string]any {
 	item, _ := value.(map[string]any)
 	return item
@@ -351,6 +477,24 @@ func unwrapToolResult(result map[string]any) any {
 		}
 	}
 	return unwrapEnvelope(result)
+}
+
+func toolErrorMessage(result map[string]any) string {
+	if content, ok := result["content"].([]any); ok {
+		for _, raw := range content {
+			item, ok := raw.(map[string]any)
+			if !ok || stringValue(item["type"]) != "text" {
+				continue
+			}
+			if text := strings.TrimSpace(stringValue(item["text"])); text != "" {
+				if len(text) > 4000 {
+					return text[:4000] + "..."
+				}
+				return text
+			}
+		}
+	}
+	return "tool returned isError=true without a textual message"
 }
 
 func unwrapEnvelope(value any) any {

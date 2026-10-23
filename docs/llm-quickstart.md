@@ -68,8 +68,8 @@ dida schema show task.delete --json
 Read `authRequired`, `dryRun`, and `confirmationRequired` before choosing a
 command. Most commands under `official.*` need `DIDA365_TOKEN` or a saved
 official token from `dida official token set --token-stdin`; OpenAPI resource
-commands need a saved OAuth access token. Do not treat Web API cookie auth as
-valid for either official channel.
+commands need `DIDA365_OPENAPI_TOKEN` or a saved OAuth access token. Do not
+treat Web API cookie auth as valid for either official channel.
 
 ## Safe Reads
 
@@ -110,12 +110,13 @@ dida task delete <task-id> --project <project-id> --yes --json
 - Keep cookies and tokens in local CLI prompts. Use `--token-stdin` for secret
   input.
 - Keep auth channels separate: Web API cookies, official MCP tokens, and
-  OpenAPI OAuth tokens are different credentials.
-- Use first-class write commands with `--dry-run`; `dida official call` has no
-  dry-run layer for write-capable tools.
+  OpenAPI personal/OAuth credentials are different.
+- Use first-class write commands with `--dry-run`; generic `dida official call`
+  also supports `--dry-run` and requires `--yes` for writes or unknown tools.
 - If Official MCP auth is missing, ask the user to run
   `dida official token set --token-stdin --json` locally.
-- If OpenAPI client config is missing, ask the user to run
+- If OpenAPI credentials are missing, ask the user to set
+  `DIDA365_OPENAPI_TOKEN` or run
   `dida openapi client set --id <client-id> --secret-stdin --json` locally.
 - Use approved disposable targets and a cleanup path before habit/focus write
   tests.

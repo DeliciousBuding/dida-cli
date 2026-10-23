@@ -31,8 +31,8 @@ Latest release: `v0.2.7` (2026-07-18).
 | Channel | Auth | Status |
 |---|---|---|
 | Web API | Browser cookie `t` | Primary, widest coverage |
-| Official MCP | `DIDA365_TOKEN=dp_...` | 22 first-class wrappers + generic `call` |
-| Official OpenAPI | OAuth access token | Full CRUD for project/task/focus/habit |
+| Official MCP | `DIDA365_TOKEN=dp_...` | Focused wrappers + guarded generic call over MCP `2026-07-28`; live catalog is 57 tools |
+| Official OpenAPI | OAuth access token | First-class project/task/focus/habit + generic constrained `call` for newer resources |
 
 ### Distribution
 
@@ -60,7 +60,7 @@ Latest release: `v0.2.7` (2026-07-18).
 
 - goreleaser migration is deferred through `v0.3.x`; the current hand-written release workflow remains the release path
 - No Homebrew tap or Scoop bucket (templates are generated and validated, not published)
-- Remaining OpenAPI and Official MCP live smokes need suitable account state
+- Remaining expanded MCP/OpenAPI resource live smokes need suitable account state
 - No i18n (all errors English-only)
 - Website first pass is complete; deeper documentation content can still improve
 
@@ -251,6 +251,9 @@ Live evidence:
 ### B2. MCP Contract Layer
 
 - keep `official call` generic
+- keep a fixed read-only allowlist and require `--yes` for writes or unrecognized
+  future tools
+- negotiate MCP `2026-07-28` stateless requests with legacy fallback
 - add compact output for common tools when practical
 - preserve raw schema access via `official show`
 

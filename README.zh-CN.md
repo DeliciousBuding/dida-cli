@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/DeliciousBuding/dida-cli/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue?style=flat-square"></a>
-  <img alt="Go 1.26+" src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go&logoColor=white">
+  <img alt="Go 1.26.10+" src="https://img.shields.io/badge/Go-1.26.10+-00ADD8?style=flat-square&logo=go&logoColor=white">
   <a href="https://github.com/DeliciousBuding/dida-cli/releases/latest"><img alt="Latest Release" src="https://img.shields.io/github/v/release/DeliciousBuding/dida-cli?style=flat-square&logo=github"></a>
   <a href="https://github.com/DeliciousBuding/dida-cli/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/DeliciousBuding/dida-cli/ci.yml?branch=main&label=ci&style=flat-square&logo=github-actions"></a>
   <a href="https://www.npmjs.com/package/@delicious233/dida-cli"><img alt="npm" src="https://img.shields.io/npm/v/@delicious233/dida-cli?style=flat-square&logo=npm"></a>
@@ -24,7 +24,7 @@
 
 ---
 
-DidaCLI 构建为单个 Go 二进制文件，不依赖外部 Go 模块。Web API Cookie、官方 MCP Token、OpenAPI OAuth 三条认证通道相互独立。命令返回稳定的 JSON 信封。
+DidaCLI 构建为单个 Go 二进制文件，不依赖外部 Go 模块。Web API Cookie、官方 MCP Token、OpenAPI 个人 Token/OAuth 三条认证通道相互独立。命令返回稳定的 JSON 信封。
 
 ```bash
 $ dida task today --compact --json
@@ -80,6 +80,20 @@ dida doctor --check-upgrade --json
 
 </details>
 
+## Agent 插件
+
+仓库提供轻量 Codex / Claude Code 插件，包含 DidaCLI 工作流 skill 和官方滴答清单 MCP 服务器。
+
+```bash
+python3 scripts/install-agent-plugin.py codex
+python3 scripts/install-agent-plugin.py claude
+```
+
+Windows 上把 `python3` 换成 `python`。安装器调用各客户端原生 marketplace
+命令；若 `dida` 不存在，会先安装 CLI，并校验插件已被客户端启用。
+手动安装与信任边界见
+[`plugins/dida-cli/README.md`](plugins/dida-cli/README.md)。
+
 ## 快速开始
 
 ```bash
@@ -104,7 +118,7 @@ dida task create --project <id> --title "发布 v1" --dry-run --json
 
 ## 功能覆盖
 
-DidaCLI 通过 `dida schema list --compact --json` 暴露 140 条本地命令契约。主要功能面如下：
+DidaCLI 通过 `dida schema list --compact --json` 暴露 143 条本地命令契约。主要功能面如下：
 
 | 范围 | 覆盖内容 | 入口 |
 |---|---|---|
@@ -120,8 +134,8 @@ DidaCLI 通过 `dida schema list --compact --json` 暴露 140 条本地命令契
 | 历史记录 | 已完成任务、关闭历史、回收站删除任务 | `completed`, `closed`, `trash` |
 | 效率数据 | 番茄偏好、记录、计时、统计、时间线、任务番茄记录，习惯偏好、习惯、分组、打卡，艾森豪威尔四象限 | `pomo`, `habit`, `quadrant` |
 | 账号元数据 | 设置、每日提醒、共享联系人、项目共享状态、日历订阅和账号、账号统计、项目模板、全局搜索、用户资料/状态/会话 | `settings`, `reminder`, `share`, `calendar`, `stats`, `template`, `search`, `user` |
-| 官方 MCP | Token 管理、工具发现、schema 展示、原始工具调用、项目读取、任务搜索/筛选/批量写入、习惯读写、专注记录读取/删除 | `official` |
-| 官方 OpenAPI | OAuth 客户端配置、浏览器或手动 OAuth、项目/任务/专注/习惯封装、已完成和筛选任务读取 | `openapi` |
+| 官方 MCP | Token 管理、实时工具发现、常用项目/任务/习惯/专注封装、面向当前 57 个工具的通用 dry-run 调用 | `official` |
+| 官方 OpenAPI | 个人 API Token 或 OAuth、项目/任务/专注/习惯封装、面向标签/纪念日/日历等新资源的受约束通用调用 | `openapi` |
 | 原始只读探测 | 只允许 GET 的 Web API 探测入口，并返回结构化错误细节 | `raw get` |
 | 分发与升级 | 单二进制构建、shell completion 脚本、npm/安装脚本、包管理模板、发布归档、校验和验证自升级 | `completion`, `upgrade` |
 
@@ -207,13 +221,17 @@ dida official task batch-add --args-json '{"tasks":[{"title":"Task"}]}' --dry-ru
 dida official habit list --json
 dida official focus list --from-time 2026-05-01T00:00:00+08:00 --to-time 2026-05-09T23:59:59+08:00 --type 1 --json
 
-# OpenAPI（OAuth）
+# OpenAPI（个人 Token 或 OAuth）
+DIDA365_OPENAPI_TOKEN=personal_token_xxx dida openapi project list --json
+# 或配置 OAuth 应用：
 dida openapi client set --id <id> --secret-stdin --json
 dida openapi login --browser --json
 dida openapi project list --json
 dida openapi task create --args-json '{"projectId":"<project-id>","title":"Task"}' --dry-run --json
 dida openapi task filter --args-json '{"projectIds":["<project-id>"],"status":[0]}' --json
 dida openapi habit checkins --habit-ids <habit-id> --from 20260401 --to 20260407 --json
+dida openapi call GET /tag --json
+dida openapi call GET /countdown --json
 ```
 </details>
 
@@ -238,7 +256,7 @@ dida upgrade --check --json
 
 | | Web API | 官方 MCP | 官方 OpenAPI |
 |---|---|---|---|
-| **认证** | 浏览器 Cookie | Token | OAuth |
+| **认证** | 浏览器 Cookie | Token | 个人 API Token 或 OAuth |
 | **覆盖面** | 官方通道外的 Web API 资源 | MCP 工具型 | 标准 REST |
 | **配置** | 一次登录 | 获取 Token | 注册应用 |
 

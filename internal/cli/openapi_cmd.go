@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -47,6 +48,8 @@ func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		return runOpenAPIExchangeCode(args[1:], jsonOut, stdout, stderr)
 	case "listen-callback":
 		return runOpenAPIListenCallback(args[1:], jsonOut, stdout, stderr)
+	case "call":
+		return runOpenAPICall(args[1:], jsonOut, stdout, stderr)
 	case "project":
 		return runOpenAPIProject(args[1:], jsonOut, stdout, stderr)
 	case "task":
@@ -57,6 +60,139 @@ func runOpenAPI(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer)
 		return runOpenAPIHabit(args[1:], jsonOut, stdout, stderr)
 	default:
 		return fail("openapi", fmt.Sprintf("unknown openapi command %q", args[0]), jsonOut, stdout, stderr)
+	}
+}
+
+type openAPICallOptions struct {
+	Method     string
+	Path       string
+	Payload    any
+	HasPayload bool
+	DryRun     bool
+	Yes        bool
+}
+
+func runOpenAPICall(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
+	if len(args) == 0 || hasHelpFlag(args) {
+		printOpenAPIHelp(stdout)
+		return 0
+	}
+	options, err := parseOpenAPICallFlags(args)
+	if err != nil {
+		return failTyped("openapi call", "validation", err.Error(), "run: dida openapi --help", jsonOut, stdout, stderr)
+	}
+	if options.DryRun {
+		data := map[string]any{
+			"dry_run": true,
+			"method":  options.Method,
+			"path":    options.Path,
+		}
+		if options.HasPayload {
+			data["payload"] = options.Payload
+		}
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi call", Data: data})
+	}
+	if !isOpenAPIReadOnlyRequest(options.Method, options.Path) && !options.Yes {
+		return failTyped("openapi call", "confirmation_required", "non-read OpenAPI call requires --yes", "preview with --dry-run first", jsonOut, stdout, stderr)
+	}
+	accessToken, _, err := openapi.LoadAccessToken()
+	if err != nil {
+		return failTyped("openapi call", "auth", err.Error(), "set DIDA365_OPENAPI_TOKEN or run dida openapi login", jsonOut, stdout, stderr)
+	}
+	client := openapi.NewClient(accessToken)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	var body io.Reader
+	if options.HasPayload {
+		encoded, err := json.Marshal(options.Payload)
+		if err != nil {
+			return failTyped("openapi call", "validation", fmt.Sprintf("encode request payload: %v", err), "", jsonOut, stdout, stderr)
+		}
+		body = bytes.NewReader(encoded)
+	}
+	var result any
+	if err := client.Do(ctx, options.Method, options.Path, body, &result); err != nil {
+		return failTyped("openapi call", "api", err.Error(), "", jsonOut, stdout, stderr)
+	}
+	return writeJSON(stdout, envelope{OK: true, Command: "openapi call", Data: map[string]any{"method": options.Method, "path": options.Path, "result": result}})
+}
+
+func parseOpenAPICallFlags(args []string) (openAPICallOptions, error) {
+	if len(args) < 2 {
+		return openAPICallOptions{}, fmt.Errorf("usage: dida openapi call <GET|POST|PUT|DELETE> <path> [--args-json <json>|--args-file <file>] [--dry-run|--yes]")
+	}
+	method := strings.ToUpper(strings.TrimSpace(args[0]))
+	switch method {
+	case http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete:
+	default:
+		return openAPICallOptions{}, fmt.Errorf("method must be one of GET, POST, PUT, or DELETE")
+	}
+	path := strings.TrimSpace(args[1])
+	if !strings.HasPrefix(path, "/") {
+		return openAPICallOptions{}, fmt.Errorf("path must start with /")
+	}
+	parsed, err := url.Parse(path)
+	if err != nil || parsed.IsAbs() || parsed.Host != "" {
+		return openAPICallOptions{}, fmt.Errorf("path must be relative to the OpenAPI base URL")
+	}
+	if strings.Contains(parsed.Path, "..") {
+		return openAPICallOptions{}, fmt.Errorf("path must not contain parent traversal")
+	}
+	options := openAPICallOptions{Method: method, Path: path}
+	for i := 2; i < len(args); i++ {
+		switch args[i] {
+		case "--args-json":
+			if i+1 >= len(args) {
+				return openAPICallOptions{}, fmt.Errorf("--args-json requires a value")
+			}
+			if err := json.Unmarshal([]byte(args[i+1]), &options.Payload); err != nil {
+				return openAPICallOptions{}, fmt.Errorf("decode --args-json: %w", err)
+			}
+			options.HasPayload = true
+			i++
+		case "--args-file":
+			if i+1 >= len(args) {
+				return openAPICallOptions{}, fmt.Errorf("--args-file requires a path")
+			}
+			data, err := os.ReadFile(args[i+1])
+			if err != nil {
+				return openAPICallOptions{}, fmt.Errorf("read args file: %w", err)
+			}
+			if err := json.Unmarshal(data, &options.Payload); err != nil {
+				return openAPICallOptions{}, fmt.Errorf("decode args file: %w", err)
+			}
+			options.HasPayload = true
+			i++
+		case "--dry-run":
+			options.DryRun = true
+		case "--yes":
+			options.Yes = true
+		default:
+			return openAPICallOptions{}, fmt.Errorf("unknown flag %q", args[i])
+		}
+	}
+	if options.DryRun && options.Yes {
+		return openAPICallOptions{}, fmt.Errorf("--dry-run and --yes are mutually exclusive")
+	}
+	if method == http.MethodGet && options.HasPayload {
+		return openAPICallOptions{}, fmt.Errorf("GET requests must not include a JSON payload")
+	}
+	return options, nil
+}
+
+func isOpenAPIReadOnlyRequest(method string, path string) bool {
+	if method == http.MethodGet {
+		return true
+	}
+	if method != http.MethodPost {
+		return false
+	}
+	basePath := strings.SplitN(path, "?", 2)[0]
+	switch basePath {
+	case "/preference", "/task/completed", "/task/filter", "/task/search", "/task/undone":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -169,16 +305,18 @@ func runOpenAPIDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	fmt.Fprintf(stdout, "OpenAPI client id: %v\n", data["client_id_available"])
 	fmt.Fprintf(stdout, "OpenAPI client secret: %v\n", data["client_secret_available"])
 	fmt.Fprintf(stdout, "OpenAPI token: %v\n", tokenStatus["available"])
+	fmt.Fprintf(stdout, "OpenAPI token source: %v\n", tokenStatus["source"])
 	fmt.Fprintf(stdout, "Default redirect URI: %s\n", data["default_redirect_uri"])
 	return 0
 }
 
 func openAPIDoctorNextActions(clientIDAvailable bool, clientSecretAvailable bool, tokenAvailable bool) []string {
 	actions := []string{}
-	if !clientIDAvailable || !clientSecretAvailable {
-		actions = append(actions, "dida openapi client set --id <client-id> --secret-stdin --json")
-	}
 	if !tokenAvailable {
+		actions = append(actions, "set DIDA365_OPENAPI_TOKEN for single-account use")
+		if !clientIDAvailable || !clientSecretAvailable {
+			actions = append(actions, "or run dida openapi client set --id <client-id> --secret-stdin --json")
+		}
 		actions = append(actions, "configure the developer app OAuth redirect URL as "+defaultOpenAPIRedirectURI())
 		actions = append(actions, "dida openapi login --browser --json")
 	}
@@ -194,6 +332,7 @@ func runOpenAPIStatus(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 		return writeJSON(stdout, envelope{OK: true, Command: "openapi status", Data: data})
 	}
 	fmt.Fprintf(stdout, "OpenAPI token available: %v\n", data["token"].(map[string]any)["available"])
+	fmt.Fprintf(stdout, "OpenAPI token source: %v\n", data["token"].(map[string]any)["source"])
 	return 0
 }
 
@@ -201,10 +340,17 @@ func runOpenAPILogout(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	if err := openapi.ClearToken(); err != nil {
 		return failTyped("openapi logout", "auth", err.Error(), "", jsonOut, stdout, stderr)
 	}
+	tokenStatus := openapi.TokenStatus()
 	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "openapi logout", Data: map[string]any{"token_cleared": true}})
+		return writeJSON(stdout, envelope{OK: true, Command: "openapi logout", Data: map[string]any{
+			"token_cleared": true,
+			"token_status":  tokenStatus,
+		}})
 	}
-	fmt.Fprintln(stdout, "OpenAPI token cleared.")
+	fmt.Fprintln(stdout, "Saved OpenAPI OAuth token cleared.")
+	if tokenStatus["source"] == "env" {
+		fmt.Fprintln(stdout, "DIDA365_OPENAPI_TOKEN remains active for this process.")
+	}
 	return 0
 }
 
@@ -463,11 +609,11 @@ func runOpenAPIProject(args []string, jsonOut bool, stdout io.Writer, stderr io.
 	if handled, code := runOpenAPIProjectDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
 	}
-	token, err := openapi.LoadToken()
+	accessToken, _, err := openapi.LoadAccessToken()
 	if err != nil {
-		return failTyped("openapi project "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
+		return failTyped("openapi project "+args[0], "auth", err.Error(), "set DIDA365_OPENAPI_TOKEN or run dida openapi login", jsonOut, stdout, stderr)
 	}
-	client := openapi.NewClient(token.AccessToken)
+	client := openapi.NewClient(accessToken)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -596,11 +742,11 @@ func runOpenAPITask(args []string, jsonOut bool, stdout io.Writer, stderr io.Wri
 	if handled, code := runOpenAPITaskDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
 	}
-	token, err := openapi.LoadToken()
+	accessToken, _, err := openapi.LoadAccessToken()
 	if err != nil {
-		return failTyped("openapi task "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
+		return failTyped("openapi task "+args[0], "auth", err.Error(), "set DIDA365_OPENAPI_TOKEN or run dida openapi login", jsonOut, stdout, stderr)
 	}
-	client := openapi.NewClient(token.AccessToken)
+	client := openapi.NewClient(accessToken)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -743,11 +889,11 @@ func runOpenAPIFocus(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 		}
 		return writeJSON(stdout, envelope{OK: true, Command: "openapi focus delete", Data: map[string]any{"dry_run": true, "focus_id": focusID, "type": focusType}})
 	}
-	token, err := openapi.LoadToken()
+	accessToken, _, err := openapi.LoadAccessToken()
 	if err != nil {
-		return failTyped("openapi focus "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
+		return failTyped("openapi focus "+args[0], "auth", err.Error(), "set DIDA365_OPENAPI_TOKEN or run dida openapi login", jsonOut, stdout, stderr)
 	}
-	client := openapi.NewClient(token.AccessToken)
+	client := openapi.NewClient(accessToken)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -817,11 +963,11 @@ func runOpenAPIHabit(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if handled, code := runOpenAPIHabitDryRun(args, jsonOut, stdout, stderr); handled {
 		return code
 	}
-	token, err := openapi.LoadToken()
+	accessToken, _, err := openapi.LoadAccessToken()
 	if err != nil {
-		return failTyped("openapi habit "+args[0], "auth", err.Error(), "run: dida openapi login first", jsonOut, stdout, stderr)
+		return failTyped("openapi habit "+args[0], "auth", err.Error(), "set DIDA365_OPENAPI_TOKEN or run dida openapi login", jsonOut, stdout, stderr)
 	}
-	client := openapi.NewClient(token.AccessToken)
+	client := openapi.NewClient(accessToken)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 

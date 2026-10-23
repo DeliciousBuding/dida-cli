@@ -24,7 +24,8 @@ in DidaCLI.
 - Strengths:
   - officially exposed
   - typed tool schemas
-  - clean resource domains for task/project/habit/focus
+  - 57 live tools covering task/project/habit/focus plus comments, assignment,
+    tags, project groups/columns, countdowns, and calendar reads
   - batch operations and focus/habit write support
 - Weaknesses:
   - smaller surface than Web API
@@ -36,18 +37,20 @@ first-class commands.
 
 ## Channel 3: Official OpenAPI
 
-- Auth: OAuth access token
+- Auth: personal API token or OAuth access token
 - Base: `https://api.dida365.com/open/v1`
-- Current role: official OAuth REST channel for project/task/focus/habit
-  resources
+- Current role: official OAuth REST channel with first-class
+  project/task/focus/habit wrappers and constrained generic access to expanded
+  tag/countdown/comment/calendar resources
 - Strengths:
   - documented REST contract
   - clearer public semantics than private Web API
-  - first-class DidaCLI wrappers exist for OAuth setup plus project, task,
-    focus, and habit resources
+  - first-class DidaCLI wrappers exist for personal-token use and OAuth setup
+    plus project, task, focus, and habit resources
 - Weaknesses:
-  - requires OAuth authorization-code flow
-  - live resource smokes require a completed browser OAuth approval and saved
+  - personal-token use and OAuth authorization have different setup and
+    lifecycle semantics
+  - live OAuth resource smokes require a completed browser approval and saved
     access token
   - not directly usable with the official MCP `dp_...` token
   - narrower than the private Web API
@@ -71,8 +74,8 @@ run:
 | Normal task reads and writes | Web API `task ...` | Best coverage for the web app's current task model, including compact reads and dry-run previews. | Official MCP task wrappers when the operator has `DIDA365_TOKEN` and wants official token auth. |
 | Project discovery | Web API `project list` | Fast and already part of the sync-derived model. | Official MCP `official project list` or OpenAPI `openapi project list` when validating official channels. |
 | Habit and focus reads | Official MCP or OpenAPI | These are first-class official domains and should not be reverse-engineered from private Web API unless official coverage is missing. | Web API `habit ...` / `pomo ...` reads for account settings and web-app-only views. |
-| OAuth REST validation | Official OpenAPI | Only OpenAPI verifies the public OAuth REST contract. | None; MCP `dp_...` tokens and Web API cookies are different auth models. |
-| Web-app-only metadata | Web API | Settings, comments, sharing, calendar, templates, stats, trash, closed history, and search are not covered by current official channels. | Raw read-only probes when a first-class command is not ready. |
+| Public OpenAPI validation | Official OpenAPI | Only OpenAPI verifies the documented public REST contract. | None; MCP `dp_...` tokens and Web API cookies are different auth models. |
+| Web-app-only metadata | Web API | Broad settings, sharing, templates, stats, trash, closed history, and some calendar/session metadata remain broader on the Web API. | Raw read-only probes when a first-class command is not ready. |
 | Unknown private write flow | No command yet | New private writes need endpoint, payload, response, rollback, and live evidence before promotion. | Keep evidence in `docs/research/webapi-probe-log.md` and use `raw get` only for read-only checks. |
 
 ## Do Not Mix
@@ -80,7 +83,8 @@ run:
 - Do not send the Web API cookie `t` to Official MCP or OpenAPI commands.
 - Do not send the Official MCP `DIDA365_TOKEN` / `dp_...` token to Web API or
   OpenAPI commands.
-- Do not treat an OpenAPI OAuth access token as a browser cookie or MCP token.
+- Do not treat an OpenAPI personal token or OAuth access token as a browser
+  cookie or MCP token.
 - Do not implement a new first-class command only because `official call` or a
   private endpoint can technically reach it; first-class commands need a stable
   job, documented safety behavior, and tests.

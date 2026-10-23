@@ -5,6 +5,7 @@
 适用场景：
 
 - 在 Dida365 开发者后台创建或配置应用
+- 使用个人 API Token，不注册 OAuth 应用
 - 把 `client_id` 和 `client_secret` 保存到本机供 DidaCLI 使用
 - 正确配置 OAuth `redirect_uri`
 - 完成一次 OAuth 登录，并在后续复用本地保存的 access token
@@ -13,6 +14,23 @@
 
 - Web API cookie 通道
 - 官方 MCP 的 `DIDA365_TOKEN` 通道
+
+## 快速开始：个人 API Token
+
+滴答清单官方 OpenAPI 文档现在支持用个人 API Token 做单账号自动化。在网页版
+**设置 > 账户 > API Token** 创建后，只把它注入当前进程：
+
+```bash
+export DIDA365_OPENAPI_TOKEN='<personal-api-token>'
+dida openapi status --json
+dida openapi project list --json
+```
+
+PowerShell 使用：`$env:DIDA365_OPENAPI_TOKEN = '<personal-api-token>'`。
+
+该 Token 作为 OpenAPI Bearer Token 使用，并与 MCP 的 `DIDA365_TOKEN`
+分开，不要交叉复用。需要多用户应用、OAuth scope 或刷新令牌时，继续使用下面的
+OAuth 流程。
 
 ## 你需要准备什么
 
@@ -139,6 +157,9 @@ dida openapi exchange-code --code <code> --json
 ```bash
 dida openapi status --json
 ```
+
+`source: "env"` 表示当前使用 `DIDA365_OPENAPI_TOKEN`；
+`source: "oauth"` 表示当前使用本地保存的 OAuth Token。
 
 再做一次真实 API 读取：
 

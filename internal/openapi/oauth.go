@@ -197,6 +197,17 @@ func LoadToken() (*TokenResponse, error) {
 	return &out, nil
 }
 
+func LoadAccessToken() (string, string, error) {
+	if value := strings.TrimSpace(os.Getenv("DIDA365_OPENAPI_TOKEN")); value != "" {
+		return value, "env", nil
+	}
+	token, err := LoadToken()
+	if err != nil {
+		return "", "", err
+	}
+	return token.AccessToken, "oauth", nil
+}
+
 func ClearToken() error {
 	store := auth.NewTokenStore(TokenPath())
 	return store.Clear()
@@ -204,13 +215,21 @@ func ClearToken() error {
 
 func TokenStatus() map[string]any {
 	status := map[string]any{}
+	if value := strings.TrimSpace(os.Getenv("DIDA365_OPENAPI_TOKEN")); value != "" {
+		status["available"] = true
+		status["source"] = "env"
+		status["token_preview"] = redactToken(value)
+		return status
+	}
 	token, err := LoadToken()
 	if err != nil {
 		status["available"] = false
+		status["source"] = "missing"
 		status["message"] = "missing"
 		return status
 	}
 	status["available"] = true
+	status["source"] = "oauth"
 	status["token_type"] = token.TokenType
 	status["scope"] = token.Scope
 	status["created_at"] = time.Unix(token.CreatedAt, 0).Format(time.RFC3339)

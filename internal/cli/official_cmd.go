@@ -140,6 +140,8 @@ func runOfficialDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 	data := map[string]any{
 		"url":             client.URL,
 		"sessionId":       client.SessionID,
+		"protocolVersion": client.ProtocolVersion,
+		"transport":       officialTransport(client),
 		"toolCount":       len(tools),
 		"sampleToolNames": names,
 	}
@@ -147,8 +149,16 @@ func runOfficialDoctor(jsonOut bool, stdout io.Writer, stderr io.Writer) int {
 		return writeJSON(stdout, envelope{OK: true, Command: "official doctor", Data: data})
 	}
 	fmt.Fprintf(stdout, "Official MCP URL: %s\n", client.URL)
+	fmt.Fprintf(stdout, "Protocol: %s (%s)\n", client.ProtocolVersion, officialTransport(client))
 	fmt.Fprintf(stdout, "Tool count: %d\n", len(tools))
 	return 0
+}
+
+func officialTransport(client *officialmcp.Client) string {
+	if client.Stateless {
+		return "stateless"
+	}
+	return "legacy-session"
 }
 
 func runOfficialTools(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
@@ -177,7 +187,14 @@ func runOfficialTools(args []string, jsonOut bool, stdout io.Writer, stderr io.W
 	if limit > 0 && len(tools) > limit {
 		tools = tools[:limit]
 	}
-	meta := map[string]any{"count": len(tools), "total": total, "limit": limit, "compact": !full}
+	meta := map[string]any{
+		"count":      len(tools),
+		"total":      total,
+		"limit":      limit,
+		"compact":    !full,
+		"cacheScope": client.ToolListCacheScope,
+		"ttlMs":      client.ToolListTTLMs,
+	}
 	data := map[string]any{"tools": tools}
 	if jsonOut {
 		return writeJSON(stdout, envelope{OK: true, Command: "official tools", Meta: meta, Data: data})
@@ -211,10 +228,40 @@ func runOfficialShow(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	return 0
 }
 
+type officialCallOptions struct {
+	Tool    string
+	Payload map[string]any
+	DryRun  bool
+	Yes     bool
+}
+
 func runOfficialCall(args []string, jsonOut bool, stdout io.Writer, stderr io.Writer) int {
-	tool, payload, err := parseOfficialCallFlags(args)
+	if len(args) == 0 || hasHelpFlag(args) {
+		printOfficialHelp(stdout)
+		return 0
+	}
+	options, err := parseOfficialCallFlags(args)
 	if err != nil {
 		return failTyped("official call", "validation", err.Error(), "run: dida official --help", jsonOut, stdout, stderr)
+	}
+	if options.DryRun {
+		return writeJSON(stdout, envelope{OK: true, Command: "official call", Data: map[string]any{
+			"dry_run":        true,
+			"tool":           options.Tool,
+			"arguments":      options.Payload,
+			"read_only_tool": isOfficialReadTool(options.Tool),
+		}})
+	}
+	if !isOfficialReadTool(options.Tool) && !options.Yes {
+		return failTyped(
+			"official call",
+			"confirmation_required",
+			fmt.Sprintf("official call %s requires --yes", options.Tool),
+			"preview with --dry-run first; new or unrecognized tools are treated as writes",
+			jsonOut,
+			stdout,
+			stderr,
+		)
 	}
 	token, err := officialmcp.ResolveToken("")
 	if err != nil {
@@ -226,12 +273,12 @@ func runOfficialCall(args []string, jsonOut bool, stdout io.Writer, stderr io.Wr
 	if err := client.Initialize(ctx, "dida-cli", "0.1.0"); err != nil {
 		return failTyped("official call", "api", err.Error(), "", jsonOut, stdout, stderr)
 	}
-	result, err := client.CallTool(ctx, tool, payload)
+	result, err := client.CallTool(ctx, options.Tool, options.Payload)
 	if err != nil {
 		return failTyped("official call", "api", err.Error(), "", jsonOut, stdout, stderr)
 	}
 	if jsonOut {
-		return writeJSON(stdout, envelope{OK: true, Command: "official call", Data: map[string]any{"tool": tool, "result": result}})
+		return writeJSON(stdout, envelope{OK: true, Command: "official call", Data: map[string]any{"tool": options.Tool, "result": result}})
 	}
 	return writeJSON(stdout, result)
 }
@@ -260,16 +307,22 @@ func parseOfficialToolsFlags(args []string) (int, bool, error) {
 	return limit, full, nil
 }
 
-func parseOfficialCallFlags(args []string) (string, map[string]any, error) {
+func parseOfficialCallFlags(args []string) (officialCallOptions, error) {
 	if len(args) == 0 {
-		return "", nil, fmt.Errorf("usage: dida official call <tool-name> [--args-json <json>] [--args-file <file>]")
+		return officialCallOptions{}, fmt.Errorf("usage: dida official call <tool-name> [--args-json <json>] [--args-file <file>] [--dry-run|--yes]")
 	}
-	tool := args[0]
-	payload, err := parseOfficialPayloadFlags(args[1:])
+	payloadArgs, dryRun, confirmed, err := parseOfficialPayloadCallFlags(args[1:])
 	if err != nil {
-		return "", nil, err
+		return officialCallOptions{}, err
 	}
-	return tool, payload, nil
+	if dryRun && confirmed {
+		return officialCallOptions{}, fmt.Errorf("--dry-run and --yes are mutually exclusive")
+	}
+	payload, err := parseOfficialPayloadFlags(payloadArgs)
+	if err != nil {
+		return officialCallOptions{}, err
+	}
+	return officialCallOptions{Tool: args[0], Payload: payload, DryRun: dryRun, Yes: confirmed}, nil
 }
 
 func parseOfficialPayloadFlags(args []string) (map[string]any, error) {
@@ -303,15 +356,30 @@ func parseOfficialPayloadFlags(args []string) (map[string]any, error) {
 	return payload, nil
 }
 
-func parseOfficialPayloadWriteFlags(args []string) (map[string]any, bool, error) {
+func parseOfficialPayloadCallFlags(args []string) ([]string, bool, bool, error) {
 	dryRun := false
+	confirmed := false
 	payloadArgs := make([]string, 0, len(args))
 	for _, arg := range args {
-		if arg == "--dry-run" {
+		switch arg {
+		case "--dry-run":
 			dryRun = true
-			continue
+		case "--yes":
+			confirmed = true
+		default:
+			payloadArgs = append(payloadArgs, arg)
 		}
-		payloadArgs = append(payloadArgs, arg)
+	}
+	return payloadArgs, dryRun, confirmed, nil
+}
+
+func parseOfficialPayloadWriteFlags(args []string) (map[string]any, bool, error) {
+	payloadArgs, dryRun, confirmed, err := parseOfficialPayloadCallFlags(args)
+	if err != nil {
+		return nil, false, err
+	}
+	if confirmed {
+		return nil, false, fmt.Errorf("--yes is not supported here")
 	}
 	payload, err := parseOfficialPayloadFlags(payloadArgs)
 	if err != nil {
@@ -320,11 +388,47 @@ func parseOfficialPayloadWriteFlags(args []string) (map[string]any, bool, error)
 	return payload, dryRun, nil
 }
 
+func isOfficialReadTool(name string) bool {
+	switch name {
+	case "list_projects",
+		"get_project_by_id",
+		"get_project_with_undone_tasks",
+		"list_project_members",
+		"list_project_groups",
+		"list_columns",
+		"get_task_by_id",
+		"get_task_in_project",
+		"search_task",
+		"list_undone_tasks_by_time_query",
+		"list_undone_tasks_by_date",
+		"filter_tasks",
+		"list_completed_tasks_by_date",
+		"search",
+		"fetch",
+		"get_comment",
+		"list_tags",
+		"list_countdowns",
+		"list_calendar_accounts",
+		"query_calendar_events",
+		"list_habits",
+		"list_habit_sections",
+		"get_habit",
+		"get_habit_checkins",
+		"get_focus",
+		"get_focuses_by_time",
+		"get_user_preference":
+		return true
+	default:
+		return false
+	}
+}
+
 func compactOfficialTools(tools []officialmcp.Tool) []officialmcp.Tool {
 	out := make([]officialmcp.Tool, 0, len(tools))
 	for _, tool := range tools {
 		compact := officialmcp.Tool{
 			Name:        tool.Name,
+			Title:       tool.Title,
 			Description: tool.Description,
 		}
 		if len(tool.Annotations) > 0 {
